@@ -1,0 +1,67 @@
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from '../middleware/auth.middleware.js';
+import { contactsService } from '../services/contacts.service.js';
+
+export const contactsController = {
+  async list(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await contactsService.list(req.userId!, req.query as any);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
+  async get(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const contact = await contactsService.get(req.userId!, req.params.id);
+      res.json(contact);
+    } catch (err) { next(err); }
+  },
+
+  async create(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const contact = await contactsService.create(req.userId!, req.body);
+      res.status(201).json(contact);
+    } catch (err) { next(err); }
+  },
+
+  async update(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const contact = await contactsService.update(req.userId!, req.params.id, req.body);
+      res.json(contact);
+    } catch (err) { next(err); }
+  },
+
+  async delete(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      await contactsService.delete(req.userId!, req.params.id);
+      res.status(204).send();
+    } catch (err) { next(err); }
+  },
+
+  async importCsv(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const file = req.file;
+      if (!file) {
+        res.status(400).json({ error: 'No file uploaded' });
+        return;
+      }
+      const columnMapping = JSON.parse(req.body.columnMapping || '{}');
+      const result = await contactsService.importCsv(req.userId!, file.path, columnMapping);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
+  async bulkTag(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      await contactsService.bulkTag(req.userId!, req.body.contact_ids, req.body.tag_ids);
+      res.status(204).send();
+    } catch (err) { next(err); }
+  },
+
+  async bulkUntag(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      await contactsService.bulkUntag(req.userId!, req.body.contact_ids, req.body.tag_ids);
+      res.status(204).send();
+    } catch (err) { next(err); }
+  },
+};

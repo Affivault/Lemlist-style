@@ -1,0 +1,204 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { campaignsApi } from '../../api/campaigns.api';
+import { Spinner } from '../../components/ui/Spinner';
+import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { StatusBadge } from '../../components/shared/StatusBadge';
+import { formatDate } from '../../lib/utils';
+import { Zap, Plus, Send, Mail, MousePointerClick, MessageSquare } from 'lucide-react';
+import toast from 'react-hot-toast';
+import type { CampaignWithStats, CampaignStatus } from '@lemlist/shared';
+import { DEFAULT_PAGE_SIZE } from '../../lib/constants';
+
+const STATUS_TABS = [
+  { label: 'All', value: '' },
+  { label: 'Draft', value: 'draft' },
+  { label: 'Running', value: 'running' },
+  { label: 'Paused', value: 'paused' },
+  { label: 'Completed', value: 'completed' },
+];
+
+export function CampaignsListPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['campaigns', page, statusFilter],
+    queryFn: () =>
+      campaignsApi.list({
+        page,
+        limit: DEFAULT_PAGE_SIZE,
+        status: statusFilter || undefined,
+      }),
+  });
+
+  const launchMutation = useMutation({
+    mutationFn: campaignsApi.launch,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campaign launched');
+    },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to launch'),
+  });
+
+  const pauseMutation = useMutation({
+    mutationFn: campaignsApi.pause,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campaign paused');
+    },
+  });
+
+  const resumeMutation = useMutation({
+    mutationFn: campaignsApi.resume,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campaign resumed');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: campaignsApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campaign deleted');
+    },
+  });
+
+  const campaigns = data?.data || [];
+  const totalPages = data?.total_pages || 1;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
+        <Button onClick={() => navigate('/campaigns/new')}>
+          <Plus className="h-4 w-4" />
+          New Campaign
+        </Button>
+      </div>
+
+      {/* Status filter tabs */}
+      <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+        {STATUS_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => { setStatusFilter(tab.value); setPage(1); }}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              statusFilter === tab.value
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {campaigns.length === 0 ? (
+        <EmptyState
+          icon={Zap}
+          title="No campaigns"
+          description="Create your first email campaign to start reaching out."
+          actionLabel="New Campaign"
+          onAction={() => navigate('/campaigns/new')}
+        />
+      ) : (
+        <>
+          <div className="grid gap-4">
+            {campaigns.map((campaign: CampaignWithStats) => (
+              <div
+                key={campaign.id}
+                className="card cursor-pointer p-5 transition-shadow hover:shadow-md"
+                onClick={() => navigate(`/campaigns/${campaign.id}`)}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
+                      <StatusBadge status={campaign.status} type="campaign" />
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {campaign.steps_count} steps &middot; {campaign.contacts_count} contacts &middot; Created {formatDate(campaign.created_at)}
+                    </p>
+                  </div>
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    {campaign.status === 'draft' && (
+                      <>
+                        <Button size="sm" onClick={() => launchMutation.mutate(campaign.id)}>
+                          Launch
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
+                        >
+                          Edit
+                        </Button>
+                      </>
+                    )}
+                    {campaign.status === 'running' && (
+                      <Button variant="secondary" size="sm" onClick={() => pauseMutation.mutate(campaign.id)}>
+                        Pause
+                      </Button>
+                    )}
+                    {campaign.status === 'paused' && (
+                      <Button size="sm" onClick={() => resumeMutation.mutate(campaign.id)}>
+                        Resume
+                      </Button>
+                    )}
+                    {(campaign.status === 'draft' || campaign.status === 'completed' || campaign.status === 'cancelled') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm('Delete this campaign?')) deleteMutation.mutate(campaign.id);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stats row */}
+                {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
+                  <div className="mt-3 flex gap-6 text-sm text-gray-500">
+                    <span className="flex items-center gap-1"><Send className="h-3.5 w-3.5" /> {campaign.sent_count} sent</span>
+                    <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {campaign.opened_count} opened</span>
+                    <span className="flex items-center gap-1"><MousePointerClick className="h-3.5 w-3.5" /> {campaign.clicked_count} clicked</span>
+                    <span className="flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" /> {campaign.replied_count} replied</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                Previous
+              </Button>
+              <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
+              <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                Next
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
