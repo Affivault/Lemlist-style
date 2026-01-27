@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Zap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { SkySendLogo } from '../../components/SkySendLogo';
 import toast from 'react-hot-toast';
 
 export function SignupPage() {
@@ -42,9 +42,9 @@ export function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mb-4 flex items-center justify-center gap-2">
-            <Zap className="h-8 w-8 text-primary-600" />
-            <span className="text-2xl font-bold text-gray-900">Outreach</span>
+          <div className="mb-4 flex items-center justify-center gap-2.5">
+            <SkySendLogo className="h-9 w-9" />
+            <span className="text-2xl font-bold text-gray-900">SkySend</span>
           </div>
           <p className="text-gray-500">Create your account</p>
         </div>

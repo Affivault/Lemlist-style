@@ -7,12 +7,12 @@ import {
   BarChart3,
   Inbox,
   Settings,
-  Zap,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { SkySendLogo } from '../SkySendLogo';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Campaigns', href: '/campaigns', icon: Send },
   { name: 'Inbox', href: '/inbox', icon: Inbox },
@@ -24,9 +24,9 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6">
-        <Zap className="h-6 w-6 text-primary-600" />
-        <span className="text-lg font-bold text-gray-900">Outreach</span>
+      <div className="flex h-16 items-center gap-2.5 border-b border-gray-200 px-6">
+        <SkySendLogo className="h-7 w-7" />
+        <span className="text-lg font-bold text-gray-900">SkySend</span>
       </div>
 
       {/* Navigation */}
@@ -35,7 +35,7 @@ export function Sidebar() {
           <NavLink
             key={item.name}
             to={item.href}
-            end={item.href === '/'}
+            end={item.href === '/dashboard'}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',

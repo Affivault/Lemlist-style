@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
+import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { SignupPage } from './pages/auth/SignupPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
@@ -43,7 +44,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -52,29 +53,31 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public landing page */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* Auth routes */}
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
 
-      {/* Protected routes */}
+      {/* Protected app routes */}
       <Route
-        path="/"
         element={
           <ProtectedRoute>
             <AppLayout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<DashboardPage />} />
-        <Route path="contacts" element={<ContactsListPage />} />
-        <Route path="contacts/:id" element={<ContactDetailPage />} />
-        <Route path="campaigns" element={<CampaignsListPage />} />
-        <Route path="campaigns/new" element={<CampaignCreatePage />} />
-        <Route path="campaigns/:id" element={<CampaignDetailPage />} />
-        <Route path="campaigns/:id/edit" element={<CampaignCreatePage />} />
-        <Route path="smtp-accounts" element={<SmtpAccountsPage />} />
-        <Route path="analytics" element={<AnalyticsDashboardPage />} />
-        <Route path="inbox" element={<InboxPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/contacts" element={<ContactsListPage />} />
+        <Route path="/contacts/:id" element={<ContactDetailPage />} />
+        <Route path="/campaigns" element={<CampaignsListPage />} />
+        <Route path="/campaigns/new" element={<CampaignCreatePage />} />
+        <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+        <Route path="/campaigns/:id/edit" element={<CampaignCreatePage />} />
+        <Route path="/smtp-accounts" element={<SmtpAccountsPage />} />
+        <Route path="/analytics" element={<AnalyticsDashboardPage />} />
+        <Route path="/inbox" element={<InboxPage />} />
       </Route>
 
       {/* Catch-all */}
