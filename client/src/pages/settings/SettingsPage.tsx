@@ -294,18 +294,6 @@ export function SettingsPage() {
                       </div>
                       <Button variant="secondary" size="sm">Connect</Button>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <svg className="h-6 w-6" viewBox="0 0 23 23">
-                          <path fill="#f35325" d="M1 1h10v10H1z" />
-                          <path fill="#81bc06" d="M12 1h10v10H12z" />
-                          <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                          <path fill="#ffba08" d="M12 12h10v10H12z" />
-                        </svg>
-                        <span className="font-medium text-gray-900">Microsoft</span>
-                      </div>
-                      <Button variant="secondary" size="sm">Connect</Button>
-                    </div>
                   </div>
                 </div>
 
