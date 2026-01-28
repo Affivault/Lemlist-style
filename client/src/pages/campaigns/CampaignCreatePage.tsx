@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignsApi } from '../../api/campaigns.api';
@@ -9,18 +9,25 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Modal } from '../../components/ui/Modal';
-import { Badge } from '../../components/ui/Badge';
+import { FlowBuilder } from '../../components/campaigns/FlowBuilder';
+import { PersonalizationDropdown } from '../../components/campaigns/PersonalizationDropdown';
+import type { FlowStep } from '../../components/campaigns/FlowBuilder';
 import {
   ArrowLeft,
-  Plus,
-  Trash2,
-  GripVertical,
   Mail,
   Clock,
   Save,
-  Rocket,
   Users,
   Check,
+  Settings,
+  Layers,
+  UserPlus,
+  CheckCircle2,
+  Search,
+  Building2,
+  ChevronRight,
+  Sparkles,
+  SkipForward,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { StepType } from '@lemlist/shared';
@@ -33,6 +40,13 @@ import type {
 } from '@lemlist/shared';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const WIZARD_STEPS = [
+  { label: 'Settings', icon: Settings, description: 'Campaign configuration' },
+  { label: 'Sequence', icon: Layers, description: 'Build email flow' },
+  { label: 'Contacts', icon: Users, description: 'Select recipients' },
+];
 
 export function CampaignCreatePage() {
   const { id } = useParams<{ id: string }>();
@@ -40,7 +54,6 @@ export function CampaignCreatePage() {
   const queryClient = useQueryClient();
   const isEdit = !!id;
 
-  // Campaign form state
   const [campaignForm, setCampaignForm] = useState<CreateCampaignInput>({
     name: '',
     timezone: 'UTC',
@@ -49,19 +62,17 @@ export function CampaignCreatePage() {
     send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
   });
 
-  // Steps state
-  const [steps, setSteps] = useState<Array<CreateStepInput & { id?: string }>>([]);
+  const [steps, setSteps] = useState<FlowStep[]>([]);
   const [editingStep, setEditingStep] = useState<number | null>(null);
-
-  // Contact selection
   const [showContactModal, setShowContactModal] = useState(false);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [contactSearch, setContactSearch] = useState('');
-
-  // Current wizard step
   const [wizardStep, setWizardStep] = useState(0);
 
-  // Load existing campaign for edit
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const [activeField, setActiveField] = useState<'subject' | 'body'>('body');
+
   const { data: existingCampaign, isLoading: loadingCampaign } = useQuery({
     queryKey: ['campaigns', id],
     queryFn: () => campaignsApi.get(id!),
@@ -125,7 +136,6 @@ export function CampaignCreatePage() {
     onSuccess: async (campaign) => {
       const campaignId = isEdit ? id! : campaign.id;
 
-      // Save steps
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
         const stepData = { ...step, step_order: i };
@@ -136,7 +146,6 @@ export function CampaignCreatePage() {
         }
       }
 
-      // Add contacts
       if (selectedContactIds.length > 0) {
         await campaignsApi.addContacts(campaignId, selectedContactIds);
       }
@@ -148,48 +157,66 @@ export function CampaignCreatePage() {
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to save'),
   });
 
-  const addStep = (type: StepType) => {
-    const newStep: CreateStepInput = {
-      step_type: type,
-      step_order: steps.length,
-      subject: type === StepType.Email ? '' : undefined,
-      body_html: type === StepType.Email ? '' : undefined,
-      delay_days: type === StepType.Delay ? 1 : 0,
-      delay_hours: 0,
-      delay_minutes: 0,
-      skip_if_replied: true,
-    };
-    setSteps([...steps, newStep]);
-    if (type === StepType.Email) setEditingStep(steps.length);
-  };
-
   const updateStep = (index: number, updates: Partial<CreateStepInput>) => {
     setSteps(steps.map((s, i) => (i === index ? { ...s, ...updates } : s)));
   };
 
-  const removeStep = (index: number) => {
-    setSteps(steps.filter((_, i) => i !== index));
-    if (editingStep === index) setEditingStep(null);
-  };
-
   const toggleContact = (contactId: string) => {
     setSelectedContactIds((prev) =>
-      prev.includes(contactId) ? prev.filter((id) => id !== contactId) : [...prev, contactId]
+      prev.includes(contactId) ? prev.filter((cid) => cid !== contactId) : [...prev, contactId]
     );
   };
 
   const handleSave = () => {
     if (!campaignForm.name) {
       toast.error('Campaign name is required');
+      setWizardStep(0);
       return;
     }
     createCampaignMutation.mutate(campaignForm);
   };
 
+  const insertPersonalization = (tag: string) => {
+    if (editingStep === null) return;
+    const step = steps[editingStep];
+    if (!step || step.step_type !== 'email') return;
+
+    if (activeField === 'subject') {
+      const input = subjectRef.current;
+      if (input) {
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        const current = step.subject || '';
+        const newValue = current.slice(0, start) + tag + current.slice(end);
+        updateStep(editingStep, { subject: newValue });
+        setTimeout(() => {
+          input.selectionStart = input.selectionEnd = start + tag.length;
+          input.focus();
+        }, 0);
+      }
+    } else {
+      const textarea = bodyRef.current;
+      if (textarea) {
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const current = step.body_html || '';
+        const newValue = current.slice(0, start) + tag + current.slice(end);
+        updateStep(editingStep, { body_html: newValue });
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+          textarea.focus();
+        }, 0);
+      }
+    }
+  };
+
   if (isEdit && loadingCampaign) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-sm text-gray-500">Loading campaign...</p>
+        </div>
       </div>
     );
   }
@@ -197,286 +224,323 @@ export function CampaignCreatePage() {
   const contacts = contactsData?.data || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/campaigns')}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Campaigns
         </button>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={handleSave} disabled={createCampaignMutation.isPending}>
-            <Save className="h-4 w-4" />
-            {createCampaignMutation.isPending ? 'Saving...' : 'Save Draft'}
-          </Button>
-        </div>
+        <Button
+          variant="secondary"
+          onClick={handleSave}
+          disabled={createCampaignMutation.isPending}
+        >
+          <Save className="h-4 w-4" />
+          {createCampaignMutation.isPending ? 'Saving...' : 'Save Draft'}
+        </Button>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900">
-        {isEdit ? 'Edit Campaign' : 'New Campaign'}
+      <h1 className="text-3xl font-bold text-gray-900">
+        {isEdit ? 'Edit Campaign' : 'Create Campaign'}
       </h1>
 
       {/* Wizard Steps */}
-      <div className="flex gap-2">
-        {['Settings', 'Sequence', 'Contacts'].map((label, i) => (
-          <button
-            key={label}
-            onClick={() => setWizardStep(i)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              wizardStep === i
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
-              {i + 1}
-            </span>
-            {label}
-          </button>
-        ))}
+      <div className="flex gap-3">
+        {WIZARD_STEPS.map((ws, i) => {
+          const StepIcon = ws.icon;
+          return (
+            <button
+              key={ws.label}
+              onClick={() => setWizardStep(i)}
+              className={`flex-1 flex items-center gap-3 rounded-xl px-5 py-4 text-left transition-all duration-200 ${
+                wizardStep === i
+                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                  : i < wizardStep
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-emerald-100' : 'bg-gray-100'
+              }`}>
+                {i < wizardStep ? <CheckCircle2 className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Step {i + 1}: {ws.label}</p>
+                <p className={`text-xs ${wizardStep === i ? 'text-white/70' : 'text-gray-400'}`}>{ws.description}</p>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Step 1: Campaign Settings */}
       {wizardStep === 0 && (
-        <div className="card space-y-4 p-6">
-          <h2 className="text-lg font-semibold text-gray-900">Campaign Settings</h2>
-          <Input
-            label="Campaign Name"
-            value={campaignForm.name}
-            onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
-            required
-          />
-          <Select
-            label="SMTP Account"
-            value={campaignForm.smtp_account_id || ''}
-            onChange={(e) => setCampaignForm({ ...campaignForm, smtp_account_id: e.target.value || undefined })}
-            options={[
-              { value: '', label: 'Select an account...' },
-              ...(smtpAccounts || []).map((a: SmtpAccount) => ({
-                value: a.id,
-                label: `${a.label} (${a.email_address})`,
-              })),
-            ]}
-          />
-          <Input
-            label="Timezone"
-            value={campaignForm.timezone || 'UTC'}
-            onChange={(e) => setCampaignForm({ ...campaignForm, timezone: e.target.value })}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Send Window Start"
-              type="time"
-              value={campaignForm.send_window_start || '09:00'}
-              onChange={(e) => setCampaignForm({ ...campaignForm, send_window_start: e.target.value })}
-            />
-            <Input
-              label="Send Window End"
-              type="time"
-              value={campaignForm.send_window_end || '17:00'}
-              onChange={(e) => setCampaignForm({ ...campaignForm, send_window_end: e.target.value })}
-            />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <h2 className="text-lg font-semibold text-gray-900">Campaign Settings</h2>
+            <p className="text-sm text-gray-500">Configure your campaign name, sending account, and schedule.</p>
           </div>
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Send Days</label>
-            <div className="flex flex-wrap gap-2">
-              {DAYS.map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => {
-                    const current = campaignForm.send_days || [];
-                    setCampaignForm({
-                      ...campaignForm,
-                      send_days: current.includes(day)
-                        ? current.filter((d) => d !== day)
-                        : [...current, day],
-                    });
-                  }}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
-                    (campaignForm.send_days || []).includes(day)
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {day.slice(0, 3)}
-                </button>
-              ))}
+          <div className="p-6 space-y-5">
+            <Input
+              label="Campaign Name"
+              value={campaignForm.name}
+              onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
+              placeholder="e.g., Q1 Outreach - Tech Companies"
+              required
+            />
+            <Select
+              label="Sending Account (SMTP)"
+              value={campaignForm.smtp_account_id || ''}
+              onChange={(e) => setCampaignForm({ ...campaignForm, smtp_account_id: e.target.value || undefined })}
+              options={[
+                { value: '', label: 'Select an SMTP account...' },
+                ...(smtpAccounts || []).map((a: SmtpAccount) => ({
+                  value: a.id,
+                  label: `${a.label} (${a.email_address})`,
+                })),
+              ]}
+            />
+            <div className="border-t border-gray-100 pt-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-gray-400" />
+                Sending Schedule
+              </h3>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <Input label="Timezone" value={campaignForm.timezone || 'UTC'} onChange={(e) => setCampaignForm({ ...campaignForm, timezone: e.target.value })} />
+                <Input label="Send Window Start" type="time" value={campaignForm.send_window_start || '09:00'} onChange={(e) => setCampaignForm({ ...campaignForm, send_window_start: e.target.value })} />
+                <Input label="Send Window End" type="time" value={campaignForm.send_window_end || '17:00'} onChange={(e) => setCampaignForm({ ...campaignForm, send_window_end: e.target.value })} />
+              </div>
+              <div>
+                <label className="mb-3 block text-sm font-medium text-gray-700">Active Days</label>
+                <div className="flex gap-2">
+                  {DAYS.map((day, i) => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        const current = campaignForm.send_days || [];
+                        setCampaignForm({
+                          ...campaignForm,
+                          send_days: current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
+                        });
+                      }}
+                      className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                        (campaignForm.send_days || []).includes(day)
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {DAY_LABELS[i]}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="flex justify-end pt-4">
-            <Button onClick={() => setWizardStep(1)}>Next: Sequence</Button>
+          <div className="flex justify-end p-6 border-t border-gray-100 bg-gray-50/50">
+            <Button onClick={() => setWizardStep(1)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+              Next: Build Sequence
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
         </div>
       )}
 
       {/* Step 2: Sequence Builder */}
       {wizardStep === 1 && (
-        <div className="card space-y-4 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Email Sequence</h2>
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={() => addStep(StepType.Email)}>
-                <Mail className="h-4 w-4" />
-                Add Email
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => addStep(StepType.Delay)}>
-                <Clock className="h-4 w-4" />
-                Add Delay
-              </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
+            <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Campaign Flow</h2>
+                  <p className="text-sm text-gray-500">Build your email sequence visually</p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium">
+                    <Mail className="h-3.5 w-3.5" />
+                    {steps.filter(s => s.step_type === 'email').length} Emails
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-medium">
+                    <Clock className="h-3.5 w-3.5" />
+                    {steps.filter(s => s.step_type === 'delay').length} Delays
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 bg-gray-50/30">
+              <FlowBuilder
+                steps={steps}
+                onStepsChange={setSteps}
+                onEditStep={(i) => setEditingStep(i === -1 ? null : i)}
+                editingStep={editingStep}
+              />
             </div>
           </div>
 
-          {steps.length === 0 ? (
-            <p className="py-8 text-center text-sm text-gray-400">
-              Add email and delay steps to build your sequence.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {steps.map((step, index) => (
-                <div key={index} className="rounded-lg border border-gray-200 p-4">
+          {/* Email Editor */}
+          <div className="lg:col-span-2">
+            {editingStep !== null && steps[editingStep]?.step_type === 'email' ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden sticky top-20">
+                <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 cursor-grab text-gray-400" />
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
-                        {index + 1}
-                      </span>
-                      {step.step_type === 'email' ? (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-primary-500" />
-                          <span className="font-medium text-gray-900">
-                            {step.subject || 'Untitled Email'}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-orange-500" />
-                          <span className="font-medium text-gray-900">
-                            Wait {step.delay_days || 0}d {step.delay_hours || 0}h {step.delay_minutes || 0}m
-                          </span>
-                        </div>
-                      )}
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Edit Email</h3>
+                      <p className="text-xs text-gray-500">Step {editingStep + 1}</p>
                     </div>
-                    <div className="flex gap-2">
-                      {step.step_type === 'email' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingStep(editingStep === index ? null : index)}
-                        >
-                          {editingStep === index ? 'Close' : 'Edit'}
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="sm" onClick={() => removeStep(index)}>
-                        <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                      </Button>
-                    </div>
+                    <PersonalizationDropdown onInsert={insertPersonalization} />
                   </div>
-
-                  {/* Email editor */}
-                  {step.step_type === 'email' && editingStep === index && (
-                    <div className="mt-4 space-y-3 border-t pt-4">
-                      <Input
-                        label="Subject"
-                        value={step.subject || ''}
-                        onChange={(e) => updateStep(index, { subject: e.target.value })}
-                        placeholder="Email subject line..."
+                </div>
+                <div className="p-5 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
+                    <input
+                      ref={subjectRef}
+                      type="text"
+                      value={steps[editingStep].subject || ''}
+                      onChange={(e) => updateStep(editingStep, { subject: e.target.value })}
+                      onFocus={() => setActiveField('subject')}
+                      placeholder="e.g., Quick question about {{company}}"
+                      className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">Email Body</label>
+                      <PersonalizationDropdown onInsert={insertPersonalization} variant="icon" />
+                    </div>
+                    <textarea
+                      ref={bodyRef}
+                      className="w-full min-h-[300px] rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono"
+                      value={steps[editingStep].body_html || ''}
+                      onChange={(e) => updateStep(editingStep, { body_html: e.target.value })}
+                      onFocus={() => setActiveField('body')}
+                      placeholder={`<p>Hi {{first_name}},</p>\n\n<p>I noticed that {{company}} is...</p>\n\n<p>Best,\n{{sender_name}}</p>`}
+                    />
+                  </div>
+                  <div className="border-t border-gray-100 pt-4">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={steps[editingStep].skip_if_replied !== false}
+                        onChange={(e) => updateStep(editingStep, { skip_if_replied: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">Body (HTML)</label>
-                        <textarea
-                          className="input-field min-h-[200px] font-mono text-sm"
-                          value={step.body_html || ''}
-                          onChange={(e) => updateStep(index, { body_html: e.target.value })}
-                          placeholder="<p>Hi {{first_name}},</p>..."
-                        />
-                        <p className="mt-1 text-xs text-gray-400">
-                          Use {'{{first_name}}'}, {'{{last_name}}'}, {'{{company}}'}, {'{{email}}'} for personalization.
+                        <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                          <SkipForward className="h-4 w-4 text-gray-400" />
+                          Skip if replied
                         </p>
+                        <p className="text-xs text-gray-400">Don't send if the contact already replied</p>
                       </div>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={step.skip_if_replied !== false}
-                          onChange={(e) => updateStep(index, { skip_if_replied: e.target.checked })}
-                          className="rounded"
-                        />
-                        Skip if contact already replied
-                      </label>
-                    </div>
-                  )}
-
-                  {/* Delay editor */}
-                  {step.step_type === 'delay' && (
-                    <div className="mt-3 flex gap-3">
-                      <Input
-                        label="Days"
-                        type="number"
-                        value={String(step.delay_days || 0)}
-                        onChange={(e) => updateStep(index, { delay_days: parseInt(e.target.value) || 0 })}
-                        className="w-24"
-                      />
-                      <Input
-                        label="Hours"
-                        type="number"
-                        value={String(step.delay_hours || 0)}
-                        onChange={(e) => updateStep(index, { delay_hours: parseInt(e.target.value) || 0 })}
-                        className="w-24"
-                      />
-                      <Input
-                        label="Minutes"
-                        type="number"
-                        value={String(step.delay_minutes || 0)}
-                        onChange={(e) => updateStep(index, { delay_minutes: parseInt(e.target.value) || 0 })}
-                        className="w-24"
-                      />
-                    </div>
-                  )}
+                    </label>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ) : editingStep !== null && steps[editingStep]?.step_type === 'delay' ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden sticky top-20">
+                <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white">
+                  <h3 className="font-semibold text-gray-900">Configure Delay</h3>
+                  <p className="text-xs text-gray-500">Step {editingStep + 1}</p>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1.5">Days</label>
+                      <input type="number" min="0" value={steps[editingStep].delay_days || 0} onChange={(e) => updateStep(editingStep, { delay_days: parseInt(e.target.value) || 0 })} className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-center text-lg font-semibold text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1.5">Hours</label>
+                      <input type="number" min="0" max="23" value={steps[editingStep].delay_hours || 0} onChange={(e) => updateStep(editingStep, { delay_hours: parseInt(e.target.value) || 0 })} className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-center text-lg font-semibold text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1.5">Minutes</label>
+                      <input type="number" min="0" max="59" value={steps[editingStep].delay_minutes || 0} onChange={(e) => updateStep(editingStep, { delay_minutes: parseInt(e.target.value) || 0 })} className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-center text-lg font-semibold text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                    </div>
+                  </div>
+                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                    <p className="text-sm text-amber-800"><strong>Tip:</strong> A 1-3 day delay between emails typically performs best for cold outreach.</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-8 text-center sticky top-20">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-cyan-50 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="h-7 w-7 text-indigo-500" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Step Editor</h3>
+                <p className="text-sm text-gray-400 mb-4">Click "Edit" on an email step in the flow to customize its content here.</p>
+                <p className="text-xs text-gray-300">Use the personalization dropdown to insert dynamic variables.</p>
+              </div>
+            )}
+          </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="lg:col-span-5 flex justify-between">
             <Button variant="secondary" onClick={() => setWizardStep(0)}>
+              <ArrowLeft className="h-4 w-4" />
               Back: Settings
             </Button>
-            <Button onClick={() => setWizardStep(2)}>Next: Contacts</Button>
+            <Button onClick={() => setWizardStep(2)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+              Next: Select Contacts
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
         </div>
       )}
 
       {/* Step 3: Select Contacts */}
       {wizardStep === 2 && (
-        <div className="card space-y-4 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Add Contacts ({selectedContactIds.length} selected)
-            </h2>
-            <Button variant="secondary" size="sm" onClick={() => setShowContactModal(true)}>
-              <Users className="h-4 w-4" />
-              Select Contacts
-            </Button>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Select Recipients</h2>
+                <p className="text-sm text-gray-500">Choose which contacts will receive this campaign.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-sm font-medium">
+                  <Users className="h-4 w-4" />
+                  {selectedContactIds.length} selected
+                </span>
+                <Button variant="secondary" size="sm" onClick={() => setShowContactModal(true)}>
+                  <UserPlus className="h-4 w-4" />
+                  Add Contacts
+                </Button>
+              </div>
+            </div>
           </div>
-
-          {selectedContactIds.length === 0 ? (
-            <p className="py-8 text-center text-sm text-gray-400">
-              No contacts selected. Click "Select Contacts" to add people to this campaign.
-            </p>
-          ) : (
-            <p className="text-sm text-gray-500">
-              {selectedContactIds.length} contacts will receive this campaign.
-            </p>
-          )}
-
-          <div className="flex justify-between pt-4">
+          <div className="p-6">
+            {selectedContactIds.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-cyan-50 flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-8 w-8 text-indigo-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No contacts selected</h3>
+                <p className="text-gray-500 mb-6">Click "Add Contacts" to choose people who will receive this campaign.</p>
+                <Button onClick={() => setShowContactModal(true)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+                  <UserPlus className="h-4 w-4" />
+                  Select Contacts
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
+                <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
+                <p className="text-lg font-semibold text-emerald-900">{selectedContactIds.length} contacts ready</p>
+                <p className="text-sm text-emerald-600 mt-1">These contacts will receive all {steps.filter(s => s.step_type === 'email').length} emails in your sequence.</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between p-6 border-t border-gray-100 bg-gray-50/50">
             <Button variant="secondary" onClick={() => setWizardStep(1)}>
+              <ArrowLeft className="h-4 w-4" />
               Back: Sequence
             </Button>
-            <Button onClick={handleSave} disabled={createCampaignMutation.isPending}>
+            <Button onClick={handleSave} disabled={createCampaignMutation.isPending} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
               <Save className="h-4 w-4" />
               {createCampaignMutation.isPending ? 'Saving...' : 'Save Campaign'}
             </Button>
@@ -487,38 +551,36 @@ export function CampaignCreatePage() {
       {/* Contact Selection Modal */}
       <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Select Contacts" size="lg">
         <div className="space-y-4">
-          <Input
-            placeholder="Search contacts..."
-            value={contactSearch}
-            onChange={(e) => setContactSearch(e.target.value)}
-          />
-          <div className="max-h-96 overflow-y-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all" />
+          </div>
+          <div className="max-h-[400px] overflow-y-auto rounded-xl border border-gray-100">
             {contacts.map((contact: ContactWithTags) => (
-              <label
-                key={contact.id}
-                className="flex cursor-pointer items-center gap-3 rounded-lg p-3 hover:bg-gray-50"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedContactIds.includes(contact.id)}
-                  onChange={() => toggleContact(contact.id)}
-                  className="rounded"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {[contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.email}
-                  </p>
+              <label key={contact.id} className="flex cursor-pointer items-center gap-4 p-4 hover:bg-indigo-50/50 border-b border-gray-50 last:border-0 transition-colors">
+                <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-sm">
+                  {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{[contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.email}</p>
                   <p className="text-xs text-gray-500">{contact.email}</p>
                 </div>
                 {contact.company && (
-                  <span className="text-xs text-gray-400">{contact.company}</span>
+                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <Building2 className="h-3.5 w-3.5" />
+                    {contact.company}
+                  </span>
                 )}
               </label>
             ))}
+            {contacts.length === 0 && <p className="p-8 text-center text-sm text-gray-400">No contacts found</p>}
           </div>
-          <div className="flex justify-end">
-            <Button onClick={() => setShowContactModal(false)}>
-              Done ({selectedContactIds.length} selected)
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-gray-500">{selectedContactIds.length} selected</p>
+            <Button onClick={() => setShowContactModal(false)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400">
+              <Check className="h-4 w-4" />
+              Done
             </Button>
           </div>
         </div>
