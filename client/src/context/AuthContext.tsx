@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { type Session, type User } from '@supabase/supabase-js';
+import { type Session, type User, type Provider } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithOAuth: (provider: Provider) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -52,12 +53,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error ? new Error(error.message) : null };
   };
 
+  const signInWithOAuth = async (provider: Provider) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: provider === 'google'
+          ? { access_type: 'offline', prompt: 'consent' }
+          : undefined,
+      },
+    });
+    return { error: error ? new Error(error.message) : null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithOAuth, signOut }}>
       {children}
     </AuthContext.Provider>
   );
