@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { smtpApi } from '../../api/smtp.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { Button } from '../../components/ui/Button';
@@ -9,7 +10,21 @@ import { Modal } from '../../components/ui/Modal';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Badge } from '../../components/ui/Badge';
 import { formatDate } from '../../lib/utils';
-import { Mail, Plus, Trash2, TestTube, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Mail,
+  Plus,
+  Trash2,
+  TestTube,
+  CheckCircle2,
+  XCircle,
+  Server,
+  HelpCircle,
+  ArrowRight,
+  Shield,
+  Zap,
+  Settings,
+  Activity,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { SmtpAccount, CreateSmtpAccountInput } from '@lemlist/shared';
 import { SMTP_PRESETS } from '@lemlist/shared';
@@ -117,119 +132,317 @@ export function SmtpAccountsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-sm text-gray-500">Loading your SMTP accounts...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">SMTP Accounts</h1>
-        <Button onClick={() => setShowModal(true)}>
-          <Plus className="h-4 w-4" />
-          Add Account
-        </Button>
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">SMTP Accounts</h1>
+          <p className="text-gray-500 mt-1">Manage your email sending accounts and credentials.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/smtp-accounts/guide"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Setup Guide
+          </Link>
+          <Button
+            onClick={() => setShowModal(true)}
+            className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
+          >
+            <Plus className="h-4 w-4" />
+            Add Account
+          </Button>
+        </div>
       </div>
 
+      {/* Stats */}
+      {accounts && accounts.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-indigo-50">
+                <Server className="h-5 w-5 text-indigo-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-500">Total Accounts</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{accounts.length}</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-emerald-50">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-500">Verified</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900">
+              {accounts.filter((a: SmtpAccount) => a.is_verified).length}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-cyan-50">
+                <Activity className="h-5 w-5 text-cyan-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-500">Emails Sent Today</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900">
+              {accounts.reduce((sum: number, a: SmtpAccount) => sum + a.sends_today, 0)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State or List */}
       {(!accounts || accounts.length === 0) ? (
-        <EmptyState
-          icon={Mail}
-          title="No SMTP accounts"
-          description="Add an email account to start sending campaigns."
-          actionLabel="Add Account"
-          onAction={() => setShowModal(true)}
-        />
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-12">
+          <div className="max-w-md mx-auto text-center">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-cyan-50 flex items-center justify-center mb-6">
+              <Mail className="h-8 w-8 text-indigo-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No SMTP accounts yet</h3>
+            <p className="text-gray-500 mb-6">
+              Connect your email provider to start sending campaigns. We support Gmail, Outlook, and any SMTP server.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button
+                onClick={() => setShowModal(true)}
+                className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
+              >
+                <Plus className="h-4 w-4" />
+                Add Your First Account
+              </Button>
+              <Link
+                to="/smtp-accounts/guide"
+                className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+              >
+                Read the setup guide
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {accounts.map((account: SmtpAccount) => (
-            <div key={account.id} className="card flex items-center justify-between p-5">
-              <div className="flex items-center gap-4">
-                <div className="rounded-lg bg-gray-100 p-3">
-                  <Mail className="h-5 w-5 text-gray-600" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-900">{account.label}</h3>
-                    {account.is_verified ? (
-                      <Badge variant="success">Verified</Badge>
-                    ) : (
-                      <Badge variant="warning">Unverified</Badge>
+            <div
+              key={account.id}
+              className="group bg-white rounded-2xl border border-gray-100 shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6">
+                <div className="flex items-center gap-5">
+                  <div className={`relative w-14 h-14 rounded-xl flex items-center justify-center ${
+                    account.is_verified
+                      ? 'bg-gradient-to-br from-emerald-50 to-emerald-100'
+                      : 'bg-gradient-to-br from-amber-50 to-amber-100'
+                  }`}>
+                    <Mail className={`h-6 w-6 ${account.is_verified ? 'text-emerald-600' : 'text-amber-600'}`} />
+                    {account.is_verified && (
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <CheckCircle2 className="h-3 w-3 text-white" />
+                      </div>
                     )}
-                    {!account.is_active && <Badge variant="danger">Inactive</Badge>}
                   </div>
-                  <p className="text-sm text-gray-500">{account.email_address}</p>
-                  <p className="text-xs text-gray-400">
-                    {account.smtp_host}:{account.smtp_port} &middot; {account.sends_today}/{account.daily_send_limit} sent today &middot; Added {formatDate(account.created_at)}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900">{account.label}</h3>
+                      {account.is_verified ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          <XCircle className="h-3 w-3" />
+                          Unverified
+                        </span>
+                      )}
+                      {!account.is_active && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-600 mb-1">{account.email_address}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Server className="h-3.5 w-3.5" />
+                        {account.smtp_host}:{account.smtp_port}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Zap className="h-3.5 w-3.5" />
+                        {account.sends_today}/{account.daily_send_limit} today
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={() => testMutation.mutate(account.id)}
+                    disabled={testMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    <TestTube className="h-4 w-4" />
+                    Test
+                  </button>
+                  <button
+                    onClick={() => openEdit(account)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete this SMTP account?')) deleteMutation.mutate(account.id);
+                    }}
+                    className="flex items-center justify-center w-10 h-10 text-gray-400 bg-gray-100 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => testMutation.mutate(account.id)}
-                  disabled={testMutation.isPending}
-                >
-                  <TestTube className="h-4 w-4" />
-                  Test
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => openEdit(account)}>
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm('Delete this SMTP account?')) deleteMutation.mutate(account.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
+
+              {/* Usage Progress Bar */}
+              <div className="px-6 pb-5">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                  <span>Daily usage</span>
+                  <span>{Math.round((account.sends_today / account.daily_send_limit) * 100)}%</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min((account.sends_today / account.daily_send_limit) * 100, 100)}%` }}
+                  />
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Modal */}
       <Modal isOpen={showModal} onClose={closeModal} title={editId ? 'Edit SMTP Account' : 'Add SMTP Account'} size="lg">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Label" value={form.label} onChange={(e) => updateField('label', e.target.value)} required />
-            <Input label="Email Address" type="email" value={form.email_address} onChange={(e) => updateField('email_address', e.target.value)} required />
+            <Input
+              label="Label"
+              value={form.label}
+              onChange={(e) => updateField('label', e.target.value)}
+              placeholder="e.g., Work Gmail"
+              required
+            />
+            <Input
+              label="Email Address"
+              type="email"
+              value={form.email_address}
+              onChange={(e) => updateField('email_address', e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
           </div>
 
           <Select
             label="Provider Preset"
             options={[
-              { value: '', label: 'Custom' },
+              { value: '', label: 'Custom Configuration' },
               ...SMTP_PRESETS.map((p) => ({ value: p.name, label: p.name })),
             ]}
             onChange={(e) => applyPreset(e.target.value)}
           />
 
-          <h4 className="font-medium text-gray-700">SMTP Settings</h4>
-          <div className="grid grid-cols-3 gap-4">
-            <Input label="Host" value={form.smtp_host} onChange={(e) => updateField('smtp_host', e.target.value)} required />
-            <Input label="Port" type="number" value={String(form.smtp_port)} onChange={(e) => updateField('smtp_port', parseInt(e.target.value))} required />
-            <Input label="Username" value={form.smtp_user} onChange={(e) => updateField('smtp_user', e.target.value)} required />
+          <div className="border-t border-gray-100 pt-5">
+            <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Server className="h-4 w-4 text-gray-400" />
+              SMTP Settings
+            </h4>
+            <div className="grid grid-cols-3 gap-4">
+              <Input
+                label="Host"
+                value={form.smtp_host}
+                onChange={(e) => updateField('smtp_host', e.target.value)}
+                placeholder="smtp.example.com"
+                required
+              />
+              <Input
+                label="Port"
+                type="number"
+                value={String(form.smtp_port)}
+                onChange={(e) => updateField('smtp_port', parseInt(e.target.value))}
+                required
+              />
+              <Input
+                label="Username"
+                value={form.smtp_user}
+                onChange={(e) => updateField('smtp_user', e.target.value)}
+                placeholder="Email or username"
+                required
+              />
+            </div>
+            <div className="mt-4">
+              <Input
+                label="Password"
+                type="password"
+                value={form.smtp_pass}
+                onChange={(e) => updateField('smtp_pass', e.target.value)}
+                placeholder={editId ? 'Leave blank to keep current' : 'Enter password or app key'}
+                required={!editId}
+              />
+            </div>
           </div>
-          <Input label="Password" type="password" value={form.smtp_pass} onChange={(e) => updateField('smtp_pass', e.target.value)} required={!editId} />
 
-          <h4 className="font-medium text-gray-700">IMAP Settings (for inbox sync)</h4>
-          <div className="grid grid-cols-3 gap-4">
-            <Input label="IMAP Host" value={form.imap_host || ''} onChange={(e) => updateField('imap_host', e.target.value)} />
-            <Input label="IMAP Port" type="number" value={String(form.imap_port || '')} onChange={(e) => updateField('imap_port', parseInt(e.target.value) || undefined)} />
-            <Input label="Daily Send Limit" type="number" value={String(form.daily_send_limit || 200)} onChange={(e) => updateField('daily_send_limit', parseInt(e.target.value))} />
+          <div className="border-t border-gray-100 pt-5">
+            <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-gray-400" />
+              IMAP Settings (for inbox sync)
+            </h4>
+            <div className="grid grid-cols-3 gap-4">
+              <Input
+                label="IMAP Host"
+                value={form.imap_host || ''}
+                onChange={(e) => updateField('imap_host', e.target.value)}
+                placeholder="imap.example.com"
+              />
+              <Input
+                label="IMAP Port"
+                type="number"
+                value={String(form.imap_port || '')}
+                onChange={(e) => updateField('imap_port', parseInt(e.target.value) || undefined)}
+                placeholder="993"
+              />
+              <Input
+                label="Daily Send Limit"
+                type="number"
+                value={String(form.daily_send_limit || 200)}
+                onChange={(e) => updateField('daily_send_limit', parseInt(e.target.value))}
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <Button variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Saving...' : editId ? 'Update' : 'Create'}
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400"
+            >
+              {createMutation.isPending ? 'Saving...' : editId ? 'Update Account' : 'Create Account'}
             </Button>
           </div>
         </form>

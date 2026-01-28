@@ -9,32 +9,113 @@ import {
   MousePointerClick,
   MessageSquare,
   Zap,
+  ArrowUpRight,
+  TrendingUp,
+  Plus,
+  FileText,
+  UserPlus,
+  ArrowRight,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+
+const gradients = [
+  'from-indigo-500 to-indigo-600',
+  'from-cyan-500 to-cyan-600',
+  'from-violet-500 to-violet-600',
+  'from-emerald-500 to-emerald-600',
+];
+
+const bgGradients = [
+  'from-indigo-50 to-indigo-100/50',
+  'from-cyan-50 to-cyan-100/50',
+  'from-violet-50 to-violet-100/50',
+  'from-emerald-50 to-emerald-100/50',
+];
+
+const iconColors = [
+  'text-indigo-600',
+  'text-cyan-600',
+  'text-violet-600',
+  'text-emerald-600',
+];
 
 function StatCard({
   icon: Icon,
   label,
   value,
   sub,
+  trend,
+  index = 0,
 }: {
   icon: React.ElementType;
   label: string;
   value: string | number;
   sub?: string;
+  trend?: number;
+  index?: number;
 }) {
+  const colorIndex = index % 4;
+
   return (
-    <div className="card flex items-start gap-4 p-5">
-      <div className="rounded-lg bg-primary-50 p-3">
-        <Icon className="h-5 w-5 text-primary-600" />
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-        {sub && <p className="text-xs text-gray-400">{sub}</p>}
+    <div className="group relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
+      {/* Decorative gradient */}
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${bgGradients[colorIndex]} rounded-full -translate-y-1/2 translate-x-1/2 opacity-50 group-hover:opacity-70 transition-opacity`} />
+
+      <div className="relative flex items-start justify-between">
+        <div>
+          <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${bgGradients[colorIndex]} mb-4`}>
+            <Icon className={`h-6 w-6 ${iconColors[colorIndex]}`} />
+          </div>
+          <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          {sub && <p className="text-sm text-gray-400 mt-1">{sub}</p>}
+        </div>
+
+        {trend !== undefined && (
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${trend >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+            <TrendingUp className={`h-3 w-3 ${trend < 0 ? 'rotate-180' : ''}`} />
+            {Math.abs(trend)}%
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function QuickActionCard({
+  icon: Icon,
+  title,
+  description,
+  href,
+  gradient,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  href: string;
+  gradient: string;
+}) {
+  return (
+    <Link
+      to={href}
+      className="group relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+
+      <div className="relative flex items-start gap-4">
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-indigo-500/20`}>
+          <Icon className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900 mb-1 flex items-center gap-2">
+            {title}
+            <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 text-indigo-500" />
+          </h3>
+          <p className="text-sm text-gray-500">{description}</p>
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -47,8 +128,11 @@ export function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-sm text-gray-500">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -67,29 +151,141 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">Overview of your outreach performance</p>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-500 mt-1">Welcome back! Here's your outreach performance at a glance.</p>
         </div>
-        <Button onClick={() => navigate('/campaigns/new')}>
-          <Zap className="h-4 w-4" />
+        <Button
+          onClick={() => navigate('/campaigns/new')}
+          className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
+        >
+          <Plus className="h-4 w-4" />
           New Campaign
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={BarChart3} label="Total Campaigns" value={stats.total_campaigns} sub={`${stats.active_campaigns} active`} />
-        <StatCard icon={Users} label="Total Contacts" value={stats.total_contacts} />
-        <StatCard icon={Send} label="Emails Sent" value={stats.total_sent} />
-        <StatCard icon={MessageSquare} label="Replies" value={stats.total_replied} />
+      {/* Main Stats */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-indigo-500" />
+          Performance Overview
+        </h2>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            icon={BarChart3}
+            label="Total Campaigns"
+            value={stats.total_campaigns}
+            sub={`${stats.active_campaigns} currently active`}
+            trend={12}
+            index={0}
+          />
+          <StatCard
+            icon={Users}
+            label="Total Contacts"
+            value={stats.total_contacts.toLocaleString()}
+            trend={8}
+            index={1}
+          />
+          <StatCard
+            icon={Send}
+            label="Emails Sent"
+            value={stats.total_sent.toLocaleString()}
+            trend={24}
+            index={2}
+          />
+          <StatCard
+            icon={MessageSquare}
+            label="Total Replies"
+            value={stats.total_replied.toLocaleString()}
+            trend={15}
+            index={3}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard icon={Mail} label="Avg Open Rate" value={`${stats.avg_open_rate}%`} sub={`${stats.total_opened} opens`} />
-        <StatCard icon={MousePointerClick} label="Avg Click Rate" value={`${stats.avg_click_rate}%`} sub={`${stats.total_clicked} clicks`} />
-        <StatCard icon={MessageSquare} label="Avg Reply Rate" value={`${stats.avg_reply_rate}%`} sub={`${stats.total_replied} replies`} />
+      {/* Engagement Metrics */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-emerald-500" />
+          Engagement Metrics
+        </h2>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 text-white shadow-xl shadow-indigo-500/30">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <span className="text-sm font-medium text-indigo-100">Open Rate</span>
+              </div>
+              <p className="text-4xl font-bold mb-1">{stats.avg_open_rate}%</p>
+              <p className="text-sm text-indigo-200">{stats.total_opened.toLocaleString()} total opens</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 p-6 text-white shadow-xl shadow-cyan-500/30">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <MousePointerClick className="h-5 w-5" />
+                </div>
+                <span className="text-sm font-medium text-cyan-100">Click Rate</span>
+              </div>
+              <p className="text-4xl font-bold mb-1">{stats.avg_click_rate}%</p>
+              <p className="text-sm text-cyan-200">{stats.total_clicked.toLocaleString()} total clicks</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 p-6 text-white shadow-xl shadow-violet-500/30">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <span className="text-sm font-medium text-violet-100">Reply Rate</span>
+              </div>
+              <p className="text-4xl font-bold mb-1">{stats.avg_reply_rate}%</p>
+              <p className="text-sm text-violet-200">{stats.total_replied.toLocaleString()} total replies</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-amber-500" />
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <QuickActionCard
+            icon={Plus}
+            title="Create Campaign"
+            description="Start a new outreach campaign with custom sequences"
+            href="/campaigns/new"
+            gradient="from-indigo-500 to-indigo-600"
+          />
+          <QuickActionCard
+            icon={UserPlus}
+            title="Import Contacts"
+            description="Add new leads from CSV or manually"
+            href="/contacts"
+            gradient="from-cyan-500 to-cyan-600"
+          />
+          <QuickActionCard
+            icon={Mail}
+            title="Connect SMTP"
+            description="Set up your email sending infrastructure"
+            href="/smtp-accounts"
+            gradient="from-violet-500 to-violet-600"
+          />
+        </div>
       </div>
     </div>
   );

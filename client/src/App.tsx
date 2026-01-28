@@ -11,6 +11,7 @@ import { CampaignsListPage } from './pages/campaigns/CampaignsListPage';
 import { CampaignCreatePage } from './pages/campaigns/CampaignCreatePage';
 import { CampaignDetailPage } from './pages/campaigns/CampaignDetailPage';
 import { SmtpAccountsPage } from './pages/smtp/SmtpAccountsPage';
+import { SmtpGuidePage } from './pages/smtp/SmtpGuidePage';
 import { AnalyticsDashboardPage } from './pages/analytics/AnalyticsDashboardPage';
 import { InboxPage } from './pages/inbox/InboxPage';
 
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
         <Route path="/campaigns/:id/edit" element={<CampaignCreatePage />} />
         <Route path="/smtp-accounts" element={<SmtpAccountsPage />} />
+        <Route path="/smtp-accounts/guide" element={<SmtpGuidePage />} />
         <Route path="/analytics" element={<AnalyticsDashboardPage />} />
         <Route path="/inbox" element={<InboxPage />} />
       </Route>
