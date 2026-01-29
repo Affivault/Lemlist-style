@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env } from './config/env.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { routes } from './routes/index.js';
+import { assetController } from './controllers/asset.controller.js';
 
 const app = express();
 
@@ -14,6 +15,9 @@ app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Public asset render endpoint (no auth - used in email images)
+app.get('/api/assets/render/:templateId', assetController.render);
 
 // Routes
 app.use('/api/v1', routes);

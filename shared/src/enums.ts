@@ -38,3 +38,32 @@ export enum ContactSource {
   CsvImport = 'csv_import',
   Api = 'api',
 }
+
+// SARA Intent Classification
+export enum SaraIntent {
+  Interested = 'interested',
+  Meeting = 'meeting',
+  Objection = 'objection',
+  NotNow = 'not_now',
+  Unsubscribe = 'unsubscribe',
+  OutOfOffice = 'out_of_office',
+  Bounce = 'bounce',
+  Other = 'other',
+}
+
+// SARA Recommended Action
+export enum SaraAction {
+  Reply = 'reply',
+  Unsubscribe = 'unsubscribe',
+  StopSequence = 'stop_sequence',
+  Archive = 'archive',
+  Escalate = 'escalate',
+}
+
+// SARA Review Status
+export enum SaraStatus {
+  PendingReview = 'pending_review',
+  Approved = 'approved',
+  Sent = 'sent',
+  Dismissed = 'dismissed',
+}

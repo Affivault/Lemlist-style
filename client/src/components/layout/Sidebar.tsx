@@ -9,6 +9,9 @@ import {
   Settings,
   Sparkles,
   HelpCircle,
+  Shield,
+  Bot,
+  Image,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { SkySendLogoMark } from '../SkySendLogo';
@@ -18,8 +21,11 @@ const navigation = [
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Campaigns', href: '/campaigns', icon: Send },
   { name: 'Inbox', href: '/inbox', icon: Inbox },
+  { name: 'SARA', href: '/sara', icon: Bot },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'SMTP Accounts', href: '/smtp-accounts', icon: Mail },
+  { name: 'Sender Health', href: '/sse', icon: Shield },
+  { name: 'Assets', href: '/assets', icon: Image },
 ];
 
 export function Sidebar() {

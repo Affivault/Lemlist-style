@@ -15,6 +15,9 @@ import { SmtpGuidePage } from './pages/smtp/SmtpGuidePage';
 import { AnalyticsDashboardPage } from './pages/analytics/AnalyticsDashboardPage';
 import { InboxPage } from './pages/inbox/InboxPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
+import { SaraQueuePage } from './pages/sara/SaraQueuePage';
+import { SseDashboardPage } from './pages/sse/SseDashboardPage';
+import { AssetBuilderPage } from './pages/assets/AssetBuilderPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -81,6 +84,9 @@ export default function App() {
         <Route path="/smtp-accounts/guide" element={<SmtpGuidePage />} />
         <Route path="/analytics" element={<AnalyticsDashboardPage />} />
         <Route path="/inbox" element={<InboxPage />} />
+        <Route path="/sara" element={<SaraQueuePage />} />
+        <Route path="/sse" element={<SseDashboardPage />} />
+        <Route path="/assets" element={<AssetBuilderPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 

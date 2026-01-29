@@ -15,8 +15,36 @@ export interface SmtpAccount {
   last_send_reset_at: string;
   is_verified: boolean;
   is_active: boolean;
+  // SSE Health fields
+  health_score: number;
+  total_sent: number;
+  total_bounced: number;
+  total_opened: number;
+  bounce_rate_7d: number;
+  last_bounce_at: string | null;
+  warmup_mode: boolean;
+  warmup_daily_target: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface SmtpAccountHealthSummary {
+  id: string;
+  label: string;
+  email_address: string;
+  health_score: number;
+  sends_today: number;
+  daily_send_limit: number;
+  utilization_pct: number;
+  bounce_rate_7d: number;
+  warmup_mode: boolean;
+  is_available: boolean;
+}
+
+export interface SseSelectionResult {
+  account: SmtpAccount | null;
+  reason: string;
+  all_exhausted: boolean;
 }
 
 export interface CreateSmtpAccountInput {

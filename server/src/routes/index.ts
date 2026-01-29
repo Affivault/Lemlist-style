@@ -6,6 +6,9 @@ import { campaignRoutes } from './campaign.routes.js';
 import { smtpRoutes } from './smtp.routes.js';
 import { analyticsRoutes } from './analytics.routes.js';
 import { inboxRoutes } from './inbox.routes.js';
+import { sseRoutes } from './sse.routes.js';
+import { saraRoutes } from './sara.routes.js';
+import { assetRoutes } from './asset.routes.js';
 
 export const routes = Router();
 
@@ -18,3 +21,6 @@ routes.use('/campaigns', campaignRoutes);
 routes.use('/smtp-accounts', smtpRoutes);
 routes.use('/analytics', analyticsRoutes);
 routes.use('/inbox', inboxRoutes);
+routes.use('/sse', sseRoutes);
+routes.use('/sara', saraRoutes);
+routes.use('/assets', assetRoutes);
