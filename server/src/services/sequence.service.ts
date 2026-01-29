@@ -1,0 +1,469 @@
+import { supabaseAdmin } from '../config/supabase.js';
+import { emailQueue } from '../jobs/queues.js';
+import { fireEvent } from './webhook.service.js';
+import { classifyReply } from './sara.service.js';
+
+/**
+ * Sequence Engine Service
+ *
+ * Processes campaign sequences step-by-step per contact, handling:
+ * - Email steps: queue for sending via BullMQ
+ * - Delay steps: schedule next_send_at in the future
+ * - Condition steps: evaluate if/else branch and route accordingly
+ * - WebhookWait steps: pause contact until webhook received or timeout
+ */
+
+// ============================================
+// Step Processing
+// ============================================
+
+/**
+ * Process the next step for a campaign contact.
+ * Called after campaign launch, after email sent, or after delay expires.
+ */
+export async function processNextStep(campaignContactId: string): Promise<void> {
+  // Fetch campaign contact with current state
+  const { data: cc } = await supabaseAdmin
+    .from('campaign_contacts')
+    .select('*, campaigns(id, user_id, dcs_threshold, status), contacts(id, email, first_name, last_name, company, dcs_score)')
+    .eq('id', campaignContactId)
+    .single();
+
+  if (!cc || !cc.campaigns || !cc.contacts) return;
+  if (cc.status !== 'active') return;
+  if (cc.campaigns.status !== 'running') return;
+
+  // Fetch all steps for this campaign, ordered
+  const { data: steps } = await supabaseAdmin
+    .from('campaign_steps')
+    .select('*')
+    .eq('campaign_id', cc.campaign_id)
+    .order('step_order');
+
+  if (!steps || steps.length === 0) {
+    await markCompleted(campaignContactId);
+    return;
+  }
+
+  const currentStepOrder = cc.current_step_order || 0;
+
+  // Find the next step to execute
+  const nextStep = steps.find((s: any) => s.step_order === currentStepOrder);
+  if (!nextStep) {
+    // No more steps - campaign complete for this contact
+    await markCompleted(campaignContactId);
+    return;
+  }
+
+  // DCS threshold check (suppress low-score contacts)
+  if (cc.campaigns.dcs_threshold > 0 && nextStep.step_type === 'email') {
+    const dcsScore = cc.contacts.dcs_score;
+    if (dcsScore !== null && dcsScore < cc.campaigns.dcs_threshold) {
+      // Suppress this contact
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({ status: 'suppressed', completed_at: new Date().toISOString() })
+        .eq('id', campaignContactId);
+
+      fireEvent(cc.campaigns.user_id, 'contact.suppressed', {
+        campaign_id: cc.campaign_id,
+        contact_id: cc.contact_id,
+        dcs_score: dcsScore,
+        threshold: cc.campaigns.dcs_threshold,
+      }).catch(() => {});
+      return;
+    }
+  }
+
+  // Process based on step type
+  switch (nextStep.step_type) {
+    case 'email':
+      await processEmailStep(cc, nextStep);
+      break;
+    case 'delay':
+      await processDelayStep(cc, nextStep);
+      break;
+    case 'condition':
+      await processConditionStep(cc, nextStep, steps);
+      break;
+    case 'webhook_wait':
+      await processWebhookWaitStep(cc, nextStep);
+      break;
+    default:
+      // Unknown step type - skip to next
+      await advanceToNextStep(campaignContactId, currentStepOrder, steps);
+  }
+}
+
+/**
+ * Process an email step - queue the email for sending via BullMQ.
+ */
+async function processEmailStep(cc: any, step: any): Promise<void> {
+  // Check skip_if_replied
+  if (step.skip_if_replied) {
+    const { count } = await supabaseAdmin
+      .from('campaign_activities')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_contact_id', cc.id)
+      .eq('activity_type', 'replied');
+
+    if (count && count > 0) {
+      // Skip this step, advance to next
+      const { data: steps } = await supabaseAdmin
+        .from('campaign_steps')
+        .select('*')
+        .eq('campaign_id', cc.campaign_id)
+        .order('step_order');
+      await advanceToNextStep(cc.id, step.step_order, steps || []);
+      return;
+    }
+  }
+
+  // Interpolate merge tags in subject and body
+  const subject = interpolateMergeTags(step.subject || '', cc.contacts);
+  const bodyHtml = interpolateMergeTags(step.body_html || '', cc.contacts);
+  const bodyText = bodyHtml.replace(/<[^>]*>/g, '');
+
+  // Queue the email job
+  await emailQueue.add(`email-${cc.id}-step-${step.id}`, {
+    campaignId: cc.campaign_id,
+    campaignContactId: cc.id,
+    contactId: cc.contact_id,
+    stepId: step.id,
+    to: cc.contacts.email,
+    subject,
+    bodyHtml,
+    bodyText,
+    smtpAccountId: '', // SSE will select the best sender
+  });
+
+  // Update campaign contact to track current step
+  await supabaseAdmin
+    .from('campaign_contacts')
+    .update({
+      current_step_order: step.step_order,
+      last_step_at: new Date().toISOString(),
+    })
+    .eq('id', cc.id);
+
+  fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
+    campaign_id: cc.campaign_id,
+    contact_id: cc.contact_id,
+    step_type: 'email',
+    step_order: step.step_order,
+  }).catch(() => {});
+}
+
+/**
+ * Process a delay step - set next_send_at in the future.
+ */
+async function processDelayStep(cc: any, step: any): Promise<void> {
+  const delayMs =
+    ((step.delay_days || 0) * 86400000) +
+    ((step.delay_hours || 0) * 3600000) +
+    ((step.delay_minutes || 0) * 60000);
+
+  const nextSendAt = new Date(Date.now() + delayMs);
+
+  await supabaseAdmin
+    .from('campaign_contacts')
+    .update({
+      current_step_order: step.step_order + 1,
+      next_send_at: nextSendAt.toISOString(),
+    })
+    .eq('id', cc.id);
+
+  fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
+    campaign_id: cc.campaign_id,
+    contact_id: cc.contact_id,
+    step_type: 'delay',
+    step_order: step.step_order,
+    delay_until: nextSendAt.toISOString(),
+  }).catch(() => {});
+}
+
+/**
+ * Process a condition step - evaluate the condition and route to true/false branch.
+ */
+async function processConditionStep(cc: any, step: any, allSteps: any[]): Promise<void> {
+  const conditionMet = await evaluateCondition(cc, step);
+
+  // Route to the appropriate branch
+  if (conditionMet) {
+    // True branch: advance to next step normally
+    await advanceToNextStep(cc.id, step.step_order, allSteps);
+  } else {
+    // False branch: jump to false_branch_step or skip to end
+    if (step.false_branch_step !== null && step.false_branch_step !== undefined) {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({
+          current_step_order: step.false_branch_step,
+          next_send_at: new Date().toISOString(),
+        })
+        .eq('id', cc.id);
+    } else {
+      // No false branch defined - end sequence for this contact
+      await markCompleted(cc.id);
+    }
+  }
+
+  fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
+    campaign_id: cc.campaign_id,
+    contact_id: cc.contact_id,
+    step_type: 'condition',
+    step_order: step.step_order,
+    condition_field: step.condition_field,
+    condition_result: conditionMet,
+  }).catch(() => {});
+}
+
+/**
+ * Evaluate a condition for a campaign contact.
+ */
+async function evaluateCondition(cc: any, step: any): Promise<boolean> {
+  const field = step.condition_field;
+  const operator = step.condition_operator;
+  const value = step.condition_value;
+
+  switch (field) {
+    case 'opened': {
+      const { count } = await supabaseAdmin
+        .from('campaign_activities')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_contact_id', cc.id)
+        .eq('activity_type', 'opened');
+      return applyOperator(!!count && count > 0, operator, value);
+    }
+
+    case 'clicked': {
+      const { count } = await supabaseAdmin
+        .from('campaign_activities')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_contact_id', cc.id)
+        .eq('activity_type', 'clicked');
+      return applyOperator(!!count && count > 0, operator, value);
+    }
+
+    case 'replied': {
+      const { count } = await supabaseAdmin
+        .from('campaign_activities')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_contact_id', cc.id)
+        .eq('activity_type', 'replied');
+      return applyOperator(!!count && count > 0, operator, value);
+    }
+
+    case 'sara_intent': {
+      // Get the latest SARA classification for this contact's replies
+      const { data: messages } = await supabaseAdmin
+        .from('inbox_messages')
+        .select('sara_intent')
+        .eq('contact_id', cc.contact_id)
+        .not('sara_intent', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      const latestIntent = messages?.[0]?.sara_intent || '';
+      return applyOperator(latestIntent, operator, value);
+    }
+
+    case 'dcs_score': {
+      const dcsScore = cc.contacts.dcs_score || 0;
+      return applyOperator(dcsScore, operator, value);
+    }
+
+    case 'webhook_received': {
+      // Check if a specific webhook was received for this contact
+      const isReceived = cc.waiting_for_webhook === null && cc.webhook_wait_until === null;
+      return applyOperator(isReceived, operator, value);
+    }
+
+    default:
+      return false;
+  }
+}
+
+/**
+ * Apply a comparison operator to a value.
+ */
+function applyOperator(actual: any, operator: string, expected: string): boolean {
+  switch (operator) {
+    case 'is_true':
+      return !!actual;
+    case 'is_false':
+      return !actual;
+    case 'equals':
+      return String(actual).toLowerCase() === String(expected).toLowerCase();
+    case 'not_equals':
+      return String(actual).toLowerCase() !== String(expected).toLowerCase();
+    case 'greater_than':
+      return Number(actual) > Number(expected);
+    case 'less_than':
+      return Number(actual) < Number(expected);
+    case 'contains':
+      return String(actual).toLowerCase().includes(String(expected).toLowerCase());
+    default:
+      return false;
+  }
+}
+
+/**
+ * Process a webhook_wait step - pause contact until webhook or timeout.
+ */
+async function processWebhookWaitStep(cc: any, step: any): Promise<void> {
+  const timeoutHours = step.webhook_timeout_hours || 72;
+  const waitUntil = new Date(Date.now() + timeoutHours * 3600000);
+
+  await supabaseAdmin
+    .from('campaign_contacts')
+    .update({
+      current_step_order: step.step_order,
+      waiting_for_webhook: step.webhook_event,
+      webhook_wait_until: waitUntil.toISOString(),
+    })
+    .eq('id', cc.id);
+
+  fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
+    campaign_id: cc.campaign_id,
+    contact_id: cc.contact_id,
+    step_type: 'webhook_wait',
+    step_order: step.step_order,
+    webhook_event: step.webhook_event,
+    timeout_at: waitUntil.toISOString(),
+  }).catch(() => {});
+}
+
+/**
+ * Resume a contact that was waiting for a webhook event.
+ * Called when the webhook event bus receives a matching event.
+ */
+export async function resumeWebhookWait(
+  campaignContactId: string,
+  eventType: string
+): Promise<void> {
+  const { data: cc } = await supabaseAdmin
+    .from('campaign_contacts')
+    .select('*, campaigns(user_id)')
+    .eq('id', campaignContactId)
+    .eq('waiting_for_webhook', eventType)
+    .single();
+
+  if (!cc) return;
+
+  // Clear webhook wait state and advance
+  await supabaseAdmin
+    .from('campaign_contacts')
+    .update({
+      waiting_for_webhook: null,
+      webhook_wait_until: null,
+      current_step_order: (cc.current_step_order || 0) + 1,
+      next_send_at: new Date().toISOString(),
+    })
+    .eq('id', campaignContactId);
+}
+
+/**
+ * Check for timed-out webhook waits and advance those contacts.
+ * Should be called periodically (e.g., every 5 minutes via cron).
+ */
+export async function processWebhookTimeouts(): Promise<number> {
+  const { data: timedOut } = await supabaseAdmin
+    .from('campaign_contacts')
+    .select('id, current_step_order')
+    .not('waiting_for_webhook', 'is', null)
+    .lt('webhook_wait_until', new Date().toISOString());
+
+  if (!timedOut || timedOut.length === 0) return 0;
+
+  for (const cc of timedOut) {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        waiting_for_webhook: null,
+        webhook_wait_until: null,
+        current_step_order: (cc.current_step_order || 0) + 1,
+        next_send_at: new Date().toISOString(),
+      })
+      .eq('id', cc.id);
+  }
+
+  return timedOut.length;
+}
+
+// ============================================
+// Scheduling: Process Due Steps
+// ============================================
+
+/**
+ * Find all campaign contacts with next_send_at <= now and process them.
+ * Should be called periodically (e.g., every 30 seconds via cron/scheduler).
+ */
+export async function processDueSteps(): Promise<number> {
+  const { data: dueContacts } = await supabaseAdmin
+    .from('campaign_contacts')
+    .select('id')
+    .eq('status', 'active')
+    .is('waiting_for_webhook', null)
+    .lte('next_send_at', new Date().toISOString())
+    .limit(50);
+
+  if (!dueContacts || dueContacts.length === 0) return 0;
+
+  for (const cc of dueContacts) {
+    await processNextStep(cc.id);
+  }
+
+  return dueContacts.length;
+}
+
+// ============================================
+// Helpers
+// ============================================
+
+async function advanceToNextStep(
+  campaignContactId: string,
+  currentStepOrder: number,
+  allSteps: any[]
+): Promise<void> {
+  const nextStepOrder = currentStepOrder + 1;
+  const hasMoreSteps = allSteps.some((s: any) => s.step_order === nextStepOrder);
+
+  if (hasMoreSteps) {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        current_step_order: nextStepOrder,
+        next_send_at: new Date().toISOString(),
+      })
+      .eq('id', campaignContactId);
+  } else {
+    await markCompleted(campaignContactId);
+  }
+}
+
+async function markCompleted(campaignContactId: string): Promise<void> {
+  await supabaseAdmin
+    .from('campaign_contacts')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+    })
+    .eq('id', campaignContactId);
+}
+
+function interpolateMergeTags(text: string, contact: any): string {
+  return text
+    .replace(/\{\{first_name\}\}/gi, contact.first_name || '')
+    .replace(/\{\{last_name\}\}/gi, contact.last_name || '')
+    .replace(/\{\{email\}\}/gi, contact.email || '')
+    .replace(/\{\{company\}\}/gi, contact.company || '')
+    .replace(/\{\{full_name\}\}/gi, `${contact.first_name || ''} ${contact.last_name || ''}`.trim())
+    .replace(/\{\{job_title\}\}/gi, contact.job_title || '')
+    .replace(/\{\{phone\}\}/gi, contact.phone || '')
+    .replace(/\{\{city\}\}/gi, contact.city || '')
+    .replace(/\{\{country\}\}/gi, contact.country || '')
+    .replace(/\{\{linkedin_url\}\}/gi, contact.linkedin_url || '')
+    .replace(/\{\{website\}\}/gi, contact.website || '')
+    .replace(/\{\{custom_field_1\}\}/gi, contact.custom_field_1 || '')
+    .replace(/\{\{custom_field_2\}\}/gi, contact.custom_field_2 || '');
+}

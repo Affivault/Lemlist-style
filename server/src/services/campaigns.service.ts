@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
+import { fireEvent } from './webhook.service.js';
 
 interface ListParams {
   page?: number;
@@ -67,6 +68,7 @@ export const campaignsService = {
       .single();
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'campaign.created', { campaign: data }).catch(() => {});
     return data;
   },
 
@@ -85,6 +87,7 @@ export const campaignsService = {
       .single();
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'campaign.updated', { campaign: data }).catch(() => {});
     return data;
   },
 
@@ -96,6 +99,7 @@ export const campaignsService = {
       .eq('user_id', userId);
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'campaign.deleted', { campaign_id: id }).catch(() => {});
   },
 
   async launch(userId: string, id: string) {
@@ -134,6 +138,7 @@ export const campaignsService = {
       .eq('campaign_id', id)
       .eq('status', 'pending');
 
+    fireEvent(userId, 'campaign.launched', { campaign: data }).catch(() => {});
     return data;
   },
 
@@ -151,6 +156,7 @@ export const campaignsService = {
       .single();
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'campaign.paused', { campaign: data }).catch(() => {});
     return data;
   },
 
@@ -168,6 +174,7 @@ export const campaignsService = {
       .single();
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'campaign.resumed', { campaign: data }).catch(() => {});
     return data;
   },
 
@@ -185,6 +192,7 @@ export const campaignsService = {
       .single();
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'campaign.cancelled', { campaign: data }).catch(() => {});
     return data;
   },
 

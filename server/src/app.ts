@@ -6,6 +6,7 @@ import { env } from './config/env.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { routes } from './routes/index.js';
 import { assetController } from './controllers/asset.controller.js';
+import { webhookInboundRoutes } from './routes/webhook-inbound.routes.js';
 
 const app = express();
 
@@ -19,7 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 // Public asset render endpoint (no auth - used in email images)
 app.get('/api/assets/render/:templateId', assetController.render);
 
-// Routes
+// Public inbound webhook endpoint (no auth - external systems call this)
+app.use('/api/webhooks/inbound', webhookInboundRoutes);
+
+// Routes (authenticated)
 app.use('/api/v1', routes);
 
 // Health check

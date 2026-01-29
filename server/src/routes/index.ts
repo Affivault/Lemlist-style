@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware.js';
+import { apiKeyMiddleware } from '../middleware/apikey.middleware.js';
 import { contactRoutes } from './contact.routes.js';
 import { tagRoutes } from './tag.routes.js';
 import { campaignRoutes } from './campaign.routes.js';
@@ -15,7 +16,9 @@ import { apikeyRoutes } from './apikey.routes.js';
 
 export const routes = Router();
 
-// All routes require authentication
+// API key middleware runs first - if request has sk_live_ token, it handles auth.
+// Otherwise passes through to JWT auth middleware.
+routes.use(apiKeyMiddleware);
 routes.use(authMiddleware);
 
 routes.use('/contacts', contactRoutes);
