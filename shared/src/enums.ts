@@ -10,6 +10,49 @@ export enum CampaignStatus {
 export enum StepType {
   Email = 'email',
   Delay = 'delay',
+  Condition = 'condition',
+  WebhookWait = 'webhook_wait',
+}
+
+// Condition fields for sequence branching
+export enum ConditionField {
+  Opened = 'opened',
+  Clicked = 'clicked',
+  Replied = 'replied',
+  SaraIntent = 'sara_intent',
+  DcsScore = 'dcs_score',
+  WebhookReceived = 'webhook_received',
+}
+
+export enum ConditionOperator {
+  Equals = 'equals',
+  NotEquals = 'not_equals',
+  GreaterThan = 'greater_than',
+  LessThan = 'less_than',
+  Contains = 'contains',
+  IsTrue = 'is_true',
+  IsFalse = 'is_false',
+}
+
+// Webhook event types
+export enum WebhookEventType {
+  ContactCreated = 'contact.created',
+  ContactUpdated = 'contact.updated',
+  ContactVerified = 'contact.verified',
+  CampaignLaunched = 'campaign.launched',
+  CampaignPaused = 'campaign.paused',
+  CampaignCompleted = 'campaign.completed',
+  SequenceStepExecuted = 'sequence.step_executed',
+  EmailSent = 'email.sent',
+  EmailOpened = 'email.opened',
+  EmailClicked = 'email.clicked',
+  EmailReplied = 'email.replied',
+  EmailBounced = 'email.bounced',
+  LeadUnsubscribed = 'lead.unsubscribed',
+  SaraIntentClassified = 'sara.intent_classified',
+  SaraReplyApproved = 'sara.reply_approved',
+  AccountHealthDropped = 'account.health_dropped',
+  LeadDataRefreshed = 'lead.data_refreshed',
 }
 
 export enum ContactCampaignStatus {

@@ -24,9 +24,14 @@ import {
   MoreHorizontal,
   FileSpreadsheet,
   ArrowUpDown,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { CreateContactInput, ContactWithTags } from '@lemlist/shared';
+import { verificationApi } from '../../api/verification.api';
 import { DEFAULT_PAGE_SIZE } from '../../lib/constants';
 
 const emptyContact: CreateContactInput = {
@@ -79,6 +84,24 @@ export function ContactsListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       toast.success('Contact deleted');
+    },
+  });
+
+  const [verifyingIds, setVerifyingIds] = useState<Set<string>>(new Set());
+
+  const verifyMutation = useMutation({
+    mutationFn: (contactId: string) => verificationApi.verifyContact(contactId),
+    onMutate: (contactId) => {
+      setVerifyingIds((prev) => new Set(prev).add(contactId));
+    },
+    onSuccess: (_data, contactId) => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      toast.success('Contact verified');
+      setVerifyingIds((prev) => { const next = new Set(prev); next.delete(contactId); return next; });
+    },
+    onError: (err: any, contactId) => {
+      toast.error(err.response?.data?.error || 'Verification failed');
+      setVerifyingIds((prev) => { const next = new Set(prev); next.delete(contactId); return next; });
     },
   });
 
@@ -289,6 +312,7 @@ export function ContactsListPage() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tags</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">DCS Score</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Added</th>
                     <th className="px-6 py-4"></th>
@@ -349,6 +373,38 @@ export function ContactsListPage() {
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        {(contact as any).dcs_score != null ? (
+                          <div className="flex items-center gap-2">
+                            {(contact as any).dcs_score >= 70 ? (
+                              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                            ) : (contact as any).dcs_score >= 40 ? (
+                              <ShieldAlert className="h-4 w-4 text-amber-500" />
+                            ) : (
+                              <ShieldX className="h-4 w-4 text-red-500" />
+                            )}
+                            <span className={`text-sm font-semibold ${
+                              (contact as any).dcs_score >= 70 ? 'text-emerald-600' :
+                              (contact as any).dcs_score >= 40 ? 'text-amber-600' : 'text-red-600'
+                            }`}>
+                              {(contact as any).dcs_score}
+                            </span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => verifyMutation.mutate(contact.id)}
+                            disabled={verifyingIds.has(contact.id)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                          >
+                            {verifyingIds.has(contact.id) ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <ShieldCheck className="h-3 w-3" />
+                            )}
+                            {verifyingIds.has(contact.id) ? 'Verifying...' : 'Verify'}
+                          </button>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600">

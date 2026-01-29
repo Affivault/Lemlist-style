@@ -5,3 +5,5 @@ export * from './smtp.types';
 export * from './analytics.types';
 export * from './inbox.types';
 export * from './asset.types';
+export * from './webhook.types';
+export * from './apikey.types';

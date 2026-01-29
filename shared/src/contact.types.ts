@@ -13,8 +13,23 @@ export interface Contact {
   source: string;
   is_unsubscribed: boolean;
   is_bounced: boolean;
+  dcs_score: number | null;
+  dcs_syntax_ok: boolean | null;
+  dcs_domain_ok: boolean | null;
+  dcs_smtp_ok: boolean | null;
+  dcs_verified_at: string | null;
+  dcs_fail_reason: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DcsVerificationResult {
+  email: string;
+  syntax_ok: boolean;
+  domain_ok: boolean;
+  smtp_ok: boolean;
+  score: number;
+  fail_reason: string | null;
 }
 
 export interface Tag {

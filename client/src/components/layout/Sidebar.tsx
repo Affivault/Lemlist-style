@@ -12,6 +12,7 @@ import {
   Shield,
   Bot,
   Image,
+  Code2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { SkySendLogoMark } from '../SkySendLogo';
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'SMTP Accounts', href: '/smtp-accounts', icon: Mail },
   { name: 'Sender Health', href: '/sse', icon: Shield },
   { name: 'Assets', href: '/assets', icon: Image },
+  { name: 'Developer', href: '/developer', icon: Code2 },
 ];
 
 export function Sidebar() {
