@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Sparkles,
   SkipForward,
+  ShieldCheck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { StepType } from '@lemlist/shared';
@@ -338,6 +339,46 @@ export function CampaignCreatePage() {
                       {DAY_LABELS[i]}
                     </button>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Deliverability Section */}
+            <div className="border-t border-gray-100 pt-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-gray-400" />
+                Deliverability
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  DCS Threshold (Deliverability Confidence Score)
+                </label>
+                <p className="text-xs text-gray-400 mb-3">
+                  Only send to contacts with a verification score at or above this threshold. Set to 0 to disable filtering.
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={(campaignForm as any).dcs_threshold || 0}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, dcs_threshold: parseInt(e.target.value) } as any)}
+                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                  />
+                  <div className={`flex items-center justify-center w-16 h-10 rounded-xl text-sm font-bold ${
+                    ((campaignForm as any).dcs_threshold || 0) >= 70
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : ((campaignForm as any).dcs_threshold || 0) >= 40
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-gray-100 text-gray-600 border border-gray-200'
+                  }`}>
+                    {(campaignForm as any).dcs_threshold || 0}
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 mt-1.5 px-1">
+                  <span>No filter</span>
+                  <span>Strict</span>
                 </div>
               </div>
             </div>

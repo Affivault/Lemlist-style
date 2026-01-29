@@ -18,6 +18,7 @@ import { SettingsPage } from './pages/settings/SettingsPage';
 import { SaraQueuePage } from './pages/sara/SaraQueuePage';
 import { SseDashboardPage } from './pages/sse/SseDashboardPage';
 import { AssetBuilderPage } from './pages/assets/AssetBuilderPage';
+import { DeveloperPage } from './pages/developer/DeveloperPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -87,6 +88,7 @@ export default function App() {
         <Route path="/sara" element={<SaraQueuePage />} />
         <Route path="/sse" element={<SseDashboardPage />} />
         <Route path="/assets" element={<AssetBuilderPage />} />
+        <Route path="/developer" element={<DeveloperPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 

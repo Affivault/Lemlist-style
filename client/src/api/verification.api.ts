@@ -1,0 +1,37 @@
+import { apiClient } from './client';
+import type { DcsVerificationResult } from '@lemlist/shared';
+
+export const verificationApi = {
+  verifyContact: async (contactId: string) => {
+    const { data } = await apiClient.post<DcsVerificationResult>(`/verification/contacts/${contactId}`);
+    return data;
+  },
+
+  verifyEmail: async (email: string) => {
+    const { data } = await apiClient.post<DcsVerificationResult>('/verification/email', { email });
+    return data;
+  },
+
+  batchVerify: async (contactIds?: string[]) => {
+    const { data } = await apiClient.post<{ verified: number; failed: number }>('/verification/batch', { contact_ids: contactIds });
+    return data;
+  },
+
+  getStats: async () => {
+    const { data } = await apiClient.get<{
+      total: number;
+      verified: number;
+      unverified: number;
+      avg_score: number;
+      score_distribution: { range: string; count: number }[];
+    }>('/verification/stats');
+    return data;
+  },
+
+  getSuppressed: async (campaignId: string, threshold: number) => {
+    const { data } = await apiClient.get<{ contact_id: string; email: string; dcs_score: number }[]>(
+      `/verification/campaigns/${campaignId}/suppressed?threshold=${threshold}`
+    );
+    return data;
+  },
+};
