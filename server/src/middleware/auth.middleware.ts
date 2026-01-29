@@ -8,6 +8,12 @@ export interface AuthRequest extends Request {
 }
 
 export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction): void {
+  // If API key middleware already authenticated, skip JWT validation
+  if (req.userId && (req as any).authMethod === 'apikey') {
+    next();
+    return;
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

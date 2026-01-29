@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
+import { fireEvent } from './webhook.service.js';
 import Papa from 'papaparse';
 import fs from 'node:fs';
 
@@ -92,6 +93,7 @@ export const contactsService = {
       await supabaseAdmin.from('contact_tags').insert(tagRows);
     }
 
+    fireEvent(userId, 'contact.created', { contact: data }).catch(() => {});
     return data;
   },
 
@@ -108,6 +110,7 @@ export const contactsService = {
 
     if (error) throw new AppError(error.message, 500);
     if (!data) throw new AppError('Contact not found', 404);
+    fireEvent(userId, 'contact.updated', { contact: data }).catch(() => {});
     return data;
   },
 
@@ -119,6 +122,7 @@ export const contactsService = {
       .eq('user_id', userId);
 
     if (error) throw new AppError(error.message, 500);
+    fireEvent(userId, 'contact.deleted', { contact_id: id }).catch(() => {});
   },
 
   async importCsv(userId: string, filePath: string, columnMapping: Record<string, string>) {

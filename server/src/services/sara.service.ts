@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../config/supabase';
 import { SaraIntent, SaraAction, SaraStatus } from '@lemlist/shared';
 import type { SaraClassificationResult, SaraQueueStats } from '@lemlist/shared';
+import { fireEvent } from './webhook.service.js';
 
 /**
  * SARA - SkySend Autonomous Reply Agent
@@ -247,6 +248,17 @@ export async function processReply(messageId: string): Promise<SaraClassificatio
     })
     .eq('id', messageId);
 
+  // Fire webhook for classification
+  if (message.user_id) {
+    fireEvent(message.user_id, 'sara.intent_classified', {
+      message_id: messageId,
+      intent: result.intent,
+      confidence: result.confidence,
+      action: result.action,
+      contact_id: message.contact_id,
+    }).catch(() => {});
+  }
+
   // Auto-execute for high-confidence unsubscribe/bounce
   if (
     (result.intent === SaraIntent.Unsubscribe || result.intent === SaraIntent.Bounce) &&
@@ -258,12 +270,18 @@ export async function processReply(messageId: string): Promise<SaraClassificatio
         .from('contacts')
         .update({ is_unsubscribed: true })
         .eq('id', message.contact_id);
+      if (message.user_id) {
+        fireEvent(message.user_id, 'lead.unsubscribed', { contact_id: message.contact_id, source: 'sara_auto' }).catch(() => {});
+      }
     }
     if (result.intent === SaraIntent.Bounce) {
       await supabaseAdmin
         .from('contacts')
         .update({ is_bounced: true })
         .eq('id', message.contact_id);
+      if (message.user_id) {
+        fireEvent(message.user_id, 'email.bounced', { contact_id: message.contact_id, source: 'sara_auto' }).catch(() => {});
+      }
     }
     // Stop campaign sequence
     if (message.campaign_contact_id) {
@@ -301,6 +319,8 @@ export async function approveReply(
     .from('inbox_messages')
     .update(update)
     .eq('id', messageId);
+
+  fireEvent(userId, 'sara.reply_approved', { message_id: messageId, edited: !!editedReply }).catch(() => {});
 }
 
 /**

@@ -2,6 +2,7 @@ import { supabaseAdmin } from '../config/supabase';
 import dns from 'dns';
 import net from 'net';
 import type { DcsVerificationResult } from '@lemlist/shared';
+import { fireEvent } from './webhook.service.js';
 
 /**
  * Triple-Layer Verification Pipeline + Deliverability Confidence Score (DCS)
@@ -212,7 +213,7 @@ export async function verifyEmail(email: string): Promise<DcsVerificationResult>
 export async function verifyContact(contactId: string): Promise<DcsVerificationResult> {
   const { data: contact } = await supabaseAdmin
     .from('contacts')
-    .select('email')
+    .select('email, user_id')
     .eq('id', contactId)
     .single();
 
@@ -231,6 +232,17 @@ export async function verifyContact(contactId: string): Promise<DcsVerificationR
       dcs_fail_reason: result.fail_reason,
     })
     .eq('id', contactId);
+
+  if (contact.user_id) {
+    fireEvent(contact.user_id, 'contact.verified', {
+      contact_id: contactId,
+      email: contact.email,
+      dcs_score: result.score,
+      syntax_ok: result.syntax_ok,
+      domain_ok: result.domain_ok,
+      smtp_ok: result.smtp_ok,
+    }).catch(() => {});
+  }
 
   return result;
 }
