@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: skysend-api
+    runtime: node
+    buildCommand: npm install && npm run build --workspace=shared && npm run build --workspace=server
+    startCommand: npm run start --workspace=server
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: skysend-redis
+          type: redis
+          property: connectionString
+      - key: API_BASE_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: TRACKING_BASE_URL
+        sync: false
+      - key: TRACKING_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+
+  - type: redis
+    name: skysend-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
