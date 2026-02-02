@@ -1,4 +1,4 @@
-import { CampaignStatus, StepType, ContactCampaignStatus } from './enums';
+import { CampaignStatus, StepType, ContactCampaignStatus } from './enums.js';
 
 export interface Campaign {
   id: string;
