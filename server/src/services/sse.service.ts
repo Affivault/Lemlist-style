@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase.js';
 import type { SmtpAccount, SmtpAccountHealthSummary, SseSelectionResult } from '@lemlist/shared';
 
 /**
