@@ -89,13 +89,14 @@ export async function selectBestSender(
  * Record a successful send - increment counters and update health.
  */
 export async function recordSend(accountId: string): Promise<void> {
-  await supabaseAdmin.rpc('increment_field', {
-    table_name: 'smtp_accounts',
-    field_name: 'sends_today',
-    row_id: accountId,
-  }).then(() => {
+  try {
+    await supabaseAdmin.rpc('increment_field', {
+      table_name: 'smtp_accounts',
+      field_name: 'sends_today',
+      row_id: accountId,
+    });
+  } catch {
     // Fallback: direct update if RPC doesn't exist
-  }).catch(async () => {
     const { data } = await supabaseAdmin
       .from('smtp_accounts')
       .select('sends_today, total_sent')
@@ -110,7 +111,7 @@ export async function recordSend(accountId: string): Promise<void> {
         })
         .eq('id', accountId);
     }
-  });
+  }
 }
 
 /**
