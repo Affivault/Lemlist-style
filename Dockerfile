@@ -7,6 +7,7 @@ WORKDIR /app
 
 # Copy workspace config
 COPY package.json package-lock.json* ./
+COPY tsconfig.base.json ./
 COPY shared/package.json ./shared/
 COPY server/package.json ./server/
 
