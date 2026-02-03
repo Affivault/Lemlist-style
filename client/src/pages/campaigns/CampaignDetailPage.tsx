@@ -7,7 +7,7 @@ import { Spinner } from '../../components/ui/Spinner';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { StatusBadge } from '../../components/shared/StatusBadge';
-import { formatDate, formatDateTime, percentage } from '../../lib/utils';
+import { formatDate, formatDateTime } from '../../lib/utils';
 import {
   ArrowLeft,
   Play,
@@ -21,7 +21,6 @@ import {
   MessageSquare,
   AlertTriangle,
   Clock,
-  Users,
 } from 'lucide-react';
 import {
   BarChart,
@@ -111,16 +110,16 @@ export function CampaignDetailPage() {
   }
 
   if (!campaign) {
-    return <div className="text-center text-slate-400">Campaign not found</div>;
+    return <div className="text-center text-secondary">Campaign not found</div>;
   }
 
   const chartData = analytics
     ? [
-        { name: 'Sent', value: analytics.sent, fill: '#3B82F6' },
-        { name: 'Opened', value: analytics.opened, fill: '#10B981' },
-        { name: 'Clicked', value: analytics.clicked, fill: '#8B5CF6' },
-        { name: 'Replied', value: analytics.replied, fill: '#6366F1' },
-        { name: 'Bounced', value: analytics.bounced, fill: '#EF4444' },
+        { name: 'Sent', value: analytics.sent, fill: '#10b981' },
+        { name: 'Opened', value: analytics.opened, fill: '#10b981' },
+        { name: 'Clicked', value: analytics.clicked, fill: '#10b981' },
+        { name: 'Replied', value: analytics.replied, fill: '#10b981' },
+        { name: 'Bounced', value: analytics.bounced, fill: '#ef4444' },
       ]
     : [];
 
@@ -130,18 +129,11 @@ export function CampaignDetailPage() {
     { id: 'contacts', label: `Contacts (${campaign.contacts_count || 0})` },
   ];
 
-  const customTooltipStyle = {
-    backgroundColor: '#111118',
-    borderColor: '#1e293b',
-    borderRadius: '8px',
-    color: '#e2e8f0',
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl">
       <button
         onClick={() => navigate('/campaigns')}
-        className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-300"
+        className="flex items-center gap-1 text-sm text-secondary hover:text-white transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Campaigns
@@ -151,13 +143,12 @@ export function CampaignDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-white">{campaign.name}</h1>
+            <h1 className="text-2xl font-semibold text-white">{campaign.name}</h1>
             <StatusBadge status={campaign.status} type="campaign" />
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-secondary">
             Created {formatDate(campaign.created_at)}
             {campaign.started_at && ` · Started ${formatDate(campaign.started_at)}`}
-            {campaign.completed_at && ` · Completed ${formatDate(campaign.completed_at)}`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -205,15 +196,15 @@ export function CampaignDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-slate-800">
+      <div className="flex gap-1 border-b border-subtle">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+            className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
               activeTab === tab.id
-                ? 'border-indigo-400 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-300'
+                ? 'border-brand text-white'
+                : 'border-transparent text-secondary hover:text-white'
             }`}
           >
             {tab.label}
@@ -226,29 +217,28 @@ export function CampaignDetailPage() {
         <div className="space-y-6">
           {analytics && (
             <>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-                <StatCard icon={Send} label="Sent" value={analytics.sent} color="text-blue-500" />
-                <StatCard icon={Mail} label="Opened" value={analytics.opened} rate={analytics.open_rate} color="text-green-500" />
-                <StatCard icon={MousePointerClick} label="Clicked" value={analytics.clicked} rate={analytics.click_rate} color="text-purple-500" />
-                <StatCard icon={MessageSquare} label="Replied" value={analytics.replied} rate={analytics.reply_rate} color="text-indigo-500" />
-                <StatCard icon={AlertTriangle} label="Bounced" value={analytics.bounced} rate={analytics.bounce_rate} color="text-red-500" />
+              <div className="grid grid-cols-5 gap-4">
+                <StatCard icon={Send} label="Sent" value={analytics.sent} />
+                <StatCard icon={Mail} label="Opened" value={analytics.opened} rate={analytics.open_rate} />
+                <StatCard icon={MousePointerClick} label="Clicked" value={analytics.clicked} rate={analytics.click_rate} />
+                <StatCard icon={MessageSquare} label="Replied" value={analytics.replied} rate={analytics.reply_rate} />
+                <StatCard icon={AlertTriangle} label="Bounced" value={analytics.bounced} rate={analytics.bounce_rate} isNegative />
               </div>
 
               {chartData.some((d) => d.value > 0) && (
-                <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-5">
-                  <h3 className="mb-4 font-semibold text-white">Performance</h3>
-                  <div className="h-64">
+                <div className="rounded-lg border border-subtle bg-surface p-5">
+                  <h3 className="mb-4 text-sm font-medium text-white">Performance</h3>
+                  <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                        <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} />
-                        <YAxis tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} />
-                        <Tooltip contentStyle={customTooltipStyle} cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }} />
-                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                          {chartData.map((entry, index) => (
-                            <rect key={index} fill={entry.fill} />
-                          ))}
-                        </Bar>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                        <XAxis dataKey="name" tick={{ fill: '#a1a1a1', fontSize: 12 }} axisLine={{ stroke: 'rgba(255,255,255,0.06)' }} tickLine={false} />
+                        <YAxis tick={{ fill: '#a1a1a1', fontSize: 12 }} axisLine={{ stroke: 'rgba(255,255,255,0.06)' }} tickLine={false} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#111113', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: '#fff' }}
+                          cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                        />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -257,28 +247,27 @@ export function CampaignDetailPage() {
             </>
           )}
 
-          {/* Campaign settings */}
-          <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-5">
-            <h3 className="mb-3 font-semibold text-white">Campaign Settings</h3>
+          <div className="rounded-lg border border-subtle bg-surface p-5">
+            <h3 className="mb-4 text-sm font-medium text-white">Campaign Settings</h3>
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <dt className="text-slate-500">Timezone</dt>
+                <dt className="text-tertiary">Timezone</dt>
                 <dd className="font-medium text-white">{campaign.timezone}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Send Window</dt>
+                <dt className="text-tertiary">Send Window</dt>
                 <dd className="font-medium text-white">
                   {campaign.send_window_start || '—'} – {campaign.send_window_end || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Send Days</dt>
+                <dt className="text-tertiary">Send Days</dt>
                 <dd className="font-medium capitalize text-white">
                   {campaign.send_days?.join(', ') || 'Weekdays'}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Total Contacts</dt>
+                <dt className="text-tertiary">Total Contacts</dt>
                 <dd className="font-medium text-white">{campaign.total_contacts}</dd>
               </div>
             </dl>
@@ -290,27 +279,27 @@ export function CampaignDetailPage() {
       {activeTab === 'sequence' && (
         <div className="space-y-3">
           {(!campaign.steps || campaign.steps.length === 0) ? (
-            <p className="py-8 text-center text-sm text-slate-500">No steps in this campaign.</p>
+            <p className="py-8 text-center text-sm text-tertiary">No steps in this campaign.</p>
           ) : (
             campaign.steps.map((step: CampaignStep, index: number) => (
-              <div key={step.id} className="rounded-xl border border-slate-800 bg-slate-800/50 p-4">
+              <div key={step.id} className="rounded-lg border border-subtle bg-surface p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800/30 text-xs font-semibold text-slate-400">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-elevated text-xs font-medium text-secondary">
                     {index + 1}
                   </span>
                   {step.step_type === 'email' ? (
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-indigo-400" />
+                        <Mail className="h-4 w-4 text-brand" />
                         <span className="font-medium text-white">{step.subject || 'Untitled Email'}</span>
                       </div>
                       {step.body_text && (
-                        <p className="mt-1 line-clamp-2 text-sm text-slate-400">{step.body_text}</p>
+                        <p className="mt-1 line-clamp-2 text-sm text-secondary">{step.body_text}</p>
                       )}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-orange-500" />
+                      <Clock className="h-4 w-4 text-amber-500" />
                       <span className="font-medium text-white">
                         Wait {step.delay_days}d {step.delay_hours}h {step.delay_minutes}m
                       </span>
@@ -330,38 +319,38 @@ export function CampaignDetailPage() {
       {activeTab === 'contacts' && (
         <div>
           {!campaignContacts?.data?.length ? (
-            <p className="py-8 text-center text-sm text-slate-500">No contacts in this campaign.</p>
+            <p className="py-8 text-center text-sm text-tertiary">No contacts in this campaign.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-800/50">
+            <div className="overflow-x-auto rounded-lg border border-subtle bg-surface">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800/50 bg-slate-800/30 text-left text-slate-500">
-                    <th className="px-4 py-3">Contact</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Current Step</th>
-                    <th className="px-4 py-3">Next Send</th>
-                    <th className="px-4 py-3">Error</th>
+                  <tr className="border-b border-subtle text-left text-tertiary">
+                    <th className="px-4 py-3 font-medium">Contact</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Current Step</th>
+                    <th className="px-4 py-3 font-medium">Next Send</th>
+                    <th className="px-4 py-3 font-medium">Error</th>
                   </tr>
                 </thead>
                 <tbody>
                   {campaignContacts.data.map((cc: any) => (
-                    <tr key={cc.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
+                    <tr key={cc.id} className="border-b border-subtle last:border-0 hover:bg-hover">
                       <td className="px-4 py-3">
                         <span className="font-medium text-white">
                           {[cc.contact?.first_name, cc.contact?.last_name].filter(Boolean).join(' ') || cc.contact?.email || '—'}
                         </span>
                         {cc.contact?.email && (
-                          <span className="ml-2 text-slate-500">{cc.contact.email}</span>
+                          <span className="ml-2 text-tertiary">{cc.contact.email}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={cc.status} type="contact" />
                       </td>
-                      <td className="px-4 py-3 text-slate-400">Step {cc.current_step_order + 1}</td>
-                      <td className="px-4 py-3 text-slate-400">
+                      <td className="px-4 py-3 text-secondary">Step {cc.current_step_order + 1}</td>
+                      <td className="px-4 py-3 text-secondary">
                         {cc.next_send_at ? formatDateTime(cc.next_send_at) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-red-500">{cc.error_message || '—'}</td>
+                      <td className="px-4 py-3 text-red-400">{cc.error_message || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -374,21 +363,21 @@ export function CampaignDetailPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, rate, color }: {
+function StatCard({ icon: Icon, label, value, rate, isNegative }: {
   icon: React.ElementType;
   label: string;
   value: number;
   rate?: number;
-  color: string;
+  isNegative?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-4">
-      <div className="flex items-center gap-2">
-        <Icon className={`h-4 w-4 ${color}`} />
-        <span className="text-sm text-slate-400">{label}</span>
+    <div className="rounded-lg border border-subtle bg-surface p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className={`h-4 w-4 ${isNegative ? 'text-red-400' : 'text-secondary'}`} />
+        <span className="text-sm text-secondary">{label}</span>
       </div>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
-      {rate !== undefined && <p className="text-xs text-slate-500">{rate}%</p>}
+      <p className="text-2xl font-semibold text-white">{value}</p>
+      {rate !== undefined && <p className="text-xs text-tertiary mt-1">{rate}%</p>}
     </div>
   );
 }

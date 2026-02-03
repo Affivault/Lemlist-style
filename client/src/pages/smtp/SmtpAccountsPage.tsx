@@ -8,7 +8,6 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Modal } from '../../components/ui/Modal';
 import { EmptyState } from '../../components/shared/EmptyState';
-import { Badge } from '../../components/ui/Badge';
 import { formatDate } from '../../lib/utils';
 import {
   Mail,
@@ -20,10 +19,7 @@ import {
   Server,
   HelpCircle,
   ArrowRight,
-  Shield,
-  Zap,
   Settings,
-  Activity,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { SmtpAccount, CreateSmtpAccountInput } from '@lemlist/shared';
@@ -150,53 +146,42 @@ export function SmtpAccountsPage() {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-slate-400">Loading your SMTP accounts...</p>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 max-w-5xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">SMTP Accounts</h1>
-          <p className="text-slate-400 mt-1">Manage your email sending accounts and credentials.</p>
+          <h1 className="text-2xl font-semibold text-white">SMTP Accounts</h1>
+          <p className="text-sm text-secondary mt-1">Manage your email sending accounts</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             to="/smtp-accounts/guide"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-300 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-800 hover:border-slate-600 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-secondary border border-default rounded-md hover:bg-hover hover:text-white transition-colors"
           >
             <HelpCircle className="h-4 w-4" />
             Setup Guide
           </Link>
-          <Button
-            onClick={() => setShowModal(true)}
-            className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
-          >
+          <Button onClick={() => setShowModal(true)}>
             <Plus className="h-4 w-4" />
             Add Account
           </Button>
         </div>
       </div>
 
-      {/* Quick Connect Section */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-        <div className="flex items-start justify-between mb-6">
+      {/* Quick Connect */}
+      <div className="rounded-lg border border-subtle bg-surface p-5">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-400" />
-              Quick Connect
-            </h2>
-            <p className="text-sm text-slate-400 mt-1">
-              Connect your Google email with one click
-            </p>
+            <h2 className="text-sm font-medium text-white">Quick Connect</h2>
+            <p className="text-sm text-secondary mt-0.5">Connect your Google email with one click</p>
           </div>
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          <span className="px-2 py-0.5 text-xs font-medium text-brand bg-brand/10 rounded">
             Recommended
           </span>
         </div>
@@ -204,66 +189,53 @@ export function SmtpAccountsPage() {
         <button
           onClick={handleQuickConnect}
           disabled={connectingGoogle}
-          className="group relative overflow-hidden w-full flex items-center gap-4 p-5 bg-slate-800/30 rounded-xl border border-slate-700 hover:border-slate-600 hover:bg-slate-800/50 transition-all duration-200"
+          className="group w-full flex items-center gap-4 p-4 rounded-md border border-default hover:bg-hover transition-colors"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-red-500/5 to-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative flex items-center justify-center w-12 h-12 bg-slate-900 rounded-xl shadow-sm border border-slate-700">
-            <svg className="h-6 w-6" viewBox="0 0 24 24">
+          <div className="flex items-center justify-center w-10 h-10 rounded-md bg-surface border border-subtle">
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
           </div>
-          <div className="relative flex-1 text-left">
-            <p className="font-semibold text-white">Connect Gmail</p>
-            <p className="text-sm text-slate-400">Use Google Workspace or Gmail to start sending</p>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-white">Connect Gmail</p>
+            <p className="text-sm text-secondary">Use Google Workspace or Gmail</p>
           </div>
           {connectingGoogle ? (
             <Spinner size="sm" />
           ) : (
-            <ArrowRight className="h-5 w-5 text-slate-500 group-hover:text-slate-300 group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors" />
           )}
         </button>
-
-        <p className="mt-4 text-xs text-slate-500 text-center">
-          OAuth connection provides secure access without sharing your password
-        </p>
       </div>
 
       {/* Stats */}
       {accounts && accounts.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-indigo-500/20">
-                <Server className="h-5 w-5 text-indigo-400" />
-              </div>
-              <span className="text-sm font-medium text-slate-400">Total Accounts</span>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="rounded-lg border border-subtle bg-surface p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Server className="h-4 w-4 text-secondary" />
+              <span className="text-sm text-secondary">Total Accounts</span>
             </div>
-            <p className="text-3xl font-bold text-white">{accounts.length}</p>
+            <p className="text-2xl font-semibold text-white">{accounts.length}</p>
           </div>
-
-          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-              </div>
-              <span className="text-sm font-medium text-slate-400">Verified</span>
+          <div className="rounded-lg border border-subtle bg-surface p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="h-4 w-4 text-secondary" />
+              <span className="text-sm text-secondary">Verified</span>
             </div>
-            <p className="text-3xl font-bold text-white">
+            <p className="text-2xl font-semibold text-white">
               {accounts.filter((a: SmtpAccount) => a.is_verified).length}
             </p>
           </div>
-
-          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <Activity className="h-5 w-5 text-cyan-400" />
-              </div>
-              <span className="text-sm font-medium text-slate-400">Emails Sent Today</span>
+          <div className="rounded-lg border border-subtle bg-surface p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="h-4 w-4 text-secondary" />
+              <span className="text-sm text-secondary">Sent Today</span>
             </div>
-            <p className="text-3xl font-bold text-white">
+            <p className="text-2xl font-semibold text-white">
               {accounts.reduce((sum: number, a: SmtpAccount) => sum + a.sends_today, 0)}
             </p>
           </div>
@@ -272,124 +244,85 @@ export function SmtpAccountsPage() {
 
       {/* Empty State or List */}
       {(!accounts || accounts.length === 0) ? (
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-12">
-          <div className="max-w-md mx-auto text-center">
-            <div className="mx-auto w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center mb-6">
-              <Mail className="h-8 w-8 text-indigo-400" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">No SMTP accounts yet</h3>
-            <p className="text-slate-400 mb-6">
-              Connect your email provider to start sending campaigns. We support Gmail, Outlook, and any SMTP server.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                onClick={() => setShowModal(true)}
-                className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
-              >
-                <Plus className="h-4 w-4" />
-                Add Your First Account
-              </Button>
-              <Link
-                to="/smtp-accounts/guide"
-                className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                Read the setup guide
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
+        <EmptyState
+          icon={Mail}
+          title="No SMTP accounts"
+          description="Connect your email provider to start sending campaigns."
+          actionLabel="Add Account"
+          onAction={() => setShowModal(true)}
+        />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {accounts.map((account: SmtpAccount) => (
             <div
               key={account.id}
-              className="group bg-slate-800/50 rounded-xl border border-slate-700 hover:border-slate-600 transition-all duration-300 overflow-hidden"
+              className="group rounded-lg border border-subtle bg-surface p-5 transition-colors hover:bg-hover"
             >
-              <div className="flex items-center justify-between p-6">
-                <div className="flex items-center gap-5">
-                  <div className={`relative w-14 h-14 rounded-xl flex items-center justify-center ${
-                    account.is_verified
-                      ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-500/10'
-                      : 'bg-gradient-to-br from-amber-500/20 to-amber-500/10'
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-md ${
+                    account.is_verified ? 'bg-brand/10' : 'bg-amber-500/10'
                   }`}>
-                    <Mail className={`h-6 w-6 ${account.is_verified ? 'text-emerald-400' : 'text-amber-400'}`} />
-                    {account.is_verified && (
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                        <CheckCircle2 className="h-3 w-3 text-white" />
-                      </div>
-                    )}
+                    <Mail className={`h-5 w-5 ${account.is_verified ? 'text-brand' : 'text-amber-500'}`} />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-semibold text-white">{account.label}</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-white">{account.label}</h3>
                       {account.is_verified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-brand bg-brand/10 rounded">
                           <CheckCircle2 className="h-3 w-3" />
                           Verified
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-amber-500 bg-amber-500/10 rounded">
                           <XCircle className="h-3 w-3" />
                           Unverified
                         </span>
                       )}
-                      {!account.is_active && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
-                          Inactive
-                        </span>
-                      )}
                     </div>
-                    <p className="text-slate-400 mb-1">{account.email_address}</p>
-                    <div className="flex items-center gap-4 text-sm text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Server className="h-3.5 w-3.5" />
-                        {account.smtp_host}:{account.smtp_port}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Zap className="h-3.5 w-3.5" />
-                        {account.sends_today}/{account.daily_send_limit} today
-                      </span>
-                    </div>
+                    <p className="text-sm text-secondary">{account.email_address}</p>
+                    <p className="text-sm text-tertiary mt-1">
+                      {account.smtp_host}:{account.smtp_port} · {account.sends_today}/{account.daily_send_limit} today
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => testMutation.mutate(account.id)}
                     disabled={testMutation.isPending}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700/50 rounded-xl hover:bg-slate-700 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary hover:text-white hover:bg-elevated rounded-md transition-colors"
                   >
-                    <TestTube className="h-4 w-4" />
+                    <TestTube className="h-3.5 w-3.5" />
                     Test
                   </button>
                   <button
                     onClick={() => openEdit(account)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700/50 rounded-xl hover:bg-slate-700 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary hover:text-white hover:bg-elevated rounded-md transition-colors"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-3.5 w-3.5" />
                     Edit
                   </button>
                   <button
                     onClick={() => {
                       if (confirm('Delete this SMTP account?')) deleteMutation.mutate(account.id);
                     }}
-                    className="flex items-center justify-center w-10 h-10 text-slate-500 bg-slate-700/50 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
-              {/* Usage Progress Bar */}
-              <div className="px-6 pb-5">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+              {/* Usage Bar */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs text-tertiary mb-1">
                   <span>Daily usage</span>
                   <span>{Math.round((account.sends_today / account.daily_send_limit) * 100)}%</span>
                 </div>
-                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-elevated rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full transition-all duration-300"
+                    className="h-full bg-brand rounded-full transition-all"
                     style={{ width: `${Math.min((account.sends_today / account.daily_send_limit) * 100, 100)}%` }}
                   />
                 </div>
@@ -401,7 +334,7 @@ export function SmtpAccountsPage() {
 
       {/* Modal */}
       <Modal isOpen={showModal} onClose={closeModal} title={editId ? 'Edit SMTP Account' : 'Add SMTP Account'} size="lg">
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Label"
@@ -429,11 +362,8 @@ export function SmtpAccountsPage() {
             onChange={(e) => applyPreset(e.target.value)}
           />
 
-          <div className="border-t border-slate-700 pt-5">
-            <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-              <Server className="h-4 w-4 text-slate-400" />
-              SMTP Settings
-            </h4>
+          <div className="border-t border-subtle pt-4">
+            <h4 className="text-sm font-medium text-white mb-3">SMTP Settings</h4>
             <div className="grid grid-cols-3 gap-4">
               <Input
                 label="Host"
@@ -469,11 +399,8 @@ export function SmtpAccountsPage() {
             </div>
           </div>
 
-          <div className="border-t border-slate-700 pt-5">
-            <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-slate-400" />
-              IMAP Settings (for inbox sync)
-            </h4>
+          <div className="border-t border-subtle pt-4">
+            <h4 className="text-sm font-medium text-white mb-3">IMAP Settings (optional)</h4>
             <div className="grid grid-cols-3 gap-4">
               <Input
                 label="IMAP Host"
@@ -497,15 +424,11 @@ export function SmtpAccountsPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-subtle">
             <Button variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400"
-            >
+            <Button type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? 'Saving...' : editId ? 'Update Account' : 'Create Account'}
             </Button>
           </div>

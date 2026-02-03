@@ -2,16 +2,12 @@ import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Mail,
-  Shield,
   Server,
   Key,
   CheckCircle2,
   AlertCircle,
   Copy,
-  ExternalLink,
-  Zap,
   Globe,
-  Lock,
 } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -19,11 +15,10 @@ import toast from 'react-hot-toast';
 const providers = [
   {
     name: 'Gmail / Google Workspace',
-    logo: '📧',
     host: 'smtp.gmail.com',
     port: '587 (TLS) or 465 (SSL)',
     security: 'TLS/SSL',
-    notes: 'Requires App Password if 2FA enabled. Enable "Less secure app access" for regular passwords.',
+    notes: 'Requires App Password if 2FA enabled.',
     steps: [
       'Go to your Google Account settings',
       'Navigate to Security > 2-Step Verification',
@@ -34,11 +29,10 @@ const providers = [
   },
   {
     name: 'Microsoft 365 / Outlook',
-    logo: '📨',
     host: 'smtp.office365.com',
     port: '587',
     security: 'STARTTLS',
-    notes: 'Use your full email address as username. May require admin approval for SMTP AUTH.',
+    notes: 'Use your full email address as username.',
     steps: [
       'Sign in to Microsoft 365 admin center',
       'Go to Settings > Org settings > SMTP',
@@ -48,7 +42,6 @@ const providers = [
   },
   {
     name: 'SendGrid',
-    logo: '🚀',
     host: 'smtp.sendgrid.net',
     port: '587 (TLS) or 465 (SSL)',
     security: 'TLS',
@@ -62,11 +55,10 @@ const providers = [
   },
   {
     name: 'Mailgun',
-    logo: '📬',
     host: 'smtp.mailgun.org',
     port: '587',
     security: 'TLS',
-    notes: 'Use your domain-specific SMTP credentials from the Mailgun dashboard.',
+    notes: 'Use your domain-specific SMTP credentials.',
     steps: [
       'Add and verify your domain in Mailgun',
       'Go to Sending > Domain settings > SMTP credentials',
@@ -76,14 +68,13 @@ const providers = [
   },
   {
     name: 'Amazon SES',
-    logo: '☁️',
     host: 'email-smtp.[region].amazonaws.com',
     port: '587 or 465',
     security: 'TLS/SSL',
-    notes: 'Replace [region] with your AWS region (e.g., us-east-1). Requires SMTP credentials from SES.',
+    notes: 'Replace [region] with your AWS region.',
     steps: [
       'Verify your email/domain in Amazon SES',
-      'Move out of sandbox mode (request production access)',
+      'Move out of sandbox mode',
       'Go to Account dashboard > SMTP settings',
       'Create SMTP credentials',
     ],
@@ -93,15 +84,15 @@ const providers = [
 function CopyButton({ text }: { text: string }) {
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
+    toast.success('Copied!');
   };
 
   return (
     <button
       onClick={handleCopy}
-      className="p-1.5 rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-slate-300 transition-colors"
+      className="p-1 rounded hover:bg-hover text-tertiary hover:text-secondary transition-colors"
     >
-      <Copy className="h-4 w-4" />
+      <Copy className="h-3.5 w-3.5" />
     </button>
   );
 }
@@ -110,157 +101,111 @@ export function SmtpGuidePage() {
   const [selectedProvider, setSelectedProvider] = useState(providers[0]);
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 max-w-4xl">
       {/* Header */}
       <div>
         <Link
           to="/smtp-accounts"
-          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-white mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to SMTP Accounts
         </Link>
-        <h1 className="text-3xl font-bold text-white">SMTP Connection Guide</h1>
-        <p className="text-slate-400 mt-2">
-          Learn how to connect your email provider to SkySend for sending campaigns.
+        <h1 className="text-2xl font-semibold text-white">SMTP Connection Guide</h1>
+        <p className="text-sm text-secondary mt-1">
+          Learn how to connect your email provider to SkySend.
         </p>
       </div>
 
-      {/* Quick Start */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl p-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-white/20">
-              <Zap className="h-6 w-6" />
-            </div>
-            <h2 className="text-2xl font-bold">Quick Start</h2>
-          </div>
-          <p className="text-indigo-100 max-w-2xl mb-6">
-            To send emails through SkySend, you need to connect an SMTP server. This is how email services
-            communicate to deliver your messages. Below you'll find step-by-step instructions for popular providers.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 border border-white/20">
-              <Shield className="h-5 w-5" />
-              <span className="text-sm">Secure TLS/SSL</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 border border-white/20">
-              <Server className="h-5 w-5" />
-              <span className="text-sm">Any SMTP Provider</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 border border-white/20">
-              <Lock className="h-5 w-5" />
-              <span className="text-sm">Encrypted Storage</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* What You'll Need */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-4">
-            <Server className="h-6 w-6 text-indigo-400" />
-          </div>
-          <h3 className="font-semibold text-white mb-1">SMTP Host</h3>
-          <p className="text-sm text-slate-400">The server address for your email provider</p>
+      <div className="grid grid-cols-4 gap-4">
+        <div className="rounded-lg border border-subtle bg-surface p-4">
+          <Server className="h-5 w-5 text-brand mb-3" />
+          <h3 className="text-sm font-medium text-white mb-1">SMTP Host</h3>
+          <p className="text-xs text-secondary">Server address</p>
         </div>
-
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4">
-            <Globe className="h-6 w-6 text-cyan-400" />
-          </div>
-          <h3 className="font-semibold text-white mb-1">Port Number</h3>
-          <p className="text-sm text-slate-400">Usually 587 (TLS) or 465 (SSL)</p>
+        <div className="rounded-lg border border-subtle bg-surface p-4">
+          <Globe className="h-5 w-5 text-brand mb-3" />
+          <h3 className="text-sm font-medium text-white mb-1">Port</h3>
+          <p className="text-xs text-secondary">Usually 587 or 465</p>
         </div>
-
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-          <div className="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mb-4">
-            <Mail className="h-6 w-6 text-violet-400" />
-          </div>
-          <h3 className="font-semibold text-white mb-1">Username</h3>
-          <p className="text-sm text-slate-400">Usually your full email address</p>
+        <div className="rounded-lg border border-subtle bg-surface p-4">
+          <Mail className="h-5 w-5 text-brand mb-3" />
+          <h3 className="text-sm font-medium text-white mb-1">Username</h3>
+          <p className="text-xs text-secondary">Your email address</p>
         </div>
-
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
-            <Key className="h-6 w-6 text-amber-400" />
-          </div>
-          <h3 className="font-semibold text-white mb-1">Password/API Key</h3>
-          <p className="text-sm text-slate-400">Your password or app-specific key</p>
+        <div className="rounded-lg border border-subtle bg-surface p-4">
+          <Key className="h-5 w-5 text-brand mb-3" />
+          <h3 className="text-sm font-medium text-white mb-1">Password</h3>
+          <p className="text-xs text-secondary">Password or API key</p>
         </div>
       </div>
 
       {/* Provider Selection */}
       <div>
-        <h2 className="text-xl font-bold text-white mb-4">Choose Your Provider</h2>
-        <div className="flex flex-wrap gap-3 mb-6">
+        <h2 className="text-sm font-medium text-secondary uppercase tracking-wide mb-3">
+          Choose Your Provider
+        </h2>
+        <div className="flex flex-wrap gap-2 mb-4">
           {providers.map((provider) => (
             <button
               key={provider.name}
               onClick={() => setSelectedProvider(provider)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 selectedProvider.name === provider.name
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-indigo-500/50 hover:bg-slate-800'
+                  ? 'bg-brand text-white'
+                  : 'bg-surface border border-subtle text-secondary hover:text-white hover:bg-hover'
               }`}
             >
-              <span className="mr-2">{provider.logo}</span>
               {provider.name}
             </button>
           ))}
         </div>
 
         {/* Provider Details */}
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-800/50 p-6 border-b border-slate-700">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{selectedProvider.logo}</span>
-              <div>
-                <h3 className="text-xl font-bold text-white">{selectedProvider.name}</h3>
-                <p className="text-sm text-slate-400">{selectedProvider.notes}</p>
-              </div>
-            </div>
+        <div className="rounded-lg border border-subtle bg-surface">
+          <div className="p-5 border-b border-subtle">
+            <h3 className="font-medium text-white">{selectedProvider.name}</h3>
+            <p className="text-sm text-secondary mt-1">{selectedProvider.notes}</p>
           </div>
 
-          <div className="p-6">
+          <div className="p-5">
             {/* Connection Details */}
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            <h4 className="text-xs font-medium text-secondary uppercase tracking-wide mb-3">
               Connection Details
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
-                <p className="text-xs text-slate-500 mb-1">SMTP Host</p>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="rounded-md bg-elevated p-3">
+                <p className="text-xs text-tertiary mb-1">SMTP Host</p>
                 <div className="flex items-center justify-between">
-                  <code className="text-sm font-mono text-white">{selectedProvider.host}</code>
+                  <code className="text-sm text-white">{selectedProvider.host}</code>
                   <CopyButton text={selectedProvider.host} />
                 </div>
               </div>
-              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
-                <p className="text-xs text-slate-500 mb-1">Port</p>
+              <div className="rounded-md bg-elevated p-3">
+                <p className="text-xs text-tertiary mb-1">Port</p>
                 <div className="flex items-center justify-between">
-                  <code className="text-sm font-mono text-white">{selectedProvider.port}</code>
+                  <code className="text-sm text-white">{selectedProvider.port}</code>
                   <CopyButton text={selectedProvider.port.split(' ')[0]} />
                 </div>
               </div>
-              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
-                <p className="text-xs text-slate-500 mb-1">Security</p>
-                <code className="text-sm font-mono text-white">{selectedProvider.security}</code>
+              <div className="rounded-md bg-elevated p-3">
+                <p className="text-xs text-tertiary mb-1">Security</p>
+                <code className="text-sm text-white">{selectedProvider.security}</code>
               </div>
             </div>
 
             {/* Setup Steps */}
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            <h4 className="text-xs font-medium text-secondary uppercase tracking-wide mb-3">
               Setup Steps
             </h4>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {selectedProvider.steps.map((step, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-semibold text-sm">
+                <div key={index} className="flex items-start gap-3 p-3 rounded-md bg-elevated">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-medium">
                     {index + 1}
                   </div>
-                  <p className="text-slate-300 pt-1">{step}</p>
+                  <p className="text-sm text-secondary pt-0.5">{step}</p>
                 </div>
               ))}
             </div>
@@ -269,27 +214,23 @@ export function SmtpGuidePage() {
       </div>
 
       {/* Tips */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          <AlertCircle className="h-6 w-6 text-amber-400 flex-shrink-0 mt-0.5" />
+      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0" />
           <div>
-            <h3 className="font-semibold text-amber-400 mb-2">Important Tips</h3>
-            <ul className="space-y-2 text-amber-200/80">
+            <h3 className="text-sm font-medium text-amber-500 mb-2">Tips</h3>
+            <ul className="space-y-1.5 text-sm text-amber-500/80">
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <span>Always use TLS/SSL encryption for secure email delivery</span>
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                Always use TLS/SSL encryption
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <span>Use app-specific passwords instead of your main password when possible</span>
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                Use app-specific passwords when possible
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <span>For high-volume sending, consider dedicated email services like SendGrid or Mailgun</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <span>Test your SMTP connection with a small campaign before scaling up</span>
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                Test your connection before sending campaigns
               </li>
             </ul>
           </div>
@@ -297,16 +238,16 @@ export function SmtpGuidePage() {
       </div>
 
       {/* CTA */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-8 text-center">
-        <h3 className="text-xl font-bold text-white mb-2">Ready to connect your email?</h3>
-        <p className="text-slate-400 mb-6">
-          Head back to SMTP Accounts and add your credentials to start sending campaigns.
+      <div className="rounded-lg border border-subtle bg-surface p-6 text-center">
+        <h3 className="font-medium text-white mb-2">Ready to connect?</h3>
+        <p className="text-sm text-secondary mb-4">
+          Add your SMTP credentials to start sending campaigns.
         </p>
         <Link
           to="/smtp-accounts"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/30 hover:from-indigo-500 hover:to-indigo-400 transition-all duration-200"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white text-sm font-medium rounded-md hover:bg-brand-400 transition-colors"
         >
-          <Mail className="h-5 w-5" />
+          <Mail className="h-4 w-4" />
           Add SMTP Account
         </Link>
       </div>

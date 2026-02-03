@@ -12,12 +12,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
-  Legend,
   Area,
   AreaChart,
 } from 'recharts';
@@ -27,23 +24,20 @@ import {
   MousePointerClick,
   MessageSquare,
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
   Calendar,
   Target,
   Users,
-  ArrowUpRight,
-  ArrowDownRight,
+  TrendingUp,
+  TrendingDown,
   ChevronDown,
 } from 'lucide-react';
 
-const COLORS = ['#6366f1', '#22d3ee', '#a78bfa', '#f472b6', '#fb923c'];
+const COLORS = ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b'];
 
-const darkTooltipStyle = {
-  backgroundColor: '#111118',
-  border: '1px solid #1e293b',
-  borderRadius: '8px',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+const tooltipStyle = {
+  backgroundColor: '#111113',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '6px',
 };
 
 function StatCard({
@@ -52,40 +46,30 @@ function StatCard({
   value,
   rate,
   trend,
-  color,
-  gradient,
 }: {
   icon: React.ElementType;
   label: string;
   value: number;
   rate?: number;
   trend?: number;
-  color: string;
-  gradient: string;
 }) {
-  const isPositive = trend !== undefined && trend >= 0;
   return (
-    <div className="relative overflow-hidden bg-slate-800/50 rounded-xl border border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className={`absolute inset-0 opacity-[0.03] ${gradient}`} />
-      <div className="relative">
-        <div className="flex items-center justify-between mb-3">
-          <div className={`p-2.5 rounded-xl ${gradient}`}>
-            <Icon className="h-5 w-5 text-white" />
+    <div className="rounded-lg border border-subtle bg-surface p-4">
+      <div className="flex items-center justify-between mb-3">
+        <Icon className="h-5 w-5 text-secondary" />
+        {trend !== undefined && (
+          <div className={`flex items-center gap-1 text-xs font-medium ${trend >= 0 ? 'text-brand' : 'text-red-400'}`}>
+            {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {Math.abs(trend)}%
           </div>
-          {trend !== undefined && (
-            <div className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-              {isPositive ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-              {Math.abs(trend)}%
-            </div>
-          )}
-        </div>
-        <p className="text-3xl font-bold text-white">{value.toLocaleString()}</p>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-sm text-slate-400">{label}</p>
-          {rate !== undefined && (
-            <p className="text-sm font-medium text-slate-400">{rate.toFixed(1)}% rate</p>
-          )}
-        </div>
+        )}
+      </div>
+      <p className="text-2xl font-semibold text-white">{value.toLocaleString()}</p>
+      <div className="flex items-center justify-between mt-1">
+        <p className="text-sm text-secondary">{label}</p>
+        {rate !== undefined && (
+          <p className="text-sm text-tertiary">{rate.toFixed(1)}%</p>
+        )}
       </div>
     </div>
   );
@@ -94,19 +78,19 @@ function StatCard({
 function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-white mb-4">Engagement Breakdown</h3>
-      <div className="flex items-center gap-8">
-        <div className="w-48 h-48">
+    <div className="rounded-lg border border-subtle bg-surface p-5">
+      <h3 className="text-sm font-medium text-white mb-4">Engagement Breakdown</h3>
+      <div className="flex items-center gap-6">
+        <div className="w-40 h-40">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={50}
-                outerRadius={70}
-                paddingAngle={5}
+                innerRadius={45}
+                outerRadius={65}
+                paddingAngle={4}
                 dataKey="value"
               >
                 {data.map((_, index) => (
@@ -115,26 +99,25 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
               </Pie>
               <Tooltip
                 formatter={(value: number) => [value.toLocaleString(), 'Count']}
-                contentStyle={darkTooltipStyle}
-                itemStyle={{ color: '#e2e8f0' }}
-                labelStyle={{ color: '#e2e8f0' }}
+                contentStyle={tooltipStyle}
+                itemStyle={{ color: '#fff' }}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-2">
           {data.map((item, index) => (
             <div key={item.name} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
-                <span className="text-sm text-slate-400">{item.name}</span>
+                <span className="text-sm text-secondary">{item.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-white">{item.value.toLocaleString()}</span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-tertiary">
                   ({total > 0 ? ((item.value / total) * 100).toFixed(1) : 0}%)
                 </span>
               </div>
@@ -184,15 +167,14 @@ export function AnalyticsDashboardPage() {
 
   const chartData = campaignAnalytics
     ? [
-        { name: 'Sent', value: campaignAnalytics.sent, fill: '#6366f1' },
-        { name: 'Opened', value: campaignAnalytics.opened, fill: '#22d3ee' },
-        { name: 'Clicked', value: campaignAnalytics.clicked, fill: '#a78bfa' },
-        { name: 'Replied', value: campaignAnalytics.replied, fill: '#f472b6' },
-        { name: 'Bounced', value: campaignAnalytics.bounced, fill: '#fb923c' },
+        { name: 'Sent', value: campaignAnalytics.sent, fill: '#10b981' },
+        { name: 'Opened', value: campaignAnalytics.opened, fill: '#10b981' },
+        { name: 'Clicked', value: campaignAnalytics.clicked, fill: '#10b981' },
+        { name: 'Replied', value: campaignAnalytics.replied, fill: '#10b981' },
+        { name: 'Bounced', value: campaignAnalytics.bounced, fill: '#ef4444' },
       ]
     : [];
 
-  // Mock trend data for the area chart
   const trendData = [
     { day: 'Mon', sent: 45, opened: 32, clicked: 12 },
     { day: 'Tue', sent: 52, opened: 38, clicked: 18 },
@@ -215,119 +197,62 @@ export function AnalyticsDashboardPage() {
     : [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 max-w-6xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Analytics</h1>
-          <p className="mt-1 text-slate-400">Track your email campaign performance</p>
+          <h1 className="text-2xl font-semibold text-white">Analytics</h1>
+          <p className="text-sm text-secondary mt-1">Track your email campaign performance</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/30 rounded-xl border border-slate-800">
-            <Calendar className="h-4 w-4 text-slate-400" />
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d')}
-              className="bg-transparent text-sm font-medium text-slate-300 focus:outline-none cursor-pointer"
-            >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-            </select>
-          </div>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-subtle bg-surface">
+          <Calendar className="h-4 w-4 text-secondary" />
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d')}
+            className="bg-transparent text-sm text-white focus:outline-none cursor-pointer"
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
         </div>
       </div>
 
       {/* Overview Stats */}
       {overview && (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-          <StatCard
-            icon={Send}
-            label="Total Sent"
-            value={overview.total_sent}
-            trend={12}
-            color="text-indigo-500"
-            gradient="bg-gradient-to-br from-indigo-500 to-indigo-600"
-          />
-          <StatCard
-            icon={Mail}
-            label="Opened"
-            value={overview.total_opened}
-            rate={overview.avg_open_rate}
-            trend={8}
-            color="text-cyan-500"
-            gradient="bg-gradient-to-br from-cyan-500 to-cyan-600"
-          />
-          <StatCard
-            icon={MousePointerClick}
-            label="Clicked"
-            value={overview.total_clicked}
-            rate={overview.avg_click_rate}
-            trend={-3}
-            color="text-violet-500"
-            gradient="bg-gradient-to-br from-violet-500 to-violet-600"
-          />
-          <StatCard
-            icon={MessageSquare}
-            label="Replied"
-            value={overview.total_replied}
-            rate={overview.avg_reply_rate}
-            trend={15}
-            color="text-pink-500"
-            gradient="bg-gradient-to-br from-pink-500 to-pink-600"
-          />
-          <StatCard
-            icon={Target}
-            label="Campaigns"
-            value={overview.total_campaigns}
-            color="text-orange-500"
-            gradient="bg-gradient-to-br from-orange-500 to-orange-600"
-          />
+        <div className="grid grid-cols-5 gap-4">
+          <StatCard icon={Send} label="Total Sent" value={overview.total_sent} trend={12} />
+          <StatCard icon={Mail} label="Opened" value={overview.total_opened} rate={overview.avg_open_rate} trend={8} />
+          <StatCard icon={MousePointerClick} label="Clicked" value={overview.total_clicked} rate={overview.avg_click_rate} trend={-3} />
+          <StatCard icon={MessageSquare} label="Replied" value={overview.total_replied} rate={overview.avg_reply_rate} trend={15} />
+          <StatCard icon={Target} label="Campaigns" value={overview.total_campaigns} />
         </div>
       )}
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-4">
         {/* Trend chart */}
-        <div className="lg:col-span-2 bg-slate-800/50 rounded-xl border border-slate-800 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-white mb-4">Weekly Performance</h3>
-          <div className="h-72">
+        <div className="col-span-2 rounded-lg border border-subtle bg-surface p-5">
+          <h3 className="text-sm font-medium text-white mb-4">Weekly Performance</h3>
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={darkTooltipStyle}
-                  itemStyle={{ color: '#e2e8f0' }}
-                  labelStyle={{ color: '#e2e8f0' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="sent"
-                  stroke="#6366f1"
-                  strokeWidth={2}
-                  fill="url(#colorSent)"
-                  name="Sent"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="opened"
-                  stroke="#22d3ee"
-                  strokeWidth={2}
-                  fill="url(#colorOpened)"
-                  name="Opened"
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#a1a1a1', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a1a1a1', fontSize: 12 }} />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} labelStyle={{ color: '#fff' }} />
+                <Area type="monotone" dataKey="sent" stroke="#10b981" strokeWidth={2} fill="url(#colorSent)" name="Sent" />
+                <Area type="monotone" dataKey="opened" stroke="#06b6d4" strokeWidth={2} fill="url(#colorOpened)" name="Opened" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -338,18 +263,18 @@ export function AnalyticsDashboardPage() {
       </div>
 
       {/* Campaign Deep Dive */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-800 shadow-sm">
-        <div className="p-6 border-b border-slate-800">
+      <div className="rounded-lg border border-subtle bg-surface">
+        <div className="p-5 border-b border-subtle">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">Campaign Deep Dive</h2>
-              <p className="text-sm text-slate-400 mt-0.5">Select a campaign to view detailed analytics</p>
+              <h2 className="font-medium text-white">Campaign Deep Dive</h2>
+              <p className="text-sm text-secondary mt-0.5">Select a campaign to view detailed analytics</p>
             </div>
             <div className="relative">
               <select
                 value={selectedCampaignId}
                 onChange={(e) => setSelectedCampaignId(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 bg-slate-800/30 border border-slate-800 rounded-xl text-sm font-medium text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer min-w-[200px]"
+                className="appearance-none pl-3 pr-8 py-2 rounded-md border border-default bg-surface text-sm text-white focus:outline-none focus:border-brand min-w-[180px]"
               >
                 <option value="">Choose a campaign...</option>
                 {campaigns.map((c: any) => (
@@ -358,66 +283,58 @@ export function AnalyticsDashboardPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary pointer-events-none" />
             </div>
           </div>
         </div>
 
         {campaignAnalytics ? (
-          <div className="p-6 space-y-6">
+          <div className="p-5 space-y-5">
             {/* Campaign stats */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div className="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                <div className="flex items-center gap-2 text-indigo-400 mb-2">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="p-4 rounded-md bg-brand/10 border border-brand/20">
+                <div className="flex items-center gap-2 text-brand mb-2">
                   <Send className="h-4 w-4" />
                   <span className="text-sm font-medium">Sent</span>
                 </div>
-                <p className="text-2xl font-bold text-white">{campaignAnalytics.sent}</p>
+                <p className="text-2xl font-semibold text-white">{campaignAnalytics.sent}</p>
               </div>
-              <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-                <div className="flex items-center gap-2 text-cyan-400 mb-2">
+              <div className="p-4 rounded-md bg-brand/10 border border-brand/20">
+                <div className="flex items-center gap-2 text-brand mb-2">
                   <Mail className="h-4 w-4" />
                   <span className="text-sm font-medium">Opened</span>
                 </div>
-                <p className="text-2xl font-bold text-white">{campaignAnalytics.opened}</p>
-                <p className="text-xs text-slate-500 mt-1">{campaignAnalytics.open_rate?.toFixed(1)}% rate</p>
+                <p className="text-2xl font-semibold text-white">{campaignAnalytics.opened}</p>
+                <p className="text-xs text-tertiary mt-1">{campaignAnalytics.open_rate?.toFixed(1)}% rate</p>
               </div>
-              <div className="p-4 bg-violet-500/10 rounded-xl border border-violet-500/20">
-                <div className="flex items-center gap-2 text-violet-400 mb-2">
+              <div className="p-4 rounded-md bg-brand/10 border border-brand/20">
+                <div className="flex items-center gap-2 text-brand mb-2">
                   <MousePointerClick className="h-4 w-4" />
                   <span className="text-sm font-medium">Clicked</span>
                 </div>
-                <p className="text-2xl font-bold text-white">{campaignAnalytics.clicked}</p>
-                <p className="text-xs text-slate-500 mt-1">{campaignAnalytics.click_rate?.toFixed(1)}% rate</p>
+                <p className="text-2xl font-semibold text-white">{campaignAnalytics.clicked}</p>
+                <p className="text-xs text-tertiary mt-1">{campaignAnalytics.click_rate?.toFixed(1)}% rate</p>
               </div>
-              <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+              <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
                 <div className="flex items-center gap-2 text-red-400 mb-2">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm font-medium">Bounced</span>
                 </div>
-                <p className="text-2xl font-bold text-white">{campaignAnalytics.bounced}</p>
-                <p className="text-xs text-slate-500 mt-1">{campaignAnalytics.bounce_rate?.toFixed(1)}% rate</p>
+                <p className="text-2xl font-semibold text-white">{campaignAnalytics.bounced}</p>
+                <p className="text-xs text-tertiary mt-1">{campaignAnalytics.bounce_rate?.toFixed(1)}% rate</p>
               </div>
             </div>
 
             {/* Bar chart */}
             {chartData.length > 0 && (
-              <div className="h-64">
+              <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} barCategoryGap="20%">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={darkTooltipStyle}
-                      itemStyle={{ color: '#e2e8f0' }}
-                      labelStyle={{ color: '#e2e8f0' }}
-                    />
-                    <Bar
-                      dataKey="value"
-                      radius={[8, 8, 0, 0]}
-                      fill="#6366f1"
-                    >
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#a1a1a1', fontSize: 12 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a1a1a1', fontSize: 12 }} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} labelStyle={{ color: '#fff' }} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                       {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
@@ -428,40 +345,40 @@ export function AnalyticsDashboardPage() {
             )}
           </div>
         ) : (
-          <div className="p-12 text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-slate-800/30 flex items-center justify-center mb-4">
-              <Target className="h-8 w-8 text-slate-500" />
+          <div className="p-10 text-center">
+            <div className="mx-auto w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
+              <Target className="h-6 w-6 text-tertiary" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-1">No Campaign Selected</h3>
-            <p className="text-slate-400">Choose a campaign above to view detailed analytics</p>
+            <h3 className="font-medium text-white mb-1">No Campaign Selected</h3>
+            <p className="text-sm text-secondary">Choose a campaign above to view detailed analytics</p>
           </div>
         )}
 
         {/* Contact breakdown table */}
         {campaignContacts && campaignContacts.contacts.length > 0 && (
-          <div className="p-6 border-t border-slate-800">
-            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-              <Users className="h-5 w-5 text-slate-500" />
+          <div className="p-5 border-t border-subtle">
+            <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 text-secondary" />
               Contact Breakdown
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800">
-                    <th className="pb-3 pr-4 text-left font-medium text-slate-400">Contact</th>
-                    <th className="pb-3 pr-4 text-left font-medium text-slate-400">Status</th>
-                    <th className="pb-3 pr-4 text-center font-medium text-slate-400">Sent</th>
-                    <th className="pb-3 pr-4 text-center font-medium text-slate-400">Opened</th>
-                    <th className="pb-3 pr-4 text-center font-medium text-slate-400">Clicked</th>
-                    <th className="pb-3 text-center font-medium text-slate-400">Replied</th>
+                  <tr className="border-b border-subtle">
+                    <th className="pb-3 pr-4 text-left font-medium text-tertiary">Contact</th>
+                    <th className="pb-3 pr-4 text-left font-medium text-tertiary">Status</th>
+                    <th className="pb-3 pr-4 text-center font-medium text-tertiary">Sent</th>
+                    <th className="pb-3 pr-4 text-center font-medium text-tertiary">Opened</th>
+                    <th className="pb-3 pr-4 text-center font-medium text-tertiary">Clicked</th>
+                    <th className="pb-3 text-center font-medium text-tertiary">Replied</th>
                   </tr>
                 </thead>
                 <tbody>
                   {campaignContacts.contacts.slice(0, 10).map((c: any) => (
-                    <tr key={c.contact_id} className="border-b border-slate-800/50 hover:bg-slate-800/50 transition-colors">
+                    <tr key={c.contact_id} className="border-b border-subtle last:border-0 hover:bg-hover transition-colors">
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-cyan-400 flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center text-brand text-xs font-medium">
                             {(c.first_name?.[0] || c.email[0]).toUpperCase()}
                           </div>
                           <div>
@@ -469,7 +386,7 @@ export function AnalyticsDashboardPage() {
                               {[c.first_name, c.last_name].filter(Boolean).join(' ') || c.email}
                             </span>
                             {(c.first_name || c.last_name) && (
-                              <p className="text-xs text-slate-500">{c.email}</p>
+                              <p className="text-xs text-tertiary">{c.email}</p>
                             )}
                           </div>
                         </div>
@@ -477,29 +394,26 @@ export function AnalyticsDashboardPage() {
                       <td className="py-3 pr-4">
                         <Badge
                           variant={
-                            c.status === 'replied'
-                              ? 'purple'
-                              : c.status === 'bounced'
-                              ? 'danger'
-                              : c.status === 'opened' || c.status === 'clicked'
-                              ? 'success'
-                              : 'default'
+                            c.status === 'replied' ? 'purple' :
+                            c.status === 'bounced' ? 'danger' :
+                            c.status === 'opened' || c.status === 'clicked' ? 'success' :
+                            'default'
                           }
                         >
                           {c.status}
                         </Badge>
                       </td>
-                      <td className="py-3 pr-4 text-center text-slate-400">{c.sent}</td>
-                      <td className="py-3 pr-4 text-center text-slate-400">{c.opened}</td>
-                      <td className="py-3 pr-4 text-center text-slate-400">{c.clicked}</td>
+                      <td className="py-3 pr-4 text-center text-secondary">{c.sent}</td>
+                      <td className="py-3 pr-4 text-center text-secondary">{c.opened}</td>
+                      <td className="py-3 pr-4 text-center text-secondary">{c.clicked}</td>
                       <td className="py-3 text-center">
                         {c.replied ? (
-                          <span className="inline-flex items-center gap-1 text-green-400">
-                            <MessageSquare className="h-4 w-4" />
+                          <span className="inline-flex items-center gap-1 text-brand">
+                            <MessageSquare className="h-3.5 w-3.5" />
                             Yes
                           </span>
                         ) : (
-                          <span className="text-slate-500">No</span>
+                          <span className="text-tertiary">No</span>
                         )}
                       </td>
                     </tr>
@@ -507,7 +421,7 @@ export function AnalyticsDashboardPage() {
                 </tbody>
               </table>
               {campaignContacts.contacts.length > 10 && (
-                <p className="mt-4 text-sm text-slate-400 text-center">
+                <p className="mt-3 text-xs text-tertiary text-center">
                   Showing 10 of {campaignContacts.contacts.length} contacts
                 </p>
               )}
