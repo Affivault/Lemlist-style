@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase.js';
 import crypto from 'crypto';
 import type {
   WebhookEndpoint,

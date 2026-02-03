@@ -1,4 +1,4 @@
-import { WebhookEventType } from './enums';
+import { WebhookEventType } from './enums.js';
 
 export interface WebhookEndpoint {
   id: string;

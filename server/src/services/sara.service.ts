@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase.js';
 import { SaraIntent, SaraAction, SaraStatus } from '@lemlist/shared';
 import type { SaraClassificationResult, SaraQueueStats } from '@lemlist/shared';
 import { fireEvent } from './webhook.service.js';

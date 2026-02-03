@@ -83,7 +83,7 @@ export function CampaignsListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
+        <h1 className="text-2xl font-bold text-white">Campaigns</h1>
         <Button onClick={() => navigate('/campaigns/new')}>
           <Plus className="h-4 w-4" />
           New Campaign
@@ -91,15 +91,15 @@ export function CampaignsListPage() {
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+      <div className="flex gap-1 rounded-lg bg-slate-800/30 p-1">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => { setStatusFilter(tab.value); setPage(1); }}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               statusFilter === tab.value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-slate-700 text-white'
+                : 'text-slate-400 hover:text-slate-300'
             }`}
           >
             {tab.label}
@@ -121,16 +121,16 @@ export function CampaignsListPage() {
             {campaigns.map((campaign: CampaignWithStats) => (
               <div
                 key={campaign.id}
-                className="card cursor-pointer p-5 transition-shadow hover:shadow-md"
+                className="cursor-pointer rounded-xl border border-slate-800 bg-slate-800/50 p-5 transition-colors hover:bg-slate-800/70"
                 onClick={() => navigate(`/campaigns/${campaign.id}`)}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
+                      <h3 className="font-semibold text-white">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-slate-400">
                       {campaign.steps_count} steps &middot; {campaign.contacts_count} contacts &middot; Created {formatDate(campaign.created_at)}
                     </p>
                   </div>
@@ -175,7 +175,7 @@ export function CampaignsListPage() {
 
                 {/* Stats row */}
                 {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
-                  <div className="mt-3 flex gap-6 text-sm text-gray-500">
+                  <div className="mt-3 flex gap-6 text-sm text-slate-400">
                     <span className="flex items-center gap-1"><Send className="h-3.5 w-3.5" /> {campaign.sent_count} sent</span>
                     <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {campaign.opened_count} opened</span>
                     <span className="flex items-center gap-1"><MousePointerClick className="h-3.5 w-3.5" /> {campaign.clicked_count} clicked</span>
@@ -191,7 +191,7 @@ export function CampaignsListPage() {
               <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                 Previous
               </Button>
-              <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
+              <span className="text-sm text-slate-400">Page {page} of {totalPages}</span>
               <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
                 Next
               </Button>

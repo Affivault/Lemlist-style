@@ -111,7 +111,7 @@ export function CampaignDetailPage() {
   }
 
   if (!campaign) {
-    return <div className="text-center text-gray-500">Campaign not found</div>;
+    return <div className="text-center text-slate-400">Campaign not found</div>;
   }
 
   const chartData = analytics
@@ -130,11 +130,18 @@ export function CampaignDetailPage() {
     { id: 'contacts', label: `Contacts (${campaign.contacts_count || 0})` },
   ];
 
+  const customTooltipStyle = {
+    backgroundColor: '#111118',
+    borderColor: '#1e293b',
+    borderRadius: '8px',
+    color: '#e2e8f0',
+  };
+
   return (
     <div className="space-y-6">
       <button
         onClick={() => navigate('/campaigns')}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-300"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Campaigns
@@ -144,10 +151,10 @@ export function CampaignDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">{campaign.name}</h1>
+            <h1 className="text-2xl font-bold text-white">{campaign.name}</h1>
             <StatusBadge status={campaign.status} type="campaign" />
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-400">
             Created {formatDate(campaign.created_at)}
             {campaign.started_at && ` · Started ${formatDate(campaign.started_at)}`}
             {campaign.completed_at && ` · Completed ${formatDate(campaign.completed_at)}`}
@@ -198,15 +205,15 @@ export function CampaignDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-slate-800">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.id
-                ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-indigo-400 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-300'
             }`}
           >
             {tab.label}
@@ -228,15 +235,15 @@ export function CampaignDetailPage() {
               </div>
 
               {chartData.some((d) => d.value > 0) && (
-                <div className="card p-5">
-                  <h3 className="mb-4 font-semibold text-gray-900">Performance</h3>
+                <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-5">
+                  <h3 className="mb-4 font-semibold text-white">Performance</h3>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                        <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} />
+                        <YAxis tick={{ fill: '#94a3b8' }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} />
+                        <Tooltip contentStyle={customTooltipStyle} cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }} />
                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                           {chartData.map((entry, index) => (
                             <rect key={index} fill={entry.fill} />
@@ -251,28 +258,28 @@ export function CampaignDetailPage() {
           )}
 
           {/* Campaign settings */}
-          <div className="card p-5">
-            <h3 className="mb-3 font-semibold text-gray-900">Campaign Settings</h3>
+          <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-5">
+            <h3 className="mb-3 font-semibold text-white">Campaign Settings</h3>
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <dt className="text-gray-500">Timezone</dt>
-                <dd className="font-medium text-gray-900">{campaign.timezone}</dd>
+                <dt className="text-slate-500">Timezone</dt>
+                <dd className="font-medium text-white">{campaign.timezone}</dd>
               </div>
               <div>
-                <dt className="text-gray-500">Send Window</dt>
-                <dd className="font-medium text-gray-900">
+                <dt className="text-slate-500">Send Window</dt>
+                <dd className="font-medium text-white">
                   {campaign.send_window_start || '—'} – {campaign.send_window_end || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Send Days</dt>
-                <dd className="font-medium capitalize text-gray-900">
+                <dt className="text-slate-500">Send Days</dt>
+                <dd className="font-medium capitalize text-white">
                   {campaign.send_days?.join(', ') || 'Weekdays'}
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Total Contacts</dt>
-                <dd className="font-medium text-gray-900">{campaign.total_contacts}</dd>
+                <dt className="text-slate-500">Total Contacts</dt>
+                <dd className="font-medium text-white">{campaign.total_contacts}</dd>
               </div>
             </dl>
           </div>
@@ -283,28 +290,28 @@ export function CampaignDetailPage() {
       {activeTab === 'sequence' && (
         <div className="space-y-3">
           {(!campaign.steps || campaign.steps.length === 0) ? (
-            <p className="py-8 text-center text-sm text-gray-400">No steps in this campaign.</p>
+            <p className="py-8 text-center text-sm text-slate-500">No steps in this campaign.</p>
           ) : (
             campaign.steps.map((step: CampaignStep, index: number) => (
-              <div key={step.id} className="card p-4">
+              <div key={step.id} className="rounded-xl border border-slate-800 bg-slate-800/50 p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800/30 text-xs font-semibold text-slate-400">
                     {index + 1}
                   </span>
                   {step.step_type === 'email' ? (
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-primary-500" />
-                        <span className="font-medium text-gray-900">{step.subject || 'Untitled Email'}</span>
+                        <Mail className="h-4 w-4 text-indigo-400" />
+                        <span className="font-medium text-white">{step.subject || 'Untitled Email'}</span>
                       </div>
                       {step.body_text && (
-                        <p className="mt-1 line-clamp-2 text-sm text-gray-500">{step.body_text}</p>
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-400">{step.body_text}</p>
                       )}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-orange-500" />
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-white">
                         Wait {step.delay_days}d {step.delay_hours}h {step.delay_minutes}m
                       </span>
                     </div>
@@ -323,12 +330,12 @@ export function CampaignDetailPage() {
       {activeTab === 'contacts' && (
         <div>
           {!campaignContacts?.data?.length ? (
-            <p className="py-8 text-center text-sm text-gray-400">No contacts in this campaign.</p>
+            <p className="py-8 text-center text-sm text-slate-500">No contacts in this campaign.</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-800/50">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-gray-50 text-left text-gray-500">
+                  <tr className="border-b border-slate-800/50 bg-slate-800/30 text-left text-slate-500">
                     <th className="px-4 py-3">Contact</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Current Step</th>
@@ -338,20 +345,20 @@ export function CampaignDetailPage() {
                 </thead>
                 <tbody>
                   {campaignContacts.data.map((cc: any) => (
-                    <tr key={cc.id} className="border-b border-gray-50">
+                    <tr key={cc.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
                       <td className="px-4 py-3">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-white">
                           {[cc.contact?.first_name, cc.contact?.last_name].filter(Boolean).join(' ') || cc.contact?.email || '—'}
                         </span>
                         {cc.contact?.email && (
-                          <span className="ml-2 text-gray-400">{cc.contact.email}</span>
+                          <span className="ml-2 text-slate-500">{cc.contact.email}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={cc.status} type="contact" />
                       </td>
-                      <td className="px-4 py-3 text-gray-600">Step {cc.current_step_order + 1}</td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-4 py-3 text-slate-400">Step {cc.current_step_order + 1}</td>
+                      <td className="px-4 py-3 text-slate-400">
                         {cc.next_send_at ? formatDateTime(cc.next_send_at) : '—'}
                       </td>
                       <td className="px-4 py-3 text-red-500">{cc.error_message || '—'}</td>
@@ -375,13 +382,13 @@ function StatCard({ icon: Icon, label, value, rate, color }: {
   color: string;
 }) {
   return (
-    <div className="card p-4">
+    <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-4">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${color}`} />
-        <span className="text-sm text-gray-500">{label}</span>
+        <span className="text-sm text-slate-400">{label}</span>
       </div>
-      <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
-      {rate !== undefined && <p className="text-xs text-gray-400">{rate}%</p>}
+      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+      {rate !== undefined && <p className="text-xs text-slate-500">{rate}%</p>}
     </div>
   );
 }

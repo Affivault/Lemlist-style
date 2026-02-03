@@ -99,7 +99,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+      className="p-1.5 rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-slate-300 transition-colors"
     >
       <Copy className="h-4 w-4" />
     </button>
@@ -115,19 +115,19 @@ export function SmtpGuidePage() {
       <div>
         <Link
           to="/smtp-accounts"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300 mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to SMTP Accounts
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">SMTP Connection Guide</h1>
-        <p className="text-gray-500 mt-2">
+        <h1 className="text-3xl font-bold text-white">SMTP Connection Guide</h1>
+        <p className="text-slate-400 mt-2">
           Learn how to connect your email provider to SkySend for sending campaigns.
         </p>
       </div>
 
       {/* Quick Start */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl p-8 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative">
           <div className="flex items-center gap-3 mb-4">
@@ -159,42 +159,42 @@ export function SmtpGuidePage() {
 
       {/* What You'll Need */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-card">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mb-4">
-            <Server className="h-6 w-6 text-indigo-600" />
+        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
+          <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-4">
+            <Server className="h-6 w-6 text-indigo-400" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-1">SMTP Host</h3>
-          <p className="text-sm text-gray-500">The server address for your email provider</p>
+          <h3 className="font-semibold text-white mb-1">SMTP Host</h3>
+          <p className="text-sm text-slate-400">The server address for your email provider</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-card">
-          <div className="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center mb-4">
-            <Globe className="h-6 w-6 text-cyan-600" />
+        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4">
+            <Globe className="h-6 w-6 text-cyan-400" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-1">Port Number</h3>
-          <p className="text-sm text-gray-500">Usually 587 (TLS) or 465 (SSL)</p>
+          <h3 className="font-semibold text-white mb-1">Port Number</h3>
+          <p className="text-sm text-slate-400">Usually 587 (TLS) or 465 (SSL)</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-card">
-          <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center mb-4">
-            <Mail className="h-6 w-6 text-violet-600" />
+        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
+          <div className="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mb-4">
+            <Mail className="h-6 w-6 text-violet-400" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-1">Username</h3>
-          <p className="text-sm text-gray-500">Usually your full email address</p>
+          <h3 className="font-semibold text-white mb-1">Username</h3>
+          <p className="text-sm text-slate-400">Usually your full email address</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-card">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
-            <Key className="h-6 w-6 text-amber-600" />
+        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
+            <Key className="h-6 w-6 text-amber-400" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-1">Password/API Key</h3>
-          <p className="text-sm text-gray-500">Your password or app-specific key</p>
+          <h3 className="font-semibold text-white mb-1">Password/API Key</h3>
+          <p className="text-sm text-slate-400">Your password or app-specific key</p>
         </div>
       </div>
 
       {/* Provider Selection */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Choose Your Provider</h2>
+        <h2 className="text-xl font-bold text-white mb-4">Choose Your Provider</h2>
         <div className="flex flex-wrap gap-3 mb-6">
           {providers.map((provider) => (
             <button
@@ -203,7 +203,7 @@ export function SmtpGuidePage() {
               className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 selectedProvider.name === provider.name
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'bg-white border border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50'
+                  : 'bg-slate-800/50 border border-slate-700 text-slate-300 hover:border-indigo-500/50 hover:bg-slate-800'
               }`}
             >
               <span className="mr-2">{provider.logo}</span>
@@ -213,54 +213,54 @@ export function SmtpGuidePage() {
         </div>
 
         {/* Provider Details */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-100">
+        <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-800/50 p-6 border-b border-slate-700">
             <div className="flex items-center gap-3">
               <span className="text-3xl">{selectedProvider.logo}</span>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">{selectedProvider.name}</h3>
-                <p className="text-sm text-gray-500">{selectedProvider.notes}</p>
+                <h3 className="text-xl font-bold text-white">{selectedProvider.name}</h3>
+                <p className="text-sm text-slate-400">{selectedProvider.notes}</p>
               </div>
             </div>
           </div>
 
           <div className="p-6">
             {/* Connection Details */}
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
               Connection Details
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 mb-1">SMTP Host</p>
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <p className="text-xs text-slate-500 mb-1">SMTP Host</p>
                 <div className="flex items-center justify-between">
-                  <code className="text-sm font-mono text-gray-900">{selectedProvider.host}</code>
+                  <code className="text-sm font-mono text-white">{selectedProvider.host}</code>
                   <CopyButton text={selectedProvider.host} />
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 mb-1">Port</p>
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <p className="text-xs text-slate-500 mb-1">Port</p>
                 <div className="flex items-center justify-between">
-                  <code className="text-sm font-mono text-gray-900">{selectedProvider.port}</code>
+                  <code className="text-sm font-mono text-white">{selectedProvider.port}</code>
                   <CopyButton text={selectedProvider.port.split(' ')[0]} />
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 mb-1">Security</p>
-                <code className="text-sm font-mono text-gray-900">{selectedProvider.security}</code>
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <p className="text-xs text-slate-500 mb-1">Security</p>
+                <code className="text-sm font-mono text-white">{selectedProvider.security}</code>
               </div>
             </div>
 
             {/* Setup Steps */}
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
               Setup Steps
             </h4>
             <div className="space-y-3">
               {selectedProvider.steps.map((step, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-semibold text-sm">
+                <div key={index} className="flex items-start gap-4 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-semibold text-sm">
                     {index + 1}
                   </div>
-                  <p className="text-gray-700 pt-1">{step}</p>
+                  <p className="text-slate-300 pt-1">{step}</p>
                 </div>
               ))}
             </div>
@@ -269,26 +269,26 @@ export function SmtpGuidePage() {
       </div>
 
       {/* Tips */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6">
         <div className="flex items-start gap-4">
-          <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="h-6 w-6 text-amber-400 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-semibold text-amber-900 mb-2">Important Tips</h3>
-            <ul className="space-y-2 text-amber-800">
+            <h3 className="font-semibold text-amber-400 mb-2">Important Tips</h3>
+            <ul className="space-y-2 text-amber-200/80">
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <span>Always use TLS/SSL encryption for secure email delivery</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <span>Use app-specific passwords instead of your main password when possible</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <span>For high-volume sending, consider dedicated email services like SendGrid or Mailgun</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 <span>Test your SMTP connection with a small campaign before scaling up</span>
               </li>
             </ul>
@@ -297,9 +297,9 @@ export function SmtpGuidePage() {
       </div>
 
       {/* CTA */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-card text-center">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Ready to connect your email?</h3>
-        <p className="text-gray-500 mb-6">
+      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-8 text-center">
+        <h3 className="text-xl font-bold text-white mb-2">Ready to connect your email?</h3>
+        <p className="text-slate-400 mb-6">
           Head back to SMTP Accounts and add your credentials to start sending campaigns.
         </p>
         <Link

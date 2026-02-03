@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase.js';
 import type { AssetTemplate, CreateAssetTemplateInput, AssetTemplateLayer } from '@lemlist/shared';
 import crypto from 'crypto';
 

@@ -2,16 +2,15 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  Send,
-  Mail,
-  BarChart3,
+  Megaphone,
   Inbox,
+  BarChart3,
   Settings,
   Sparkles,
   HelpCircle,
   Shield,
   Bot,
-  Image,
+  Layers,
   Code2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -19,47 +18,31 @@ import { SkySendLogoMark } from '../SkySendLogo';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
   { name: 'Contacts', href: '/contacts', icon: Users },
-  { name: 'Campaigns', href: '/campaigns', icon: Send },
   { name: 'Inbox', href: '/inbox', icon: Inbox },
-  { name: 'SARA', href: '/sara', icon: Bot },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'SMTP Accounts', href: '/smtp-accounts', icon: Mail },
-  { name: 'Sender Health', href: '/sse', icon: Shield },
-  { name: 'Assets', href: '/assets', icon: Image },
+  { name: 'SARA', href: '/sara', icon: Bot },
+  { name: 'SSE', href: '/sse', icon: Shield },
+  { name: 'Assets', href: '/assets', icon: Layers },
   { name: 'Developer', href: '/developer', icon: Code2 },
 ];
 
 export function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
+    <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-[#0c0c14] border-r border-slate-800/40">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-primary-500 to-cyan-500 shadow-glow">
-          <SkySendLogoMark className="h-5 w-5 text-white" />
+      <div className="flex h-14 items-center gap-2.5 px-5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-400">
+          <SkySendLogoMark className="h-4 w-4 text-white" />
         </div>
-        <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+        <span className="text-[15px] font-semibold text-white tracking-tight">
           SkySend
         </span>
       </div>
 
-      {/* Upgrade Banner */}
-      <div className="mx-4 mb-4 mt-2 rounded-xl bg-gradient-to-r from-indigo-600/20 to-cyan-600/20 border border-indigo-500/20 p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="h-4 w-4 text-indigo-400" />
-          <span className="text-sm font-semibold text-white">Pro Features</span>
-        </div>
-        <p className="text-xs text-slate-400 mb-2">Unlock unlimited campaigns and advanced analytics</p>
-        <button className="w-full py-1.5 px-3 text-xs font-medium rounded-lg bg-gradient-to-r from-indigo-500 to-cyan-500 text-white hover:from-indigo-400 hover:to-cyan-400 transition-all duration-200 shadow-sm">
-          Upgrade Now
-        </button>
-      </div>
-
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-2 overflow-y-auto">
-        <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Main Menu
-        </p>
+      <nav className="flex-1 px-3 pt-2 pb-4 overflow-y-auto space-y-0.5">
         {navigation.map((item) => (
           <NavLink
             key={item.name}
@@ -67,53 +50,75 @@ export function Sidebar() {
             end={item.href === '/dashboard'}
             className={({ isActive }) =>
               cn(
-                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                'group flex items-center gap-3 rounded-md px-3 py-[7px] text-[13px] font-medium transition-colors duration-150',
                 isActive
-                  ? 'bg-gradient-to-r from-indigo-600/30 to-indigo-600/10 text-white shadow-sm border border-indigo-500/20'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-slate-800/50 text-white border-l-2 border-indigo-500 pl-[10px]'
+                  : 'text-slate-400 hover:bg-slate-800/30 hover:text-slate-200 border-l-2 border-transparent pl-[10px]'
               )
             }
           >
             {({ isActive }) => (
               <>
-                <div
+                <item.icon
                   className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200',
+                    'h-[18px] w-[18px] flex-shrink-0 transition-colors duration-150',
                     isActive
-                      ? 'bg-indigo-500/20 text-indigo-400'
-                      : 'bg-slate-800/50 text-slate-400 group-hover:bg-slate-700/50 group-hover:text-white'
+                      ? 'text-indigo-400'
+                      : 'text-slate-500 group-hover:text-slate-300'
                   )}
-                >
-                  <item.icon className="h-4.5 w-4.5" />
-                </div>
+                  strokeWidth={isActive ? 2 : 1.75}
+                />
                 <span>{item.name}</span>
-                {isActive && (
-                  <div className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-glow" />
-                )}
               </>
             )}
           </NavLink>
         ))}
       </nav>
 
+      {/* Pro Upgrade Banner */}
+      <div className="mx-3 mb-3">
+        <div className="rounded-lg bg-slate-900/80 border border-slate-800/60 p-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+            <span className="text-xs font-medium text-slate-200">Pro Features</span>
+          </div>
+          <p className="text-[11px] leading-relaxed text-slate-500 mb-2.5">
+            Unlock unlimited campaigns and advanced analytics
+          </p>
+          <button className="w-full py-1.5 px-3 text-[11px] font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500 transition-colors duration-150">
+            Upgrade Now
+          </button>
+        </div>
+      </div>
+
       {/* Footer */}
-      <div className="border-t border-slate-800/50 p-3 space-y-1">
+      <div className="border-t border-slate-800/40 px-3 py-2 space-y-0.5">
         <NavLink
           to="/smtp-accounts/guide"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white transition-all duration-200"
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 rounded-md px-3 py-[7px] text-[13px] font-medium transition-colors duration-150',
+              isActive
+                ? 'text-slate-200'
+                : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/30'
+            )
+          }
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800/50">
-            <HelpCircle className="h-4.5 w-4.5" />
-          </div>
+          <HelpCircle className="h-[18px] w-[18px] flex-shrink-0" strokeWidth={1.75} />
           SMTP Guide
         </NavLink>
         <NavLink
           to="/settings"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white transition-all duration-200"
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 rounded-md px-3 py-[7px] text-[13px] font-medium transition-colors duration-150',
+              isActive
+                ? 'text-slate-200'
+                : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/30'
+            )
+          }
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800/50">
-            <Settings className="h-4.5 w-4.5" />
-          </div>
+          <Settings className="h-[18px] w-[18px] flex-shrink-0" strokeWidth={1.75} />
           Settings
         </NavLink>
       </div>

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase.js';
 import dns from 'dns';
 import net from 'net';
 import type { DcsVerificationResult } from '@lemlist/shared';

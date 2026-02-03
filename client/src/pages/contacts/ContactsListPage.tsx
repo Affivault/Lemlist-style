@@ -183,7 +183,7 @@ export function ContactsListPage() {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-sm text-gray-500">Loading contacts...</p>
+          <p className="mt-4 text-sm text-slate-400">Loading contacts...</p>
         </div>
       </div>
     );
@@ -194,14 +194,14 @@ export function ContactsListPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-          <p className="text-gray-500 mt-1">Manage your leads and prospects in one place.</p>
+          <h1 className="text-3xl font-bold text-white">Contacts</h1>
+          <p className="text-slate-400 mt-1">Manage your leads and prospects in one place.</p>
         </div>
         <div className="flex gap-3">
           <Button
             variant="secondary"
             onClick={() => setShowImportModal(true)}
-            className="border-gray-200 hover:border-gray-300"
+            className="border-slate-700 hover:border-slate-600"
           >
             <Upload className="h-4 w-4" />
             Import CSV
@@ -219,36 +219,36 @@ export function ContactsListPage() {
       {/* Stats */}
       {totalContacts > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-indigo-50">
-                <Users className="h-5 w-5 text-indigo-600" />
+              <div className="p-2 rounded-lg bg-indigo-500/10">
+                <Users className="h-5 w-5 text-indigo-400" />
               </div>
-              <span className="text-sm font-medium text-gray-500">Total Contacts</span>
+              <span className="text-sm font-medium text-slate-400">Total Contacts</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{totalContacts.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-white">{totalContacts.toLocaleString()}</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-emerald-50">
-                <UserCheck className="h-5 w-5 text-emerald-600" />
+              <div className="p-2 rounded-lg bg-emerald-500/10">
+                <UserCheck className="h-5 w-5 text-emerald-400" />
               </div>
-              <span className="text-sm font-medium text-gray-500">With Company</span>
+              <span className="text-sm font-medium text-slate-400">With Company</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-white">
               {contacts.filter((c: ContactWithTags) => c.company).length}
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-violet-50">
-                <Tag className="h-5 w-5 text-violet-600" />
+              <div className="p-2 rounded-lg bg-violet-500/10">
+                <Tag className="h-5 w-5 text-violet-400" />
               </div>
-              <span className="text-sm font-medium text-gray-500">Tagged</span>
+              <span className="text-sm font-medium text-slate-400">Tagged</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-white">
               {contacts.filter((c: ContactWithTags) => c.tags && c.tags.length > 0).length}
             </p>
           </div>
@@ -256,7 +256,7 @@ export function ContactsListPage() {
       )}
 
       {/* Search */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-card">
+      <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-4">
         <SearchInput
           value={search}
           onChange={(val) => { setSearch(val); setPage(1); }}
@@ -265,15 +265,15 @@ export function ContactsListPage() {
       </div>
 
       {contacts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-12">
+        <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-12">
           <div className="max-w-md mx-auto text-center">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-cyan-50 flex items-center justify-center mb-6">
-              <Users className="h-8 w-8 text-indigo-600" />
+            <div className="mx-auto w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 flex items-center justify-center mb-6">
+              <Users className="h-8 w-8 text-indigo-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <h3 className="text-xl font-bold text-white mb-2">
               {search ? 'No contacts found' : 'No contacts yet'}
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-slate-400 mb-6">
               {search
                 ? 'Try adjusting your search terms.'
                 : 'Add contacts manually or import from a CSV file to get started.'}
@@ -298,62 +298,62 @@ export function ContactsListPage() {
       ) : (
         <>
           {/* Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50/50">
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700">
+                  <tr className="border-b border-slate-800 bg-slate-800/30">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-2 cursor-pointer hover:text-slate-300">
                         Contact
                         <ArrowUpDown className="h-3.5 w-3.5" />
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tags</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">DCS Score</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Added</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Company</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tags</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">DCS Score</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Source</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Added</th>
                     <th className="px-6 py-4"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-800/50">
                   {contacts.map((contact: ContactWithTags) => (
                     <tr
                       key={contact.id}
-                      className="group cursor-pointer hover:bg-gray-50/50 transition-colors duration-150"
+                      className="group cursor-pointer hover:bg-slate-800/50 transition-colors duration-150"
                       onClick={() => navigate(`/contacts/${contact.id}`)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-sm">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-400/10 flex items-center justify-center text-indigo-400 font-semibold text-sm">
                             {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-white">
                               {[contact.first_name, contact.last_name].filter(Boolean).join(' ') || '-'}
                             </p>
                             {contact.job_title && (
-                              <p className="text-xs text-gray-400">{contact.job_title}</p>
+                              <p className="text-xs text-slate-500">{contact.job_title}</p>
                             )}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Mail className="h-4 w-4 text-gray-400" />
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Mail className="h-4 w-4 text-slate-500" />
                           {contact.email}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         {contact.company ? (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Building2 className="h-4 w-4 text-gray-400" />
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <Building2 className="h-4 w-4 text-slate-500" />
                             {contact.company}
                           </div>
                         ) : (
-                          <span className="text-gray-300">-</span>
+                          <span className="text-slate-600">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -368,7 +368,7 @@ export function ContactsListPage() {
                             </span>
                           ))}
                           {contact.tags && contact.tags.length > 2 && (
-                            <span className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500">
+                            <span className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium bg-slate-700/50 text-slate-400">
                               +{contact.tags.length - 2}
                             </span>
                           )}
@@ -385,8 +385,8 @@ export function ContactsListPage() {
                               <ShieldX className="h-4 w-4 text-red-500" />
                             )}
                             <span className={`text-sm font-semibold ${
-                              (contact as any).dcs_score >= 70 ? 'text-emerald-600' :
-                              (contact as any).dcs_score >= 40 ? 'text-amber-600' : 'text-red-600'
+                              (contact as any).dcs_score >= 70 ? 'text-emerald-400' :
+                              (contact as any).dcs_score >= 40 ? 'text-amber-400' : 'text-red-400'
                             }`}>
                               {(contact as any).dcs_score}
                             </span>
@@ -395,7 +395,7 @@ export function ContactsListPage() {
                           <button
                             onClick={() => verifyMutation.mutate(contact.id)}
                             disabled={verifyingIds.has(contact.id)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-colors disabled:opacity-50"
                           >
                             {verifyingIds.has(contact.id) ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
@@ -407,16 +407,16 @@ export function ContactsListPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-400">
                           {contact.source}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">{formatDate(contact.created_at)}</td>
+                      <td className="px-6 py-4 text-sm text-slate-500">{formatDate(contact.created_at)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => openEdit(contact)}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
@@ -424,7 +424,7 @@ export function ContactsListPage() {
                             onClick={() => {
                               if (confirm('Delete this contact?')) deleteMutation.mutate(contact.id);
                             }}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -438,25 +438,25 @@ export function ContactsListPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-                <p className="text-sm text-gray-500">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800">
+                <p className="text-sm text-slate-400">
                   Showing {(page - 1) * DEFAULT_PAGE_SIZE + 1} to {Math.min(page * DEFAULT_PAGE_SIZE, totalContacts)} of {totalContacts} contacts
                 </p>
                 <div className="flex items-center gap-2">
                   <button
                     disabled={page <= 1}
                     onClick={() => setPage(page - 1)}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                  <span className="px-4 py-2 text-sm font-medium text-slate-300">
                     {page} / {totalPages}
                   </span>
                   <button
                     disabled={page >= totalPages}
                     onClick={() => setPage(page + 1)}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -524,7 +524,7 @@ export function ContactsListPage() {
             onChange={(e) => setForm({ ...form, website: e.target.value })}
             placeholder="https://company.com"
           />
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
             <Button variant="secondary" type="button" onClick={closeCreateModal}>Cancel</Button>
             <Button
               type="submit"
@@ -540,9 +540,9 @@ export function ContactsListPage() {
       {/* Import CSV Modal */}
       <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} title="Import Contacts from CSV" size="lg">
         <div className="space-y-5">
-          <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-indigo-300 transition-colors">
-            <FileSpreadsheet className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-            <p className="text-sm text-gray-600 mb-2">
+          <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center hover:border-indigo-500/50 transition-colors">
+            <FileSpreadsheet className="h-10 w-10 text-slate-500 mx-auto mb-3" />
+            <p className="text-sm text-slate-400 mb-2">
               {importFile ? importFile.name : 'Drag and drop your CSV file here, or click to browse'}
             </p>
             <input
@@ -560,16 +560,16 @@ export function ContactsListPage() {
           {csvHeaders.length > 0 && (
             <>
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Column Mapping</h4>
-                <p className="text-xs text-gray-500 mb-4">Map CSV columns to contact fields. Leave blank to skip a column.</p>
+                <h4 className="text-sm font-semibold text-white mb-2">Column Mapping</h4>
+                <p className="text-xs text-slate-500 mb-4">Map CSV columns to contact fields. Leave blank to skip a column.</p>
               </div>
-              <div className="max-h-60 overflow-y-auto space-y-3 bg-gray-50 rounded-xl p-4">
+              <div className="max-h-60 overflow-y-auto space-y-3 bg-slate-800/30 rounded-xl p-4">
                 {csvHeaders.map((header) => (
                   <div key={header} className="flex items-center gap-3">
-                    <span className="w-36 truncate text-sm font-medium text-gray-700">{header}</span>
-                    <span className="text-gray-300">&rarr;</span>
+                    <span className="w-36 truncate text-sm font-medium text-slate-300">{header}</span>
+                    <span className="text-slate-600">&rarr;</span>
                     <select
-                      className="flex-1 h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="flex-1 h-10 rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       value={columnMapping[header] || ''}
                       onChange={(e) => setColumnMapping({ ...columnMapping, [header]: e.target.value })}
                     >
@@ -589,7 +589,7 @@ export function ContactsListPage() {
             </>
           )}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
             <Button variant="secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
             <Button
               disabled={!importFile || importMutation.isPending}
