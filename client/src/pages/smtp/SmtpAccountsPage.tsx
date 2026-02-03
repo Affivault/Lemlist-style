@@ -152,7 +152,7 @@ export function SmtpAccountsPage() {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-sm text-gray-500">Loading your SMTP accounts...</p>
+          <p className="mt-4 text-sm text-slate-400">Loading your SMTP accounts...</p>
         </div>
       </div>
     );
@@ -163,13 +163,13 @@ export function SmtpAccountsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">SMTP Accounts</h1>
-          <p className="text-gray-500 mt-1">Manage your email sending accounts and credentials.</p>
+          <h1 className="text-3xl font-bold text-white">SMTP Accounts</h1>
+          <p className="text-slate-400 mt-1">Manage your email sending accounts and credentials.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             to="/smtp-accounts/guide"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-300 bg-slate-800/50 border border-slate-700 rounded-xl hover:bg-slate-800 hover:border-slate-600 transition-all duration-200"
           >
             <HelpCircle className="h-4 w-4" />
             Setup Guide
@@ -185,18 +185,18 @@ export function SmtpAccountsPage() {
       </div>
 
       {/* Quick Connect Section */}
-      <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl border border-gray-200 p-6">
+      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-500" />
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Zap className="h-5 w-5 text-amber-400" />
               Quick Connect
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Connect your Google email with one click
             </p>
           </div>
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
             Recommended
           </span>
         </div>
@@ -204,10 +204,10 @@ export function SmtpAccountsPage() {
         <button
           onClick={handleQuickConnect}
           disabled={connectingGoogle}
-          className="group relative overflow-hidden w-full flex items-center gap-4 p-5 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+          className="group relative overflow-hidden w-full flex items-center gap-4 p-5 bg-slate-800/30 rounded-xl border border-slate-700 hover:border-slate-600 hover:bg-slate-800/50 transition-all duration-200"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-red-50/30 to-yellow-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative flex items-center justify-center w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-red-500/5 to-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative flex items-center justify-center w-12 h-12 bg-slate-900 rounded-xl shadow-sm border border-slate-700">
             <svg className="h-6 w-6" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -216,17 +216,17 @@ export function SmtpAccountsPage() {
             </svg>
           </div>
           <div className="relative flex-1 text-left">
-            <p className="font-semibold text-gray-900">Connect Gmail</p>
-            <p className="text-sm text-gray-500">Use Google Workspace or Gmail to start sending</p>
+            <p className="font-semibold text-white">Connect Gmail</p>
+            <p className="text-sm text-slate-400">Use Google Workspace or Gmail to start sending</p>
           </div>
           {connectingGoogle ? (
             <Spinner size="sm" />
           ) : (
-            <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="h-5 w-5 text-slate-500 group-hover:text-slate-300 group-hover:translate-x-1 transition-all" />
           )}
         </button>
 
-        <p className="mt-4 text-xs text-gray-400 text-center">
+        <p className="mt-4 text-xs text-slate-500 text-center">
           OAuth connection provides secure access without sharing your password
         </p>
       </div>
@@ -234,36 +234,36 @@ export function SmtpAccountsPage() {
       {/* Stats */}
       {accounts && accounts.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-indigo-50">
-                <Server className="h-5 w-5 text-indigo-600" />
+              <div className="p-2 rounded-lg bg-indigo-500/20">
+                <Server className="h-5 w-5 text-indigo-400" />
               </div>
-              <span className="text-sm font-medium text-gray-500">Total Accounts</span>
+              <span className="text-sm font-medium text-slate-400">Total Accounts</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{accounts.length}</p>
+            <p className="text-3xl font-bold text-white">{accounts.length}</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-emerald-50">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              <div className="p-2 rounded-lg bg-emerald-500/20">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
               </div>
-              <span className="text-sm font-medium text-gray-500">Verified</span>
+              <span className="text-sm font-medium text-slate-400">Verified</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-white">
               {accounts.filter((a: SmtpAccount) => a.is_verified).length}
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-cyan-50">
-                <Activity className="h-5 w-5 text-cyan-600" />
+              <div className="p-2 rounded-lg bg-cyan-500/20">
+                <Activity className="h-5 w-5 text-cyan-400" />
               </div>
-              <span className="text-sm font-medium text-gray-500">Emails Sent Today</span>
+              <span className="text-sm font-medium text-slate-400">Emails Sent Today</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-white">
               {accounts.reduce((sum: number, a: SmtpAccount) => sum + a.sends_today, 0)}
             </p>
           </div>
@@ -272,13 +272,13 @@ export function SmtpAccountsPage() {
 
       {/* Empty State or List */}
       {(!accounts || accounts.length === 0) ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-card p-12">
+        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-12">
           <div className="max-w-md mx-auto text-center">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-cyan-50 flex items-center justify-center mb-6">
-              <Mail className="h-8 w-8 text-indigo-600" />
+            <div className="mx-auto w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center mb-6">
+              <Mail className="h-8 w-8 text-indigo-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No SMTP accounts yet</h3>
-            <p className="text-gray-500 mb-6">
+            <h3 className="text-xl font-bold text-white mb-2">No SMTP accounts yet</h3>
+            <p className="text-slate-400 mb-6">
               Connect your email provider to start sending campaigns. We support Gmail, Outlook, and any SMTP server.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -291,7 +291,7 @@ export function SmtpAccountsPage() {
               </Button>
               <Link
                 to="/smtp-accounts/guide"
-                className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
               >
                 Read the setup guide
                 <ArrowRight className="h-4 w-4" />
@@ -304,16 +304,16 @@ export function SmtpAccountsPage() {
           {accounts.map((account: SmtpAccount) => (
             <div
               key={account.id}
-              className="group bg-white rounded-2xl border border-gray-100 shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden"
+              className="group bg-slate-800/50 rounded-xl border border-slate-700 hover:border-slate-600 transition-all duration-300 overflow-hidden"
             >
               <div className="flex items-center justify-between p-6">
                 <div className="flex items-center gap-5">
                   <div className={`relative w-14 h-14 rounded-xl flex items-center justify-center ${
                     account.is_verified
-                      ? 'bg-gradient-to-br from-emerald-50 to-emerald-100'
-                      : 'bg-gradient-to-br from-amber-50 to-amber-100'
+                      ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-500/10'
+                      : 'bg-gradient-to-br from-amber-500/20 to-amber-500/10'
                   }`}>
-                    <Mail className={`h-6 w-6 ${account.is_verified ? 'text-emerald-600' : 'text-amber-600'}`} />
+                    <Mail className={`h-6 w-6 ${account.is_verified ? 'text-emerald-400' : 'text-amber-400'}`} />
                     {account.is_verified && (
                       <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
                         <CheckCircle2 className="h-3 w-3 text-white" />
@@ -322,26 +322,26 @@ export function SmtpAccountsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{account.label}</h3>
+                      <h3 className="text-lg font-semibold text-white">{account.label}</h3>
                       {account.is_verified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                           <CheckCircle2 className="h-3 w-3" />
                           Verified
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
                           <XCircle className="h-3 w-3" />
                           Unverified
                         </span>
                       )}
                       {!account.is_active && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
                           Inactive
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-600 mb-1">{account.email_address}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <p className="text-slate-400 mb-1">{account.email_address}</p>
+                    <div className="flex items-center gap-4 text-sm text-slate-500">
                       <span className="flex items-center gap-1">
                         <Server className="h-3.5 w-3.5" />
                         {account.smtp_host}:{account.smtp_port}
@@ -358,14 +358,14 @@ export function SmtpAccountsPage() {
                   <button
                     onClick={() => testMutation.mutate(account.id)}
                     disabled={testMutation.isPending}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700/50 rounded-xl hover:bg-slate-700 transition-colors"
                   >
                     <TestTube className="h-4 w-4" />
                     Test
                   </button>
                   <button
                     onClick={() => openEdit(account)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700/50 rounded-xl hover:bg-slate-700 transition-colors"
                   >
                     <Settings className="h-4 w-4" />
                     Edit
@@ -374,7 +374,7 @@ export function SmtpAccountsPage() {
                     onClick={() => {
                       if (confirm('Delete this SMTP account?')) deleteMutation.mutate(account.id);
                     }}
-                    className="flex items-center justify-center w-10 h-10 text-gray-400 bg-gray-100 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors"
+                    className="flex items-center justify-center w-10 h-10 text-slate-500 bg-slate-700/50 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -383,11 +383,11 @@ export function SmtpAccountsPage() {
 
               {/* Usage Progress Bar */}
               <div className="px-6 pb-5">
-                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
                   <span>Daily usage</span>
                   <span>{Math.round((account.sends_today / account.daily_send_limit) * 100)}%</span>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full transition-all duration-300"
                     style={{ width: `${Math.min((account.sends_today / account.daily_send_limit) * 100, 100)}%` }}
@@ -429,9 +429,9 @@ export function SmtpAccountsPage() {
             onChange={(e) => applyPreset(e.target.value)}
           />
 
-          <div className="border-t border-gray-100 pt-5">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Server className="h-4 w-4 text-gray-400" />
+          <div className="border-t border-slate-700 pt-5">
+            <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+              <Server className="h-4 w-4 text-slate-400" />
               SMTP Settings
             </h4>
             <div className="grid grid-cols-3 gap-4">
@@ -469,9 +469,9 @@ export function SmtpAccountsPage() {
             </div>
           </div>
 
-          <div className="border-t border-gray-100 pt-5">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-gray-400" />
+          <div className="border-t border-slate-700 pt-5">
+            <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-slate-400" />
               IMAP Settings (for inbox sync)
             </h4>
             <div className="grid grid-cols-3 gap-4">
@@ -497,7 +497,7 @@ export function SmtpAccountsPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
             <Button variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </Button>

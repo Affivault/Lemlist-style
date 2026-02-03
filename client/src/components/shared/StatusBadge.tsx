@@ -1,23 +1,23 @@
-import { Badge } from '../ui/Badge';
+import { cn } from '../../lib/utils';
 import type { CampaignStatus, ContactCampaignStatus } from '@lemlist/shared';
 
-const campaignVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple'> = {
-  draft: 'default',
-  scheduled: 'info',
-  running: 'success',
-  paused: 'warning',
-  completed: 'purple',
-  cancelled: 'danger',
+const campaignColors: Record<string, string> = {
+  draft: 'bg-slate-700/50 text-slate-400',
+  scheduled: 'bg-blue-500/10 text-blue-400',
+  running: 'bg-emerald-500/10 text-emerald-400',
+  paused: 'bg-amber-500/10 text-amber-400',
+  completed: 'bg-indigo-500/10 text-indigo-400',
+  cancelled: 'bg-red-500/10 text-red-400',
 };
 
-const contactVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple'> = {
-  pending: 'default',
-  active: 'info',
-  completed: 'success',
-  replied: 'purple',
-  bounced: 'danger',
-  unsubscribed: 'warning',
-  error: 'danger',
+const contactColors: Record<string, string> = {
+  pending: 'bg-slate-700/50 text-slate-400',
+  active: 'bg-emerald-500/10 text-emerald-400',
+  completed: 'bg-indigo-500/10 text-indigo-400',
+  replied: 'bg-violet-500/10 text-violet-400',
+  bounced: 'bg-red-500/10 text-red-400',
+  unsubscribed: 'bg-orange-500/10 text-orange-400',
+  error: 'bg-red-500/10 text-red-400',
 };
 
 interface StatusBadgeProps {
@@ -26,12 +26,17 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, type = 'campaign' }: StatusBadgeProps) {
-  const variants = type === 'campaign' ? campaignVariants : contactVariants;
-  const variant = variants[status] || 'default';
+  const colorMap = type === 'campaign' ? campaignColors : contactColors;
+  const colors = colorMap[status] || 'bg-slate-700/50 text-slate-400';
 
   return (
-    <Badge variant={variant}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        colors
+      )}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
+    </span>
   );
 }

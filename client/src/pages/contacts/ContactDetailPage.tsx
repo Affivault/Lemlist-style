@@ -33,13 +33,13 @@ const activityIcons: Record<string, React.ElementType> = {
 };
 
 const activityColors: Record<string, string> = {
-  sent: 'text-blue-500',
-  delivered: 'text-green-500',
-  opened: 'text-green-600',
-  clicked: 'text-purple-500',
-  replied: 'text-indigo-500',
-  bounced: 'text-red-500',
-  error: 'text-red-500',
+  sent: 'text-blue-400',
+  delivered: 'text-green-400',
+  opened: 'text-green-500',
+  clicked: 'text-purple-400',
+  replied: 'text-indigo-400',
+  bounced: 'text-red-400',
+  error: 'text-red-400',
 };
 
 export function ContactDetailPage() {
@@ -76,7 +76,7 @@ export function ContactDetailPage() {
   }
 
   if (!contact) {
-    return <div className="text-center text-gray-500">Contact not found</div>;
+    return <div className="text-center text-slate-400">Contact not found</div>;
   }
 
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
@@ -85,7 +85,7 @@ export function ContactDetailPage() {
     <div className="space-y-6">
       <button
         onClick={() => navigate('/contacts')}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-300"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Contacts
@@ -93,12 +93,12 @@ export function ContactDetailPage() {
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-lg font-semibold text-primary-600">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-500/10 text-lg font-semibold text-indigo-400">
             {getInitials(contact.first_name, contact.last_name, contact.email)}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{fullName || contact.email}</h1>
-            {fullName && <p className="text-gray-500">{contact.email}</p>}
+            <h1 className="text-2xl font-bold text-white">{fullName || contact.email}</h1>
+            {fullName && <p className="text-slate-400">{contact.email}</p>}
             <div className="mt-1 flex gap-2">
               {contact.tags?.map((tag: any) => (
                 <span
@@ -128,8 +128,8 @@ export function ContactDetailPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Contact Info */}
-        <div className="card space-y-4 p-5 lg:col-span-1">
-          <h2 className="font-semibold text-gray-900">Contact Info</h2>
+        <div className="bg-slate-800/50 rounded-xl border border-slate-800 space-y-4 p-5 lg:col-span-1">
+          <h2 className="font-semibold text-white">Contact Info</h2>
           <div className="space-y-3 text-sm">
             <InfoRow icon={Mail} label="Email" value={contact.email} />
             {contact.company && <InfoRow icon={Building2} label="Company" value={contact.company} />}
@@ -138,8 +138,8 @@ export function ContactDetailPage() {
             {contact.linkedin_url && <InfoRow icon={Linkedin} label="LinkedIn" value={contact.linkedin_url} isLink />}
             {contact.website && <InfoRow icon={Globe} label="Website" value={contact.website} isLink />}
           </div>
-          <hr />
-          <div className="text-xs text-gray-400">
+          <hr className="border-slate-800" />
+          <div className="text-xs text-slate-500">
             <p>Source: {contact.source}</p>
             <p>Created: {formatDate(contact.created_at)}</p>
             <p>Updated: {formatDate(contact.updated_at)}</p>
@@ -147,28 +147,28 @@ export function ContactDetailPage() {
         </div>
 
         {/* Activity Timeline */}
-        <div className="card p-5 lg:col-span-2">
-          <h2 className="mb-4 font-semibold text-gray-900">Activity Timeline</h2>
+        <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5 lg:col-span-2">
+          <h2 className="mb-4 font-semibold text-white">Activity Timeline</h2>
           {!timeline || timeline.length === 0 ? (
-            <p className="text-sm text-gray-400">No activity yet</p>
+            <p className="text-sm text-slate-500">No activity yet</p>
           ) : (
             <div className="space-y-4">
               {timeline.map((item: any) => {
                 const Icon = activityIcons[item.activity_type] || Send;
-                const color = activityColors[item.activity_type] || 'text-gray-500';
+                const color = activityColors[item.activity_type] || 'text-slate-500';
                 return (
                   <div key={item.id} className="flex items-start gap-3">
                     <div className={`mt-0.5 ${color}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-white">
                         <span className="font-medium capitalize">{item.activity_type}</span>
                         {item.step_subject && (
-                          <span className="text-gray-500"> &mdash; {item.step_subject}</span>
+                          <span className="text-slate-400"> &mdash; {item.step_subject}</span>
                         )}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-slate-500">
                         {item.campaign_name} &middot; {formatDateTime(item.occurred_at)}
                       </p>
                     </div>
@@ -196,15 +196,15 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <Icon className="h-4 w-4 shrink-0 text-gray-400" />
+      <Icon className="h-4 w-4 shrink-0 text-slate-500" />
       <div>
-        <p className="text-xs text-gray-400">{label}</p>
+        <p className="text-xs text-slate-500">{label}</p>
         {isLink ? (
-          <a href={value} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+          <a href={value} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">
             {value}
           </a>
         ) : (
-          <p className="text-gray-700">{value}</p>
+          <p className="text-slate-300">{value}</p>
         )}
       </div>
     </div>

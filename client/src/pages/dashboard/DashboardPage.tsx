@@ -27,17 +27,17 @@ const gradients = [
 ];
 
 const bgGradients = [
-  'from-indigo-50 to-indigo-100/50',
-  'from-cyan-50 to-cyan-100/50',
-  'from-violet-50 to-violet-100/50',
-  'from-emerald-50 to-emerald-100/50',
+  'from-indigo-500/10 to-indigo-500/5',
+  'from-cyan-500/10 to-cyan-500/5',
+  'from-violet-500/10 to-violet-500/5',
+  'from-emerald-500/10 to-emerald-500/5',
 ];
 
 const iconColors = [
-  'text-indigo-600',
-  'text-cyan-600',
-  'text-violet-600',
-  'text-emerald-600',
+  'text-indigo-400',
+  'text-cyan-400',
+  'text-violet-400',
+  'text-emerald-400',
 ];
 
 function StatCard({
@@ -58,7 +58,7 @@ function StatCard({
   const colorIndex = index % 4;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
+    <div className="group relative overflow-hidden rounded-xl bg-slate-800/50 border border-slate-800 p-6 hover:border-slate-700 transition-all duration-300">
       {/* Decorative gradient */}
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${bgGradients[colorIndex]} rounded-full -translate-y-1/2 translate-x-1/2 opacity-50 group-hover:opacity-70 transition-opacity`} />
 
@@ -67,13 +67,13 @@ function StatCard({
           <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${bgGradients[colorIndex]} mb-4`}>
             <Icon className={`h-6 w-6 ${iconColors[colorIndex]}`} />
           </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-          {sub && <p className="text-sm text-gray-400 mt-1">{sub}</p>}
+          <p className="text-sm font-medium text-slate-400 mb-1">{label}</p>
+          <p className="text-3xl font-bold text-white">{value}</p>
+          {sub && <p className="text-sm text-slate-500 mt-1">{sub}</p>}
         </div>
 
         {trend !== undefined && (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${trend >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
             <TrendingUp className={`h-3 w-3 ${trend < 0 ? 'rotate-180' : ''}`} />
             {Math.abs(trend)}%
           </div>
@@ -99,20 +99,20 @@ function QuickActionCard({
   return (
     <Link
       to={href}
-      className="group relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-6 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
+      className="group relative overflow-hidden rounded-xl bg-slate-800/50 border border-slate-800 p-6 hover:border-slate-700 transition-all duration-300 hover:-translate-y-1"
     >
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
 
       <div className="relative flex items-start gap-4">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-indigo-500/20`}>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-md shadow-indigo-500/10`}>
           <Icon className="h-6 w-6" />
         </div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-gray-900 mb-1 flex items-center gap-2">
+          <h3 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
             {title}
-            <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 text-indigo-500" />
+            <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 text-indigo-400" />
           </h3>
-          <p className="text-sm text-gray-500">{description}</p>
+          <p className="text-sm text-slate-400">{description}</p>
         </div>
       </div>
     </Link>
@@ -131,7 +131,7 @@ export function DashboardPage() {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-sm text-gray-500">Loading your dashboard...</p>
+          <p className="mt-4 text-sm text-slate-400">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -155,8 +155,8 @@ export function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Welcome back! Here's your outreach performance at a glance.</p>
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 mt-1">Welcome back! Here's your outreach performance at a glance.</p>
         </div>
         <Button
           onClick={() => navigate('/campaigns/new')}
@@ -169,8 +169,8 @@ export function DashboardPage() {
 
       {/* Main Stats */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-indigo-500" />
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-indigo-400" />
           Performance Overview
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -208,12 +208,12 @@ export function DashboardPage() {
 
       {/* Engagement Metrics */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-emerald-500" />
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-emerald-400" />
           Engagement Metrics
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 text-white shadow-xl shadow-indigo-500/30">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 text-white shadow-xl shadow-indigo-500/20">
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-4">
@@ -227,7 +227,7 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 p-6 text-white shadow-xl shadow-cyan-500/30">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 p-6 text-white shadow-xl shadow-cyan-500/20">
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-4">
@@ -241,7 +241,7 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 p-6 text-white shadow-xl shadow-violet-500/30">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 p-6 text-white shadow-xl shadow-violet-500/20">
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-4">
@@ -259,8 +259,8 @@ export function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Zap className="h-5 w-5 text-amber-500" />
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-amber-400" />
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

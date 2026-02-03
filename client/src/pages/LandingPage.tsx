@@ -86,9 +86,9 @@ export function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0a0a0f]">
       {/* Navbar */}
-      <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+      <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2.5">
             <SkySendLogo className="h-9 w-9" />
@@ -96,13 +96,13 @@ export function LandingPage() {
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
-            <a href="#features" className="text-sm text-gray-300 transition-colors hover:text-white">
+            <a href="#features" className="text-sm text-slate-400 transition-colors hover:text-white">
               Features
             </a>
-            <a href="#how-it-works" className="text-sm text-gray-300 transition-colors hover:text-white">
+            <a href="#how-it-works" className="text-sm text-slate-400 transition-colors hover:text-white">
               How It Works
             </a>
-            <a href="#stats" className="text-sm text-gray-300 transition-colors hover:text-white">
+            <a href="#stats" className="text-sm text-slate-400 transition-colors hover:text-white">
               Results
             </a>
           </div>
@@ -110,7 +110,7 @@ export function LandingPage() {
           <div className="hidden items-center gap-3 md:flex">
             <Link
               to="/login"
-              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:text-white"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-400 transition-colors hover:text-white"
             >
               Log in
             </Link>
@@ -124,7 +124,7 @@ export function LandingPage() {
 
           {/* Mobile menu button */}
           <button
-            className="text-gray-300 md:hidden"
+            className="text-slate-400 md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -133,14 +133,14 @@ export function LandingPage() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-white/10 bg-slate-950 px-4 pb-4 pt-2 md:hidden">
-            <a href="#features" className="block py-2 text-sm text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+          <div className="border-t border-white/10 bg-[#0a0a0f] px-4 pb-4 pt-2 md:hidden">
+            <a href="#features" className="block py-2 text-sm text-slate-400" onClick={() => setMobileMenuOpen(false)}>
               Features
             </a>
-            <a href="#how-it-works" className="block py-2 text-sm text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+            <a href="#how-it-works" className="block py-2 text-sm text-slate-400" onClick={() => setMobileMenuOpen(false)}>
               How It Works
             </a>
-            <a href="#stats" className="block py-2 text-sm text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+            <a href="#stats" className="block py-2 text-sm text-slate-400" onClick={() => setMobileMenuOpen(false)}>
               Results
             </a>
             <div className="mt-3 flex flex-col gap-2">
@@ -159,7 +159,7 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-slate-950 pt-16">
+      <section className="relative overflow-hidden bg-[#0a0a0f] pt-16">
         {/* Background gradient effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-indigo-600/20 blur-[120px]" />
@@ -180,7 +180,7 @@ export function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-24 sm:px-6 sm:pb-32 sm:pt-32 lg:px-8 lg:pb-40 lg:pt-40">
           <div className="mx-auto max-w-3xl text-center">
             {/* Badge */}
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-gray-300 backdrop-blur-sm">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-slate-400 backdrop-blur-sm">
               <Zap className="h-4 w-4 text-cyan-400" />
               <span>Cold outreach, reimagined</span>
             </div>
@@ -192,7 +192,7 @@ export function LandingPage() {
               </span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-gray-400 sm:text-xl">
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400 sm:text-xl">
               The all-in-one outreach platform that helps you build multi-step email campaigns,
               manage contacts, and track every interaction — so you can focus on closing deals.
             </p>
@@ -207,13 +207,13 @@ export function LandingPage() {
               </Link>
               <a
                 href="#how-it-works"
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-8 py-3.5 text-base font-medium text-gray-300 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/10 sm:w-auto"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-8 py-3.5 text-base font-medium text-slate-400 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/10 hover:text-white sm:w-auto"
               >
                 See How It Works
               </a>
             </div>
 
-            <p className="mt-6 text-sm text-gray-500">
+            <p className="mt-6 text-sm text-slate-500">
               No credit card required. Free plan available.
             </p>
           </div>
@@ -288,23 +288,23 @@ export function LandingPage() {
         </div>
 
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
       </section>
 
       {/* Features Section */}
-      <section id="features" className="relative bg-white py-24 sm:py-32">
+      <section id="features" className="relative bg-[#0a0a0f] py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
+            <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400">
               Powerful Features
             </p>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
               Everything you need to{' '}
-              <span className="bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                 dominate outreach
               </span>
             </h2>
-            <p className="mt-4 text-lg text-gray-500">
+            <p className="mt-4 text-lg text-slate-400">
               From first contact to closed deal, SkySend handles the entire outreach workflow.
             </p>
           </div>
@@ -313,13 +313,13 @@ export function LandingPage() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group relative rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-blue-100 hover:shadow-lg hover:shadow-blue-500/5"
+                className="group relative rounded-2xl border border-slate-800 bg-slate-800/50 p-6 transition-all hover:border-slate-700 hover:bg-slate-800/70"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-cyan-50 text-blue-600 transition-colors group-hover:from-indigo-100 group-hover:to-cyan-100">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 text-cyan-400 transition-colors group-hover:from-indigo-500/30 group-hover:to-cyan-500/30">
                   <feature.icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-semibold text-gray-900">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">{feature.description}</p>
+                <h3 className="text-base font-semibold text-white">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -327,16 +327,16 @@ export function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="relative bg-gray-50 py-24 sm:py-32">
+      <section id="how-it-works" className="relative bg-[#0d0d14] py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
+            <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400">
               Simple Process
             </p>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
               Up and running in minutes
             </h2>
-            <p className="mt-4 text-lg text-gray-500">
+            <p className="mt-4 text-lg text-slate-400">
               Three simple steps to launch your first campaign.
             </p>
           </div>
@@ -346,16 +346,16 @@ export function LandingPage() {
               <div key={step.num} className="relative text-center">
                 {/* Connector line */}
                 {idx < steps.length - 1 && (
-                  <div className="absolute left-1/2 top-12 hidden h-0.5 w-full bg-gradient-to-r from-blue-200 to-transparent lg:block" />
+                  <div className="absolute left-1/2 top-12 hidden h-0.5 w-full bg-gradient-to-r from-indigo-500/40 to-transparent lg:block" />
                 )}
                 <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center">
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-100 to-cyan-100" />
-                  <span className="relative text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-slate-800" />
+                  <span className="relative text-3xl font-extrabold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                     {step.num}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">{step.description}</p>
+                <h3 className="text-lg font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">{step.description}</p>
               </div>
             ))}
           </div>
@@ -363,7 +363,7 @@ export function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section id="stats" className="relative overflow-hidden bg-slate-950 py-24 sm:py-32">
+      <section id="stats" className="relative overflow-hidden bg-[#0a0a0f] py-24 sm:py-32">
         {/* Background effects */}
         <div className="absolute inset-0">
           <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-indigo-600/10 blur-[100px]" />
@@ -386,7 +386,7 @@ export function LandingPage() {
                 <div className="text-4xl font-extrabold bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent sm:text-5xl">
                   {stat.value}
                 </div>
-                <p className="mt-2 text-sm text-gray-400">{stat.label}</p>
+                <p className="mt-2 text-sm text-slate-400">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -394,21 +394,21 @@ export function LandingPage() {
       </section>
 
       {/* Social Proof / Benefits */}
-      <section className="bg-white py-24 sm:py-32">
+      <section className="bg-[#0d0d14] py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl">
             <div className="grid gap-8 md:grid-cols-2">
               <div className="flex flex-col justify-center">
-                <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
+                <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400">
                   Why SkySend
                 </p>
-                <h2 className="mt-3 text-3xl font-bold text-gray-900">
+                <h2 className="mt-3 text-3xl font-bold text-white">
                   Built for teams that{' '}
-                  <span className="bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                     move fast
                   </span>
                 </h2>
-                <p className="mt-4 text-gray-500 leading-relaxed">
+                <p className="mt-4 text-slate-400 leading-relaxed">
                   Stop juggling spreadsheets, mail clients, and CRMs. SkySend brings your entire
                   outreach workflow into one powerful platform.
                 </p>
@@ -420,8 +420,8 @@ export function LandingPage() {
                     'CSV import with intelligent field mapping',
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-cyan-500" />
-                      <span className="text-sm text-gray-600">{item}</span>
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                      <span className="text-sm text-slate-400">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -437,13 +437,13 @@ export function LandingPage() {
                 ].map((card) => (
                   <div
                     key={card.label}
-                    className="flex flex-col items-center justify-center rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-sm"
+                    className="flex flex-col items-center justify-center rounded-2xl border border-slate-800 bg-slate-800/50 p-6 text-center"
                   >
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-cyan-50 text-blue-600">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 text-cyan-400">
                       <card.icon className="h-5 w-5" />
                     </div>
-                    <div className="text-xs font-semibold text-gray-900">{card.value}</div>
-                    <div className="mt-1 text-xs text-gray-500">{card.label}</div>
+                    <div className="text-xs font-semibold text-white">{card.value}</div>
+                    <div className="mt-1 text-xs text-slate-400">{card.label}</div>
                   </div>
                 ))}
               </div>
@@ -490,21 +490,21 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white py-12">
+      <footer className="border-t border-slate-800 bg-[#0a0a0f] py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2.5">
               <SkySendLogo className="h-8 w-8" />
-              <span className="text-lg font-bold text-gray-900">SkySend</span>
+              <span className="text-lg font-bold text-white">SkySend</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a href="#features" className="transition-colors hover:text-gray-900">Features</a>
-              <a href="#how-it-works" className="transition-colors hover:text-gray-900">How It Works</a>
-              <Link to="/login" className="transition-colors hover:text-gray-900">Log In</Link>
-              <Link to="/signup" className="transition-colors hover:text-gray-900">Sign Up</Link>
+            <div className="flex items-center gap-6 text-sm text-slate-400">
+              <a href="#features" className="transition-colors hover:text-white">Features</a>
+              <a href="#how-it-works" className="transition-colors hover:text-white">How It Works</a>
+              <Link to="/login" className="transition-colors hover:text-white">Log In</Link>
+              <Link to="/signup" className="transition-colors hover:text-white">Sign Up</Link>
             </div>
           </div>
-          <div className="mt-8 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
+          <div className="mt-8 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
             &copy; {new Date().getFullYear()} SkySend. All rights reserved.
           </div>
         </div>

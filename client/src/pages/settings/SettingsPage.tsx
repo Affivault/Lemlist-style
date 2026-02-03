@@ -71,8 +71,8 @@ export function SettingsPage() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-500">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-white">Settings</h1>
+        <p className="mt-2 text-slate-400">Manage your account settings and preferences</p>
       </div>
 
       <div className="flex gap-8">
@@ -88,11 +88,11 @@ export function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-indigo-500/20 text-indigo-400 font-medium'
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                  <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-400' : 'text-slate-500'}`} />
                   {tab.label}
                 </button>
               );
@@ -100,10 +100,10 @@ export function SettingsPage() {
           </nav>
 
           {/* Sign out button */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
+          <div className="mt-8 pt-8 border-t border-slate-800">
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 transition-all duration-200"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-400 hover:bg-red-500/10 transition-all duration-200"
             >
               <LogOut className="h-5 w-5" />
               Sign out
@@ -113,35 +113,35 @@ export function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <div className="bg-slate-800/50 rounded-xl border border-slate-800 shadow-sm p-6">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
-                  <p className="text-sm text-gray-500 mt-1">Update your personal information and public profile</p>
+                  <h2 className="text-lg font-semibold text-white">Profile Information</h2>
+                  <p className="text-sm text-slate-400 mt-1">Update your personal information and public profile</p>
                 </div>
 
                 {/* Avatar section */}
-                <div className="flex items-center gap-6 p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-6 p-4 bg-slate-800/30 rounded-xl">
                   <div className="relative">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                       {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <button className="absolute -bottom-1 -right-1 p-2 bg-white rounded-full shadow-md border border-gray-200 hover:bg-gray-50 transition-colors">
-                      <Camera className="h-4 w-4 text-gray-600" />
+                    <button className="absolute -bottom-1 -right-1 p-2 bg-slate-700 rounded-full shadow-md border border-slate-600 hover:bg-slate-600 transition-colors">
+                      <Camera className="h-4 w-4 text-slate-300" />
                     </button>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Profile Photo</p>
-                    <p className="text-sm text-gray-500">JPG, PNG or GIF. Max size 2MB</p>
+                    <p className="font-medium text-white">Profile Photo</p>
+                    <p className="text-sm text-slate-400">JPG, PNG or GIF. Max size 2MB</p>
                   </div>
                 </div>
 
                 {/* Form fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
                       First Name
                     </label>
                     <input
@@ -149,11 +149,11 @@ export function SettingsPage() {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="John"
-                      className="w-full h-11 rounded-xl border border-gray-200 px-4 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
                       Last Name
                     </label>
                     <input
@@ -161,14 +161,14 @@ export function SettingsPage() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Doe"
-                      className="w-full h-11 rounded-xl border border-gray-200 px-4 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
                       Company
                     </label>
                     <input
@@ -176,11 +176,11 @@ export function SettingsPage() {
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="Acme Inc."
-                      className="w-full h-11 rounded-xl border border-gray-200 px-4 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
                       Job Title
                     </label>
                     <input
@@ -188,21 +188,21 @@ export function SettingsPage() {
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
                       placeholder="Sales Manager"
-                      className="w-full h-11 rounded-xl border border-gray-200 px-4 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Email Address
                   </label>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 flex items-center h-11 rounded-xl border border-gray-200 px-4 bg-gray-50">
-                      <Mail className="h-4 w-4 text-gray-400 mr-3" />
-                      <span className="text-gray-600">{user?.email || 'Not set'}</span>
+                    <div className="flex-1 flex items-center h-11 rounded-xl border border-slate-700 px-4 bg-slate-800/30">
+                      <Mail className="h-4 w-4 text-slate-500 mr-3" />
+                      <span className="text-slate-400">{user?.email || 'Not set'}</span>
                     </div>
-                    <span className="flex items-center gap-1.5 text-sm text-green-600">
+                    <span className="flex items-center gap-1.5 text-sm text-green-400">
                       <CheckCircle className="h-4 w-4" />
                       Verified
                     </span>
@@ -210,14 +210,14 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Globe className="inline h-4 w-4 mr-1.5 text-gray-400" />
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <Globe className="inline h-4 w-4 mr-1.5 text-slate-500" />
                     Timezone
                   </label>
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full h-11 rounded-xl border border-gray-200 px-4 text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none bg-white"
+                    className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none"
                   >
                     <option value="America/New_York">Eastern Time (ET)</option>
                     <option value="America/Chicago">Central Time (CT)</option>
@@ -236,19 +236,19 @@ export function SettingsPage() {
             {activeTab === 'account' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Account Security</h2>
-                  <p className="text-sm text-gray-500 mt-1">Manage your password and security settings</p>
+                  <h2 className="text-lg font-semibold text-white">Account Security</h2>
+                  <p className="text-sm text-slate-400 mt-1">Manage your password and security settings</p>
                 </div>
 
                 {/* Password section */}
-                <div className="p-5 bg-gray-50 rounded-xl space-y-4">
+                <div className="p-5 bg-slate-800/30 rounded-xl space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                      <Key className="h-5 w-5 text-indigo-600" />
+                    <div className="p-2.5 bg-slate-700 rounded-lg">
+                      <Key className="h-5 w-5 text-indigo-400" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Password</p>
-                      <p className="text-sm text-gray-500">Last changed 30 days ago</p>
+                      <p className="font-medium text-white">Password</p>
+                      <p className="text-sm text-slate-400">Last changed 30 days ago</p>
                     </div>
                   </div>
                   <Button variant="secondary" size="sm">
@@ -257,18 +257,18 @@ export function SettingsPage() {
                 </div>
 
                 {/* Two-factor section */}
-                <div className="p-5 bg-gray-50 rounded-xl space-y-4">
+                <div className="p-5 bg-slate-800/30 rounded-xl space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                        <Shield className="h-5 w-5 text-green-600" />
+                      <div className="p-2.5 bg-slate-700 rounded-lg">
+                        <Shield className="h-5 w-5 text-green-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">Two-Factor Authentication</p>
-                        <p className="text-sm text-gray-500">Add an extra layer of security</p>
+                        <p className="font-medium text-white">Two-Factor Authentication</p>
+                        <p className="text-sm text-slate-400">Add an extra layer of security</p>
                       </div>
                     </div>
-                    <span className="flex items-center gap-1.5 text-sm text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
+                    <span className="flex items-center gap-1.5 text-sm text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full">
                       <AlertCircle className="h-4 w-4" />
                       Not enabled
                     </span>
@@ -279,10 +279,10 @@ export function SettingsPage() {
                 </div>
 
                 {/* Connected accounts */}
-                <div className="pt-6 border-t border-gray-200">
-                  <h3 className="font-medium text-gray-900 mb-4">Connected Accounts</h3>
+                <div className="pt-6 border-t border-slate-800">
+                  <h3 className="font-medium text-white mb-4">Connected Accounts</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center justify-between p-4 bg-slate-800/30 rounded-xl">
                       <div className="flex items-center gap-3">
                         <svg className="h-6 w-6" viewBox="0 0 24 24">
                           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -290,7 +290,7 @@ export function SettingsPage() {
                           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                         </svg>
-                        <span className="font-medium text-gray-900">Google</span>
+                        <span className="font-medium text-white">Google</span>
                       </div>
                       <Button variant="secondary" size="sm">Connect</Button>
                     </div>
@@ -298,10 +298,10 @@ export function SettingsPage() {
                 </div>
 
                 {/* Danger zone */}
-                <div className="pt-6 border-t border-gray-200">
-                  <h3 className="font-medium text-red-600 mb-4">Danger Zone</h3>
-                  <div className="p-5 border border-red-200 rounded-xl bg-red-50/50">
-                    <p className="text-sm text-gray-600 mb-3">
+                <div className="pt-6 border-t border-slate-800">
+                  <h3 className="font-medium text-red-400 mb-4">Danger Zone</h3>
+                  <div className="p-5 border border-red-500/30 rounded-xl bg-red-900/20">
+                    <p className="text-sm text-slate-400 mb-3">
                       Once you delete your account, there is no going back. Please be certain.
                     </p>
                     <Button
@@ -319,8 +319,8 @@ export function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Notification Preferences</h2>
-                  <p className="text-sm text-gray-500 mt-1">Choose what notifications you want to receive</p>
+                  <h2 className="text-lg font-semibold text-white">Notification Preferences</h2>
+                  <p className="text-sm text-slate-400 mt-1">Choose what notifications you want to receive</p>
                 </div>
 
                 <div className="space-y-4">
@@ -356,13 +356,13 @@ export function SettingsPage() {
             {activeTab === 'preferences' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">App Preferences</h2>
-                  <p className="text-sm text-gray-500 mt-1">Customize your SkySend experience</p>
+                  <h2 className="text-lg font-semibold text-white">App Preferences</h2>
+                  <p className="text-sm text-slate-400 mt-1">Customize your SkySend experience</p>
                 </div>
 
                 {/* Theme */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Theme</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-3">Theme</label>
                   <div className="flex gap-3">
                     {(['light', 'dark', 'system'] as const).map((t) => (
                       <button
@@ -370,8 +370,8 @@ export function SettingsPage() {
                         onClick={() => setTheme(t)}
                         className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${
                           theme === t
-                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                            ? 'border-indigo-500 bg-indigo-500/20 text-indigo-400'
+                            : 'border-slate-700 hover:border-slate-600 text-slate-400'
                         }`}
                       >
                         <span className="capitalize font-medium">{t}</span>
@@ -382,7 +382,7 @@ export function SettingsPage() {
 
                 {/* Default signature */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Default Email Signature
                   </label>
                   <textarea
@@ -390,9 +390,9 @@ export function SettingsPage() {
                     onChange={(e) => setDefaultSignature(e.target.value)}
                     placeholder="Best regards,&#10;John Doe&#10;Sales Manager"
                     rows={4}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
                   />
-                  <p className="mt-2 text-xs text-gray-400">
+                  <p className="mt-2 text-xs text-slate-500">
                     Use {'{{signature}}'} merge tag in your emails to insert this signature
                   </p>
                 </div>
@@ -400,7 +400,7 @@ export function SettingsPage() {
             )}
 
             {/* Save button */}
-            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+            <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end">
               <Button
                 onClick={handleSave}
                 disabled={saving}
@@ -435,15 +435,15 @@ function ToggleSetting({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+    <div className="flex items-center justify-between p-4 bg-slate-800/30 rounded-xl">
       <div>
-        <p className="font-medium text-gray-900">{label}</p>
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="font-medium text-white">{label}</p>
+        <p className="text-sm text-slate-400">{description}</p>
       </div>
       <button
         onClick={() => onChange(!checked)}
         className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-          checked ? 'bg-indigo-600' : 'bg-gray-300'
+          checked ? 'bg-indigo-600' : 'bg-slate-600'
         }`}
       >
         <span
