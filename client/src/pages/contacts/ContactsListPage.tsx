@@ -3,31 +3,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { contactsApi, tagsApi } from '../../api/contacts.api';
 import { Spinner } from '../../components/ui/Spinner';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Modal } from '../../components/ui/Modal';
-import { Badge } from '../../components/ui/Badge';
-import { EmptyState } from '../../components/shared/EmptyState';
-import { SearchInput } from '../../components/shared/SearchInput';
 import { formatDate } from '../../lib/utils';
 import {
-  Users,
   Plus,
   Upload,
-  Tag,
   Trash2,
   ChevronLeft,
   ChevronRight,
-  UserCheck,
-  Building2,
-  Mail,
-  MoreHorizontal,
-  FileSpreadsheet,
-  ArrowUpDown,
   ShieldCheck,
   ShieldAlert,
   ShieldX,
   Loader2,
+  Search,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { CreateContactInput, ContactWithTags } from '@lemlist/shared';
@@ -151,7 +139,6 @@ export function ContactsListPage() {
       const firstLine = text.split('\n')[0];
       const headers = firstLine.split(',').map((h) => h.trim().replace(/"/g, ''));
       setCsvHeaders(headers);
-      // Auto-map common fields
       const autoMap: Record<string, string> = {};
       for (const h of headers) {
         const lower = h.toLowerCase();
@@ -178,429 +165,417 @@ export function ContactsListPage() {
   const totalPages = data?.total_pages || 1;
   const totalContacts = data?.total || 0;
 
+  // Calculate stats
+  const withCompany = contacts.filter((c: ContactWithTags) => c.company).length;
+  const verified = contacts.filter((c: ContactWithTags) => (c as any).dcs_score != null).length;
+
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-slate-400">Loading contacts...</p>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Contacts</h1>
-          <p className="text-slate-400 mt-1">Manage your leads and prospects in one place.</p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            variant="secondary"
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-white">Contacts</h1>
+        <div className="flex items-center gap-2">
+          <button
             onClick={() => setShowImportModal(true)}
-            className="border-slate-700 hover:border-slate-600"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-secondary hover:text-white border border-subtle rounded-md hover:bg-hover transition-colors"
           >
             <Upload className="h-4 w-4" />
-            Import CSV
-          </Button>
-          <Button
+            Import
+          </button>
+          <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover transition-colors"
           >
             <Plus className="h-4 w-4" />
             Add Contact
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Inline Stats */}
       {totalContacts > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-indigo-500/10">
-                <Users className="h-5 w-5 text-indigo-400" />
-              </div>
-              <span className="text-sm font-medium text-slate-400">Total Contacts</span>
-            </div>
-            <p className="text-3xl font-bold text-white">{totalContacts.toLocaleString()}</p>
-          </div>
-
-          <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-emerald-500/10">
-                <UserCheck className="h-5 w-5 text-emerald-400" />
-              </div>
-              <span className="text-sm font-medium text-slate-400">With Company</span>
-            </div>
-            <p className="text-3xl font-bold text-white">
-              {contacts.filter((c: ContactWithTags) => c.company).length}
-            </p>
-          </div>
-
-          <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-violet-500/10">
-                <Tag className="h-5 w-5 text-violet-400" />
-              </div>
-              <span className="text-sm font-medium text-slate-400">Tagged</span>
-            </div>
-            <p className="text-3xl font-bold text-white">
-              {contacts.filter((c: ContactWithTags) => c.tags && c.tags.length > 0).length}
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-secondary">
+          {totalContacts.toLocaleString()} contacts
+          {withCompany > 0 && <span> · {withCompany} with company</span>}
+          {verified > 0 && <span> · {verified} verified</span>}
+        </p>
       )}
 
       {/* Search */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-4">
-        <SearchInput
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary" />
+        <input
+          type="text"
           value={search}
-          onChange={(val) => { setSearch(val); setPage(1); }}
-          placeholder="Search by name, email, or company..."
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          placeholder="Search contacts..."
+          className="w-full pl-10 pr-4 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
         />
       </div>
 
       {contacts.length === 0 ? (
-        <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-12">
-          <div className="max-w-md mx-auto text-center">
-            <div className="mx-auto w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 flex items-center justify-center mb-6">
-              <Users className="h-8 w-8 text-indigo-400" />
+        <div className="bg-surface border border-subtle rounded-md p-12 text-center">
+          <p className="text-white font-medium mb-1">
+            {search ? 'No contacts found' : 'No contacts yet'}
+          </p>
+          <p className="text-sm text-secondary mb-4">
+            {search ? 'Try adjusting your search.' : 'Add contacts manually or import from CSV.'}
+          </p>
+          {!search && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Add Contact
+              </button>
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-secondary hover:text-white border border-subtle rounded-md hover:bg-hover transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+                Import CSV
+              </button>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              {search ? 'No contacts found' : 'No contacts yet'}
-            </h3>
-            <p className="text-slate-400 mb-6">
-              {search
-                ? 'Try adjusting your search terms.'
-                : 'Add contacts manually or import from a CSV file to get started.'}
-            </p>
-            {!search && (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Your First Contact
-                </Button>
-                <Button variant="secondary" onClick={() => setShowImportModal(true)}>
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Import from CSV
-                </Button>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       ) : (
-        <>
-          {/* Table */}
-          <div className="bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-800/30">
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-2 cursor-pointer hover:text-slate-300">
-                        Contact
-                        <ArrowUpDown className="h-3.5 w-3.5" />
+        <div className="bg-surface border border-subtle rounded-md overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-subtle">
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Contact</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Company</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Tags</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Score</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Source</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wide">Added</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-subtle">
+              {contacts.map((contact: ContactWithTags) => (
+                <tr
+                  key={contact.id}
+                  className="group hover:bg-hover cursor-pointer transition-colors"
+                  onClick={() => navigate(`/contacts/${contact.id}`)}
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center text-brand text-sm font-medium">
+                        {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
                       </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tags</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">DCS Score</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Source</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Added</th>
-                    <th className="px-6 py-4"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/50">
-                  {contacts.map((contact: ContactWithTags) => (
-                    <tr
-                      key={contact.id}
-                      className="group cursor-pointer hover:bg-slate-800/50 transition-colors duration-150"
-                      onClick={() => navigate(`/contacts/${contact.id}`)}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-400/10 flex items-center justify-center text-indigo-400 font-semibold text-sm">
-                            {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-medium text-white">
-                              {[contact.first_name, contact.last_name].filter(Boolean).join(' ') || '-'}
-                            </p>
-                            {contact.job_title && (
-                              <p className="text-xs text-slate-500">{contact.job_title}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Mail className="h-4 w-4 text-slate-500" />
-                          {contact.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {contact.company ? (
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <Building2 className="h-4 w-4 text-slate-500" />
-                            {contact.company}
-                          </div>
-                        ) : (
-                          <span className="text-slate-600">-</span>
+                      <div>
+                        <p className="text-sm text-white font-medium">
+                          {[contact.first_name, contact.last_name].filter(Boolean).join(' ') || '-'}
+                        </p>
+                        {contact.job_title && (
+                          <p className="text-xs text-secondary">{contact.job_title}</p>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1.5">
-                          {contact.tags?.slice(0, 2).map((tag) => (
-                            <span
-                              key={tag.id}
-                              className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium"
-                              style={{ backgroundColor: tag.color + '15', color: tag.color }}
-                            >
-                              {tag.name}
-                            </span>
-                          ))}
-                          {contact.tags && contact.tags.length > 2 && (
-                            <span className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-medium bg-slate-700/50 text-slate-400">
-                              +{contact.tags.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        {(contact as any).dcs_score != null ? (
-                          <div className="flex items-center gap-2">
-                            {(contact as any).dcs_score >= 70 ? (
-                              <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                            ) : (contact as any).dcs_score >= 40 ? (
-                              <ShieldAlert className="h-4 w-4 text-amber-500" />
-                            ) : (
-                              <ShieldX className="h-4 w-4 text-red-500" />
-                            )}
-                            <span className={`text-sm font-semibold ${
-                              (contact as any).dcs_score >= 70 ? 'text-emerald-400' :
-                              (contact as any).dcs_score >= 40 ? 'text-amber-400' : 'text-red-400'
-                            }`}>
-                              {(contact as any).dcs_score}
-                            </span>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => verifyMutation.mutate(contact.id)}
-                            disabled={verifyingIds.has(contact.id)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-colors disabled:opacity-50"
-                          >
-                            {verifyingIds.has(contact.id) ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <ShieldCheck className="h-3 w-3" />
-                            )}
-                            {verifyingIds.has(contact.id) ? 'Verifying...' : 'Verify'}
-                          </button>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-400">
-                          {contact.source}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-secondary">{contact.email}</td>
+                  <td className="px-4 py-3 text-sm text-secondary">{contact.company || '-'}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {contact.tags?.slice(0, 2).map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="inline-flex px-1.5 py-0.5 text-xs rounded"
+                          style={{ backgroundColor: tag.color + '20', color: tag.color }}
+                        >
+                          {tag.name}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-500">{formatDate(contact.created_at)}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => openEdit(contact)}
-                            className="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm('Delete this contact?')) deleteMutation.mutate(contact.id);
-                            }}
-                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      ))}
+                      {contact.tags && contact.tags.length > 2 && (
+                        <span className="text-xs text-secondary">+{contact.tags.length - 2}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    {(contact as any).dcs_score != null ? (
+                      <div className="flex items-center gap-1.5">
+                        {(contact as any).dcs_score >= 70 ? (
+                          <ShieldCheck className="h-3.5 w-3.5 text-green-500" />
+                        ) : (contact as any).dcs_score >= 40 ? (
+                          <ShieldAlert className="h-3.5 w-3.5 text-yellow-500" />
+                        ) : (
+                          <ShieldX className="h-3.5 w-3.5 text-red-500" />
+                        )}
+                        <span className="text-sm text-white">{(contact as any).dcs_score}</span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => verifyMutation.mutate(contact.id)}
+                        disabled={verifyingIds.has(contact.id)}
+                        className="text-xs text-brand hover:text-brand-hover disabled:opacity-50 transition-colors"
+                      >
+                        {verifyingIds.has(contact.id) ? (
+                          <span className="flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Verifying
+                          </span>
+                        ) : (
+                          'Verify'
+                        )}
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-secondary">{contact.source}</td>
+                  <td className="px-4 py-3 text-sm text-secondary">{formatDate(contact.created_at)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => openEdit(contact)}
+                        className="p-1.5 text-secondary hover:text-white rounded transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Delete this contact?')) deleteMutation.mutate(contact.id);
+                        }}
+                        className="p-1.5 text-secondary hover:text-red-400 rounded transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800">
-                <p className="text-sm text-slate-400">
-                  Showing {(page - 1) * DEFAULT_PAGE_SIZE + 1} to {Math.min(page * DEFAULT_PAGE_SIZE, totalContacts)} of {totalContacts} contacts
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    disabled={page <= 1}
-                    onClick={() => setPage(page - 1)}
-                    className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <span className="px-4 py-2 text-sm font-medium text-slate-300">
-                    {page} / {totalPages}
-                  </span>
-                  <button
-                    disabled={page >= totalPages}
-                    onClick={() => setPage(page + 1)}
-                    className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-subtle">
+              <p className="text-sm text-secondary">
+                {(page - 1) * DEFAULT_PAGE_SIZE + 1}-{Math.min(page * DEFAULT_PAGE_SIZE, totalContacts)} of {totalContacts}
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                  className="p-1.5 text-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="px-2 text-sm text-secondary">{page} / {totalPages}</span>
+                <button
+                  disabled={page >= totalPages}
+                  onClick={() => setPage(page + 1)}
+                  className="p-1.5 text-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
-            )}
-          </div>
-        </>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Create/Edit Modal */}
-      <Modal isOpen={showCreateModal} onClose={closeCreateModal} title={editId ? 'Edit Contact' : 'Add Contact'}>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            placeholder="contact@company.com"
-            required
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="First Name"
-              value={form.first_name || ''}
-              onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-              placeholder="John"
-            />
-            <Input
-              label="Last Name"
-              value={form.last_name || ''}
-              onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-              placeholder="Doe"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Company"
-              value={form.company || ''}
-              onChange={(e) => setForm({ ...form, company: e.target.value })}
-              placeholder="Acme Inc."
-            />
-            <Input
-              label="Job Title"
-              value={form.job_title || ''}
-              onChange={(e) => setForm({ ...form, job_title: e.target.value })}
-              placeholder="CEO"
-            />
-          </div>
-          <Input
-            label="Phone"
-            value={form.phone || ''}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            placeholder="+1 234 567 8900"
-          />
-          <Input
-            label="LinkedIn URL"
-            value={form.linkedin_url || ''}
-            onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
-            placeholder="https://linkedin.com/in/johndoe"
-          />
-          <Input
-            label="Website"
-            value={form.website || ''}
-            onChange={(e) => setForm({ ...form, website: e.target.value })}
-            placeholder="https://company.com"
-          />
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
-            <Button variant="secondary" type="button" onClick={closeCreateModal}>Cancel</Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400"
-            >
-              {createMutation.isPending ? 'Saving...' : editId ? 'Update Contact' : 'Create Contact'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Import CSV Modal */}
-      <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} title="Import Contacts from CSV" size="lg">
-        <div className="space-y-5">
-          <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center hover:border-indigo-500/50 transition-colors">
-            <FileSpreadsheet className="h-10 w-10 text-slate-500 mx-auto mb-3" />
-            <p className="text-sm text-slate-400 mb-2">
-              {importFile ? importFile.name : 'Drag and drop your CSV file here, or click to browse'}
-            </p>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileSelect}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Button variant="secondary" size="sm">
-              <Upload className="h-4 w-4" />
-              Select File
-            </Button>
-          </div>
-
-          {csvHeaders.length > 0 && (
-            <>
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/60" onClick={closeCreateModal} />
+          <div className="relative bg-surface border border-subtle rounded-lg w-full max-w-md mx-4 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-medium text-white">{editId ? 'Edit Contact' : 'Add Contact'}</h2>
+              <button onClick={closeCreateModal} className="text-secondary hover:text-white transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <h4 className="text-sm font-semibold text-white mb-2">Column Mapping</h4>
-                <p className="text-xs text-slate-500 mb-4">Map CSV columns to contact fields. Leave blank to skip a column.</p>
+                <label className="block text-sm text-secondary mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="contact@company.com"
+                  required
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                />
               </div>
-              <div className="max-h-60 overflow-y-auto space-y-3 bg-slate-800/30 rounded-xl p-4">
-                {csvHeaders.map((header) => (
-                  <div key={header} className="flex items-center gap-3">
-                    <span className="w-36 truncate text-sm font-medium text-slate-300">{header}</span>
-                    <span className="text-slate-600">&rarr;</span>
-                    <select
-                      className="flex-1 h-10 rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                      value={columnMapping[header] || ''}
-                      onChange={(e) => setColumnMapping({ ...columnMapping, [header]: e.target.value })}
-                    >
-                      <option value="">Skip</option>
-                      <option value="email">Email</option>
-                      <option value="first_name">First Name</option>
-                      <option value="last_name">Last Name</option>
-                      <option value="company">Company</option>
-                      <option value="job_title">Job Title</option>
-                      <option value="phone">Phone</option>
-                      <option value="linkedin_url">LinkedIn URL</option>
-                      <option value="website">Website</option>
-                    </select>
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-secondary mb-1.5">First Name</label>
+                  <input
+                    type="text"
+                    value={form.first_name || ''}
+                    onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                    placeholder="John"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-secondary mb-1.5">Last Name</label>
+                  <input
+                    type="text"
+                    value={form.last_name || ''}
+                    onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                    placeholder="Doe"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  />
+                </div>
               </div>
-            </>
-          )}
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
-            <Button variant="secondary" onClick={() => setShowImportModal(false)}>Cancel</Button>
-            <Button
-              disabled={!importFile || importMutation.isPending}
-              onClick={() => importFile && importMutation.mutate({ file: importFile, mapping: columnMapping })}
-              className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400"
-            >
-              {importMutation.isPending ? 'Importing...' : 'Import Contacts'}
-            </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-secondary mb-1.5">Company</label>
+                  <input
+                    type="text"
+                    value={form.company || ''}
+                    onChange={(e) => setForm({ ...form, company: e.target.value })}
+                    placeholder="Acme Inc."
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-secondary mb-1.5">Job Title</label>
+                  <input
+                    type="text"
+                    value={form.job_title || ''}
+                    onChange={(e) => setForm({ ...form, job_title: e.target.value })}
+                    placeholder="CEO"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-secondary mb-1.5">Phone</label>
+                <input
+                  type="text"
+                  value={form.phone || ''}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="+1 234 567 8900"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-secondary mb-1.5">LinkedIn URL</label>
+                <input
+                  type="text"
+                  value={form.linkedin_url || ''}
+                  onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
+                  placeholder="https://linkedin.com/in/johndoe"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-secondary mb-1.5">Website</label>
+                <input
+                  type="text"
+                  value={form.website || ''}
+                  onChange={(e) => setForm({ ...form, website: e.target.value })}
+                  placeholder="https://company.com"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t border-subtle">
+                <button
+                  type="button"
+                  onClick={closeCreateModal}
+                  className="px-3 py-1.5 text-sm text-secondary hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors"
+                >
+                  {createMutation.isPending ? 'Saving...' : editId ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </Modal>
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/60" onClick={() => setShowImportModal(false)} />
+          <div className="relative bg-surface border border-subtle rounded-lg w-full max-w-lg mx-4 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-medium text-white">Import Contacts</h2>
+              <button onClick={() => setShowImportModal(false)} className="text-secondary hover:text-white transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="relative border border-dashed border-subtle rounded-md p-8 text-center hover:border-brand/50 transition-colors">
+                <Upload className="h-8 w-8 text-secondary mx-auto mb-2" />
+                <p className="text-sm text-secondary mb-2">
+                  {importFile ? importFile.name : 'Drop CSV file here or click to browse'}
+                </p>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </div>
+
+              {csvHeaders.length > 0 && (
+                <div>
+                  <p className="text-sm text-secondary mb-3">Map columns to contact fields:</p>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {csvHeaders.map((header) => (
+                      <div key={header} className="flex items-center gap-3">
+                        <span className="w-32 truncate text-sm text-white">{header}</span>
+                        <span className="text-secondary">-&gt;</span>
+                        <select
+                          className="flex-1 px-2 py-1.5 text-sm bg-surface border border-subtle rounded-md text-white focus:outline-none focus:border-brand transition-colors"
+                          value={columnMapping[header] || ''}
+                          onChange={(e) => setColumnMapping({ ...columnMapping, [header]: e.target.value })}
+                        >
+                          <option value="">Skip</option>
+                          <option value="email">Email</option>
+                          <option value="first_name">First Name</option>
+                          <option value="last_name">Last Name</option>
+                          <option value="company">Company</option>
+                          <option value="job_title">Job Title</option>
+                          <option value="phone">Phone</option>
+                          <option value="linkedin_url">LinkedIn URL</option>
+                          <option value="website">Website</option>
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-subtle">
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="px-3 py-1.5 text-sm text-secondary hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={!importFile || importMutation.isPending}
+                  onClick={() => importFile && importMutation.mutate({ file: importFile, mapping: columnMapping })}
+                  className="px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors"
+                >
+                  {importMutation.isPending ? 'Importing...' : 'Import'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

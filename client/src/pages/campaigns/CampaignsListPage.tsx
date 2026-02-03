@@ -9,7 +9,7 @@ import { StatusBadge } from '../../components/shared/StatusBadge';
 import { formatDate } from '../../lib/utils';
 import { Zap, Plus, Send, Mail, MousePointerClick, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { CampaignWithStats, CampaignStatus } from '@lemlist/shared';
+import type { CampaignWithStats } from '@lemlist/shared';
 import { DEFAULT_PAGE_SIZE } from '../../lib/constants';
 
 const STATUS_TABS = [
@@ -81,9 +81,9 @@ export function CampaignsListPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Campaigns</h1>
+        <h1 className="text-2xl font-semibold text-white">Campaigns</h1>
         <Button onClick={() => navigate('/campaigns/new')}>
           <Plus className="h-4 w-4" />
           New Campaign
@@ -91,15 +91,15 @@ export function CampaignsListPage() {
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-1 rounded-lg bg-slate-800/30 p-1">
+      <div className="flex gap-1 border-b border-subtle">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => { setStatusFilter(tab.value); setPage(1); }}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
               statusFilter === tab.value
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-400 hover:text-slate-300'
+                ? 'border-brand text-white'
+                : 'border-transparent text-secondary hover:text-white'
             }`}
           >
             {tab.label}
@@ -117,21 +117,21 @@ export function CampaignsListPage() {
         />
       ) : (
         <>
-          <div className="grid gap-4">
+          <div className="space-y-3">
             {campaigns.map((campaign: CampaignWithStats) => (
               <div
                 key={campaign.id}
-                className="cursor-pointer rounded-xl border border-slate-800 bg-slate-800/50 p-5 transition-colors hover:bg-slate-800/70"
+                className="cursor-pointer rounded-lg border border-subtle bg-surface p-5 transition-colors hover:bg-hover"
                 onClick={() => navigate(`/campaigns/${campaign.id}`)}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-white">{campaign.name}</h3>
+                      <h3 className="font-medium text-white">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
-                    <p className="mt-1 text-sm text-slate-400">
-                      {campaign.steps_count} steps &middot; {campaign.contacts_count} contacts &middot; Created {formatDate(campaign.created_at)}
+                    <p className="mt-1 text-sm text-secondary">
+                      {campaign.steps_count} steps · {campaign.contacts_count} contacts · Created {formatDate(campaign.created_at)}
                     </p>
                   </div>
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
@@ -175,11 +175,11 @@ export function CampaignsListPage() {
 
                 {/* Stats row */}
                 {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
-                  <div className="mt-3 flex gap-6 text-sm text-slate-400">
-                    <span className="flex items-center gap-1"><Send className="h-3.5 w-3.5" /> {campaign.sent_count} sent</span>
-                    <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {campaign.opened_count} opened</span>
-                    <span className="flex items-center gap-1"><MousePointerClick className="h-3.5 w-3.5" /> {campaign.clicked_count} clicked</span>
-                    <span className="flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" /> {campaign.replied_count} replied</span>
+                  <div className="mt-4 flex gap-6 text-sm text-secondary">
+                    <span className="flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-tertiary" /> {campaign.sent_count} sent</span>
+                    <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-tertiary" /> {campaign.opened_count} opened</span>
+                    <span className="flex items-center gap-1.5"><MousePointerClick className="h-3.5 w-3.5 text-tertiary" /> {campaign.clicked_count} clicked</span>
+                    <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-tertiary" /> {campaign.replied_count} replied</span>
                   </div>
                 )}
               </div>
@@ -187,11 +187,11 @@ export function CampaignsListPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-4 pt-4">
               <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                 Previous
               </Button>
-              <span className="text-sm text-slate-400">Page {page} of {totalPages}</span>
+              <span className="text-sm text-secondary">Page {page} of {totalPages}</span>
               <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
                 Next
               </Button>

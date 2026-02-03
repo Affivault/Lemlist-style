@@ -3,8 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { contactsApi } from '../../api/contacts.api';
 import { analyticsApi } from '../../api/analytics.api';
 import { Spinner } from '../../components/ui/Spinner';
-import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { formatDate, formatDateTime, getInitials } from '../../lib/utils';
 import {
   ArrowLeft,
@@ -37,7 +35,7 @@ const activityColors: Record<string, string> = {
   delivered: 'text-green-400',
   opened: 'text-green-500',
   clicked: 'text-purple-400',
-  replied: 'text-indigo-400',
+  replied: 'text-brand',
   bounced: 'text-red-400',
   error: 'text-red-400',
 };
@@ -76,61 +74,66 @@ export function ContactDetailPage() {
   }
 
   if (!contact) {
-    return <div className="text-center text-slate-400">Contact not found</div>;
+    return <div className="text-center text-secondary">Contact not found</div>;
   }
 
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
 
   return (
     <div className="space-y-6">
+      {/* Back link */}
       <button
         onClick={() => navigate('/contacts')}
-        className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-300"
+        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-white transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Contacts
       </button>
 
+      {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-500/10 text-lg font-semibold text-indigo-400">
+          <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center text-brand font-medium">
             {getInitials(contact.first_name, contact.last_name, contact.email)}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">{fullName || contact.email}</h1>
-            {fullName && <p className="text-slate-400">{contact.email}</p>}
-            <div className="mt-1 flex gap-2">
+            <h1 className="text-xl font-semibold text-white">{fullName || contact.email}</h1>
+            {fullName && <p className="text-sm text-secondary">{contact.email}</p>}
+            <div className="flex items-center gap-2 mt-1">
               {contact.tags?.map((tag: any) => (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                  className="inline-flex px-1.5 py-0.5 text-xs rounded"
                   style={{ backgroundColor: tag.color + '20', color: tag.color }}
                 >
                   {tag.name}
                 </span>
               ))}
-              {contact.is_unsubscribed && <Badge variant="warning">Unsubscribed</Badge>}
-              {contact.is_bounced && <Badge variant="danger">Bounced</Badge>}
+              {contact.is_unsubscribed && (
+                <span className="text-xs text-yellow-500">Unsubscribed</span>
+              )}
+              {contact.is_bounced && (
+                <span className="text-xs text-red-500">Bounced</span>
+              )}
             </div>
           </div>
         </div>
-        <Button
-          variant="danger"
-          size="sm"
+        <button
           onClick={() => {
             if (confirm('Delete this contact?')) deleteMutation.mutate();
           }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-400 hover:text-red-300 border border-red-400/30 rounded-md hover:bg-red-400/10 transition-colors"
         >
           <Trash2 className="h-4 w-4" />
           Delete
-        </Button>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contact Info */}
-        <div className="bg-slate-800/50 rounded-xl border border-slate-800 space-y-4 p-5 lg:col-span-1">
-          <h2 className="font-semibold text-white">Contact Info</h2>
-          <div className="space-y-3 text-sm">
+        <div className="bg-surface border border-subtle rounded-md p-5">
+          <h2 className="text-sm font-medium text-white mb-4">Contact Info</h2>
+          <div className="space-y-3">
             <InfoRow icon={Mail} label="Email" value={contact.email} />
             {contact.company && <InfoRow icon={Building2} label="Company" value={contact.company} />}
             {contact.job_title && <InfoRow icon={Briefcase} label="Job Title" value={contact.job_title} />}
@@ -138,8 +141,7 @@ export function ContactDetailPage() {
             {contact.linkedin_url && <InfoRow icon={Linkedin} label="LinkedIn" value={contact.linkedin_url} isLink />}
             {contact.website && <InfoRow icon={Globe} label="Website" value={contact.website} isLink />}
           </div>
-          <hr className="border-slate-800" />
-          <div className="text-xs text-slate-500">
+          <div className="mt-4 pt-4 border-t border-subtle text-xs text-secondary space-y-1">
             <p>Source: {contact.source}</p>
             <p>Created: {formatDate(contact.created_at)}</p>
             <p>Updated: {formatDate(contact.updated_at)}</p>
@@ -147,29 +149,29 @@ export function ContactDetailPage() {
         </div>
 
         {/* Activity Timeline */}
-        <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-5 lg:col-span-2">
-          <h2 className="mb-4 font-semibold text-white">Activity Timeline</h2>
+        <div className="lg:col-span-2 bg-surface border border-subtle rounded-md p-5">
+          <h2 className="text-sm font-medium text-white mb-4">Activity</h2>
           {!timeline || timeline.length === 0 ? (
-            <p className="text-sm text-slate-500">No activity yet</p>
+            <p className="text-sm text-secondary">No activity yet</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {timeline.map((item: any) => {
                 const Icon = activityIcons[item.activity_type] || Send;
-                const color = activityColors[item.activity_type] || 'text-slate-500';
+                const color = activityColors[item.activity_type] || 'text-secondary';
                 return (
                   <div key={item.id} className="flex items-start gap-3">
                     <div className={`mt-0.5 ${color}`}>
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm text-white">
-                        <span className="font-medium capitalize">{item.activity_type}</span>
+                        <span className="capitalize">{item.activity_type}</span>
                         {item.step_subject && (
-                          <span className="text-slate-400"> &mdash; {item.step_subject}</span>
+                          <span className="text-secondary"> - {item.step_subject}</span>
                         )}
                       </p>
-                      <p className="text-xs text-slate-500">
-                        {item.campaign_name} &middot; {formatDateTime(item.occurred_at)}
+                      <p className="text-xs text-secondary">
+                        {item.campaign_name} · {formatDateTime(item.occurred_at)}
                       </p>
                     </div>
                   </div>
@@ -195,16 +197,21 @@ function InfoRow({
   isLink?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <Icon className="h-4 w-4 shrink-0 text-slate-500" />
-      <div>
-        <p className="text-xs text-slate-500">{label}</p>
+    <div className="flex items-start gap-3">
+      <Icon className="h-4 w-4 text-secondary mt-0.5 shrink-0" />
+      <div className="min-w-0">
+        <p className="text-xs text-secondary">{label}</p>
         {isLink ? (
-          <a href={value} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">
+          <a
+            href={value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-brand hover:underline truncate block"
+          >
             {value}
           </a>
         ) : (
-          <p className="text-slate-300">{value}</p>
+          <p className="text-sm text-white">{value}</p>
         )}
       </div>
     </div>
