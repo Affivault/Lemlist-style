@@ -84,7 +84,7 @@ export function ContactDetailPage() {
       {/* Back link */}
       <button
         onClick={() => navigate('/contacts')}
-        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-white transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Contacts
@@ -97,7 +97,7 @@ export function ContactDetailPage() {
             {getInitials(contact.first_name, contact.last_name, contact.email)}
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-white">{fullName || contact.email}</h1>
+            <h1 className="text-xl font-semibold text-primary">{fullName || contact.email}</h1>
             {fullName && <p className="text-sm text-secondary">{contact.email}</p>}
             <div className="flex items-center gap-2 mt-1">
               {contact.tags?.map((tag: any) => (
@@ -132,7 +132,7 @@ export function ContactDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contact Info */}
         <div className="bg-surface border border-subtle rounded-md p-5">
-          <h2 className="text-sm font-medium text-white mb-4">Contact Info</h2>
+          <h2 className="text-sm font-medium text-primary mb-4">Contact Info</h2>
           <div className="space-y-3">
             <InfoRow icon={Mail} label="Email" value={contact.email} />
             {contact.company && <InfoRow icon={Building2} label="Company" value={contact.company} />}
@@ -150,7 +150,7 @@ export function ContactDetailPage() {
 
         {/* Activity Timeline */}
         <div className="lg:col-span-2 bg-surface border border-subtle rounded-md p-5">
-          <h2 className="text-sm font-medium text-white mb-4">Activity</h2>
+          <h2 className="text-sm font-medium text-primary mb-4">Activity</h2>
           {!timeline || timeline.length === 0 ? (
             <p className="text-sm text-secondary">No activity yet</p>
           ) : (
@@ -164,7 +164,7 @@ export function ContactDetailPage() {
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white">
+                      <p className="text-sm text-primary">
                         <span className="capitalize">{item.activity_type}</span>
                         {item.step_subject && (
                           <span className="text-secondary"> - {item.step_subject}</span>
@@ -211,7 +211,7 @@ function InfoRow({
             {value}
           </a>
         ) : (
-          <p className="text-sm text-white">{value}</p>
+          <p className="text-sm text-primary">{value}</p>
         )}
       </div>
     </div>

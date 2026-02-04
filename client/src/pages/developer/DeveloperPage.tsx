@@ -132,7 +132,7 @@ export function DeveloperPage() {
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-white">Developer</h1>
+        <h1 className="text-2xl font-semibold text-primary">Developer</h1>
         <p className="text-sm text-secondary mt-1">Webhooks, API keys, and integrations</p>
       </div>
 
@@ -141,7 +141,7 @@ export function DeveloperPage() {
         <button
           onClick={() => setTab('webhooks')}
           className={cn('flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'webhooks' ? 'border-brand text-white' : 'border-transparent text-secondary hover:text-white'
+            tab === 'webhooks' ? 'border-brand text-primary' : 'border-transparent text-secondary hover:text-primary'
           )}
         >
           <Webhook className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function DeveloperPage() {
         <button
           onClick={() => setTab('api-keys')}
           className={cn('flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'api-keys' ? 'border-brand text-white' : 'border-transparent text-secondary hover:text-white'
+            tab === 'api-keys' ? 'border-brand text-primary' : 'border-transparent text-secondary hover:text-primary'
           )}
         >
           <Key className="h-4 w-4" />
@@ -165,7 +165,7 @@ export function DeveloperPage() {
             <p className="text-sm text-secondary">Receive real-time notifications when events happen.</p>
             <button
               onClick={() => setShowCreateWebhook(true)}
-              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary hover:bg-brand-400 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Add Webhook
@@ -175,17 +175,17 @@ export function DeveloperPage() {
           {showCreateWebhook && (
             <div className="rounded-lg bg-surface border border-brand/20 p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-white">New Webhook Endpoint</h3>
-                <button onClick={() => setShowCreateWebhook(false)} className="text-secondary hover:text-white"><X className="h-4 w-4" /></button>
+                <h3 className="text-sm font-medium text-primary">New Webhook Endpoint</h3>
+                <button onClick={() => setShowCreateWebhook(false)} className="text-secondary hover:text-primary"><X className="h-4 w-4" /></button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-tertiary mb-1 block">Endpoint URL</label>
-                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-white placeholder:text-tertiary focus:outline-none focus:border-brand" />
+                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-brand" />
                 </div>
                 <div>
                   <label className="text-xs text-tertiary mb-1 block">Label</label>
-                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-white placeholder:text-tertiary focus:outline-none focus:border-brand" />
+                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-brand" />
                 </div>
               </div>
               <div>
@@ -201,7 +201,7 @@ export function DeveloperPage() {
                             onClick={() => toggleEvent(event)}
                             className={cn(
                               'rounded border px-2.5 py-1 text-xs transition-all',
-                              webhookEvents.includes(event) ? 'bg-brand/10 border-brand/30 text-brand' : 'bg-elevated border-subtle text-secondary hover:text-white'
+                              webhookEvents.includes(event) ? 'bg-brand/10 border-brand/30 text-brand' : 'bg-elevated border-subtle text-secondary hover:text-primary'
                             )}
                           >
                             {event}
@@ -215,7 +215,7 @@ export function DeveloperPage() {
               <button
                 onClick={() => createEndpointMutation.mutate()}
                 disabled={!webhookUrl || webhookEvents.length === 0 || createEndpointMutation.isPending}
-                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create Webhook
@@ -232,7 +232,7 @@ export function DeveloperPage() {
               <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
                 <Webhook className="h-6 w-6 text-tertiary" />
               </div>
-              <h3 className="font-medium text-white mb-1">No webhooks configured</h3>
+              <h3 className="font-medium text-primary mb-1">No webhooks configured</h3>
               <p className="text-sm text-secondary">Add a webhook to receive real-time event notifications.</p>
             </div>
           ) : (
@@ -242,14 +242,14 @@ export function DeveloperPage() {
                   <div className="flex items-center gap-3">
                     <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-brand' : 'bg-tertiary')} />
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-white">{ep.label}</h4>
+                      <h4 className="text-sm font-medium text-primary">{ep.label}</h4>
                       <p className="text-xs text-tertiary truncate font-mono">{ep.url}</p>
                     </div>
                     <span className="text-xs text-tertiary">{ep.events.length} events</span>
-                    <button onClick={() => testEndpointMutation.mutate(ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-white text-xs flex items-center gap-1">
+                    <button onClick={() => testEndpointMutation.mutate(ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-primary text-xs flex items-center gap-1">
                       <Zap className="h-3 w-3" /> Test
                     </button>
-                    <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-white text-xs flex items-center gap-1">
+                    <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-primary text-xs flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Logs
                     </button>
                     <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded hover:bg-red-500/10 text-secondary hover:text-red-400">
@@ -284,7 +284,7 @@ export function DeveloperPage() {
             <p className="text-sm text-secondary">Manage API keys for headless access to SkySend.</p>
             <button
               onClick={() => setShowCreateKey(true)}
-              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary hover:bg-brand-400 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Create Key
@@ -298,20 +298,20 @@ export function DeveloperPage() {
                 <span className="text-sm font-medium text-brand">API key created. Copy it now - it will not be shown again.</span>
               </div>
               <div className="flex items-center gap-2">
-                <code className={cn('flex-1 rounded bg-elevated px-3 py-2 text-sm font-mono', showKey ? 'text-white' : 'text-tertiary')}>
+                <code className={cn('flex-1 rounded bg-elevated px-3 py-2 text-sm font-mono', showKey ? 'text-primary' : 'text-tertiary')}>
                   {showKey ? newRawKey : newRawKey.substring(0, 16) + '••••••••••••••••'}
                 </code>
-                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-white">
+                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-primary">
                   {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
                 <button
                   onClick={() => { navigator.clipboard.writeText(newRawKey); toast.success('Copied!'); }}
-                  className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-white"
+                  className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-primary"
                 >
                   <Copy className="h-4 w-4" />
                 </button>
               </div>
-              <button onClick={() => { setNewRawKey(null); setShowKey(false); }} className="text-xs text-tertiary hover:text-white">
+              <button onClick={() => { setNewRawKey(null); setShowKey(false); }} className="text-xs text-tertiary hover:text-primary">
                 Dismiss
               </button>
             </div>
@@ -320,17 +320,17 @@ export function DeveloperPage() {
           {showCreateKey && !newRawKey && (
             <div className="rounded-lg bg-surface border border-brand/20 p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-white">New API Key</h3>
-                <button onClick={() => setShowCreateKey(false)} className="text-secondary hover:text-white"><X className="h-4 w-4" /></button>
+                <h3 className="text-sm font-medium text-primary">New API Key</h3>
+                <button onClick={() => setShowCreateKey(false)} className="text-secondary hover:text-primary"><X className="h-4 w-4" /></button>
               </div>
               <div>
                 <label className="text-xs text-tertiary mb-1 block">Key Name</label>
-                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-white placeholder:text-tertiary focus:outline-none focus:border-brand" />
+                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-brand" />
               </div>
               <button
                 onClick={() => createKeyMutation.mutate()}
                 disabled={!keyName || createKeyMutation.isPending}
-                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 transition-colors"
               >
                 <Key className="h-4 w-4" />
                 Generate Key
@@ -347,7 +347,7 @@ export function DeveloperPage() {
               <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
                 <Key className="h-6 w-6 text-tertiary" />
               </div>
-              <h3 className="font-medium text-white mb-1">No API keys</h3>
+              <h3 className="font-medium text-primary mb-1">No API keys</h3>
               <p className="text-sm text-secondary">Create an API key to access SkySend programmatically.</p>
             </div>
           ) : (
@@ -358,7 +358,7 @@ export function DeveloperPage() {
                     <Key className={cn('h-4 w-4', key.is_active ? 'text-brand' : 'text-red-400')} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-white">{key.name}</h4>
+                    <h4 className="text-sm font-medium text-primary">{key.name}</h4>
                     <p className="text-xs text-tertiary font-mono">{key.key_prefix}••••••••</p>
                   </div>
                   <div className="text-right">

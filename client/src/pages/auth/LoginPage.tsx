@@ -29,20 +29,20 @@ export function LoginPage() {
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-brand" />
-            <span className="text-lg font-semibold text-white">SkySend</span>
+            <span className="text-lg font-semibold text-primary">SkySend</span>
           </Link>
         </div>
 
         {/* Card */}
-        <div className="rounded-lg border border-subtle bg-surface p-8">
+        <div className="rounded-lg border border-subtle bg-surface p-8 shadow-sm">
           <div className="mb-6 text-center">
-            <h1 className="text-xl font-semibold text-white">Sign in</h1>
+            <h1 className="text-xl font-semibold text-primary">Sign in</h1>
             <p className="mt-1 text-sm text-secondary">Welcome back to SkySend</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-secondary mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium text-primary mb-1.5">
                 Email
               </label>
               <input
@@ -52,12 +52,12 @@ export function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                className="w-full rounded-md border border-default bg-app px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-secondary mb-1.5">
+              <label htmlFor="password" className="block text-sm font-medium text-primary mb-1.5">
                 Password
               </label>
               <input
@@ -67,14 +67,14 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                className="w-full rounded-md border border-default bg-app px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-400 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-400 disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign in'}
               {!loading && <ArrowRight className="h-4 w-4" />}
@@ -98,7 +98,7 @@ export function LoginPage() {
               const { error } = await signInWithOAuth('google');
               if (error) toast.error(error.message);
             }}
-            className="w-full flex items-center justify-center gap-2 rounded-md border border-default bg-transparent px-4 py-2 text-sm font-medium text-secondary transition-colors hover:bg-hover hover:text-white"
+            className="w-full flex items-center justify-center gap-2 rounded-md border border-default bg-app px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-hover"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

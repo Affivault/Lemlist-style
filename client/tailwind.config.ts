@@ -2,12 +2,12 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Render-inspired minimal palette
         brand: {
-          DEFAULT: '#10b981', // Emerald/teal accent
+          DEFAULT: '#10b981',
           50: '#ecfdf5',
           100: '#d1fae5',
           200: '#a7f3d0',
@@ -19,30 +19,30 @@ const config: Config = {
         },
       },
       backgroundColor: {
-        'app': '#0a0a0b',
-        'surface': '#111113',
-        'elevated': '#191919',
-        'hover': 'rgba(255,255,255,0.03)',
-        'active': 'rgba(255,255,255,0.05)',
+        'app': 'var(--bg-app)',
+        'surface': 'var(--bg-surface)',
+        'elevated': 'var(--bg-elevated)',
+        'hover': 'var(--bg-hover)',
+        'active': 'var(--bg-active)',
       },
       borderColor: {
-        'subtle': 'rgba(255,255,255,0.06)',
-        'default': 'rgba(255,255,255,0.08)',
-        'strong': 'rgba(255,255,255,0.12)',
+        'subtle': 'var(--border-subtle)',
+        'default': 'var(--border-default)',
+        'strong': 'var(--border-strong)',
       },
       textColor: {
-        'primary': '#ffffff',
-        'secondary': '#a1a1a1',
-        'tertiary': '#666666',
+        'primary': 'var(--text-primary)',
+        'secondary': 'var(--text-secondary)',
+        'tertiary': 'var(--text-tertiary)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'sm': '0 1px 2px rgba(0,0,0,0.4)',
-        'md': '0 4px 12px rgba(0,0,0,0.4)',
-        'lg': '0 8px 24px rgba(0,0,0,0.5)',
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-out',
