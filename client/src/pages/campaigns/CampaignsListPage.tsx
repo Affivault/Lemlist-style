@@ -83,7 +83,7 @@ export function CampaignsListPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-white">Campaigns</h1>
+        <h1 className="text-2xl font-semibold text-primary">Campaigns</h1>
         <Button onClick={() => navigate('/campaigns/new')}>
           <Plus className="h-4 w-4" />
           New Campaign
@@ -98,8 +98,8 @@ export function CampaignsListPage() {
             onClick={() => { setStatusFilter(tab.value); setPage(1); }}
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
               statusFilter === tab.value
-                ? 'border-brand text-white'
-                : 'border-transparent text-secondary hover:text-white'
+                ? 'border-brand text-primary'
+                : 'border-transparent text-secondary hover:text-primary'
             }`}
           >
             {tab.label}
@@ -127,7 +127,7 @@ export function CampaignsListPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-medium text-white">{campaign.name}</h3>
+                      <h3 className="font-medium text-primary">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
                     <p className="mt-1 text-sm text-secondary">

@@ -181,18 +181,18 @@ export function ContactsListPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-white">Contacts</h1>
+        <h1 className="text-2xl font-semibold text-primary">Contacts</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowImportModal(true)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-secondary hover:text-white border border-subtle rounded-md hover:bg-hover transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-secondary hover:text-primary border border-subtle rounded-md hover:bg-hover transition-colors"
           >
             <Upload className="h-4 w-4" />
             Import
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-brand text-primary rounded-md hover:bg-brand-hover transition-colors"
           >
             <Plus className="h-4 w-4" />
             Add Contact
@@ -217,13 +217,13 @@ export function ContactsListPage() {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search contacts..."
-          className="w-full pl-10 pr-4 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+          className="w-full pl-10 pr-4 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
         />
       </div>
 
       {contacts.length === 0 ? (
         <div className="bg-surface border border-subtle rounded-md p-12 text-center">
-          <p className="text-white font-medium mb-1">
+          <p className="text-primary font-medium mb-1">
             {search ? 'No contacts found' : 'No contacts yet'}
           </p>
           <p className="text-sm text-secondary mb-4">
@@ -233,14 +233,14 @@ export function ContactsListPage() {
             <div className="flex items-center justify-center gap-2">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-brand text-primary rounded-md hover:bg-brand-hover transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Add Contact
               </button>
               <button
                 onClick={() => setShowImportModal(true)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-secondary hover:text-white border border-subtle rounded-md hover:bg-hover transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-secondary hover:text-primary border border-subtle rounded-md hover:bg-hover transition-colors"
               >
                 <Upload className="h-4 w-4" />
                 Import CSV
@@ -276,7 +276,7 @@ export function ContactsListPage() {
                         {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm text-white font-medium">
+                        <p className="text-sm text-primary font-medium">
                           {[contact.first_name, contact.last_name].filter(Boolean).join(' ') || '-'}
                         </p>
                         {contact.job_title && (
@@ -313,7 +313,7 @@ export function ContactsListPage() {
                         ) : (
                           <ShieldX className="h-3.5 w-3.5 text-red-500" />
                         )}
-                        <span className="text-sm text-white">{(contact as any).dcs_score}</span>
+                        <span className="text-sm text-primary">{(contact as any).dcs_score}</span>
                       </div>
                     ) : (
                       <button
@@ -338,7 +338,7 @@ export function ContactsListPage() {
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => openEdit(contact)}
-                        className="p-1.5 text-secondary hover:text-white rounded transition-colors"
+                        className="p-1.5 text-secondary hover:text-primary rounded transition-colors"
                       >
                         Edit
                       </button>
@@ -367,7 +367,7 @@ export function ContactsListPage() {
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
-                  className="p-1.5 text-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-1.5 text-secondary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -375,7 +375,7 @@ export function ContactsListPage() {
                 <button
                   disabled={page >= totalPages}
                   onClick={() => setPage(page + 1)}
-                  className="p-1.5 text-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-1.5 text-secondary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -391,8 +391,8 @@ export function ContactsListPage() {
           <div className="fixed inset-0 bg-black/60" onClick={closeCreateModal} />
           <div className="relative bg-surface border border-subtle rounded-lg w-full max-w-md mx-4 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium text-white">{editId ? 'Edit Contact' : 'Add Contact'}</h2>
-              <button onClick={closeCreateModal} className="text-secondary hover:text-white transition-colors">
+              <h2 className="text-lg font-medium text-primary">{editId ? 'Edit Contact' : 'Add Contact'}</h2>
+              <button onClick={closeCreateModal} className="text-secondary hover:text-primary transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -405,7 +405,7 @@ export function ContactsListPage() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="contact@company.com"
                   required
-                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -416,7 +416,7 @@ export function ContactsListPage() {
                     value={form.first_name || ''}
                     onChange={(e) => setForm({ ...form, first_name: e.target.value })}
                     placeholder="John"
-                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                   />
                 </div>
                 <div>
@@ -426,7 +426,7 @@ export function ContactsListPage() {
                     value={form.last_name || ''}
                     onChange={(e) => setForm({ ...form, last_name: e.target.value })}
                     placeholder="Doe"
-                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                   />
                 </div>
               </div>
@@ -438,7 +438,7 @@ export function ContactsListPage() {
                     value={form.company || ''}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
                     placeholder="Acme Inc."
-                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                   />
                 </div>
                 <div>
@@ -448,7 +448,7 @@ export function ContactsListPage() {
                     value={form.job_title || ''}
                     onChange={(e) => setForm({ ...form, job_title: e.target.value })}
                     placeholder="CEO"
-                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                    className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                   />
                 </div>
               </div>
@@ -459,7 +459,7 @@ export function ContactsListPage() {
                   value={form.phone || ''}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   placeholder="+1 234 567 8900"
-                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                 />
               </div>
               <div>
@@ -469,7 +469,7 @@ export function ContactsListPage() {
                   value={form.linkedin_url || ''}
                   onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
                   placeholder="https://linkedin.com/in/johndoe"
-                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                 />
               </div>
               <div>
@@ -479,21 +479,21 @@ export function ContactsListPage() {
                   value={form.website || ''}
                   onChange={(e) => setForm({ ...form, website: e.target.value })}
                   placeholder="https://company.com"
-                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-white placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-subtle rounded-md text-primary placeholder:text-secondary focus:outline-none focus:border-brand transition-colors"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-4 border-t border-subtle">
                 <button
                   type="button"
                   onClick={closeCreateModal}
-                  className="px-3 py-1.5 text-sm text-secondary hover:text-white transition-colors"
+                  className="px-3 py-1.5 text-sm text-secondary hover:text-primary transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-brand text-primary rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors"
                 >
                   {createMutation.isPending ? 'Saving...' : editId ? 'Update' : 'Create'}
                 </button>
@@ -509,8 +509,8 @@ export function ContactsListPage() {
           <div className="fixed inset-0 bg-black/60" onClick={() => setShowImportModal(false)} />
           <div className="relative bg-surface border border-subtle rounded-lg w-full max-w-lg mx-4 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium text-white">Import Contacts</h2>
-              <button onClick={() => setShowImportModal(false)} className="text-secondary hover:text-white transition-colors">
+              <h2 className="text-lg font-medium text-primary">Import Contacts</h2>
+              <button onClick={() => setShowImportModal(false)} className="text-secondary hover:text-primary transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -534,10 +534,10 @@ export function ContactsListPage() {
                   <div className="max-h-48 overflow-y-auto space-y-2">
                     {csvHeaders.map((header) => (
                       <div key={header} className="flex items-center gap-3">
-                        <span className="w-32 truncate text-sm text-white">{header}</span>
+                        <span className="w-32 truncate text-sm text-primary">{header}</span>
                         <span className="text-secondary">-&gt;</span>
                         <select
-                          className="flex-1 px-2 py-1.5 text-sm bg-surface border border-subtle rounded-md text-white focus:outline-none focus:border-brand transition-colors"
+                          className="flex-1 px-2 py-1.5 text-sm bg-surface border border-subtle rounded-md text-primary focus:outline-none focus:border-brand transition-colors"
                           value={columnMapping[header] || ''}
                           onChange={(e) => setColumnMapping({ ...columnMapping, [header]: e.target.value })}
                         >
@@ -560,14 +560,14 @@ export function ContactsListPage() {
               <div className="flex justify-end gap-2 pt-4 border-t border-subtle">
                 <button
                   onClick={() => setShowImportModal(false)}
-                  className="px-3 py-1.5 text-sm text-secondary hover:text-white transition-colors"
+                  className="px-3 py-1.5 text-sm text-secondary hover:text-primary transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   disabled={!importFile || importMutation.isPending}
                   onClick={() => importFile && importMutation.mutate({ file: importFile, mapping: columnMapping })}
-                  className="px-3 py-1.5 text-sm bg-brand text-white rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-brand text-primary rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors"
                 >
                   {importMutation.isPending ? 'Importing...' : 'Import'}
                 </button>

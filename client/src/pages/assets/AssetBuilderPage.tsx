@@ -32,7 +32,7 @@ function SvgPreview({ template, params }: { template: { width: number; height: n
   return (
     <svg
       viewBox={`0 0 ${template.width} ${template.height}`}
-      className="w-full h-auto rounded-lg border border-slate-700/50"
+      className="w-full h-auto rounded-lg border border-subtle"
       style={{ maxHeight: 400 }}
     >
       <rect width={template.width} height={template.height} fill={template.background_color} />
@@ -221,16 +221,16 @@ export function AssetBuilderPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg">
-            <Image className="h-5 w-5 text-white" />
+            <Image className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Dynamic Assets</h1>
-            <p className="text-sm text-slate-400">Build personalized images for email campaigns</p>
+            <h1 className="text-2xl font-bold text-primary">Dynamic Assets</h1>
+            <p className="text-sm text-secondary">Build personalized images for email campaigns</p>
           </div>
         </div>
         <button
           onClick={() => startNew()}
-          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-sm font-medium text-white hover:from-indigo-500 hover:to-indigo-400 transition-all shadow-sm"
+          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-sm font-medium text-primary hover:from-indigo-500 hover:to-indigo-400 transition-all shadow-sm"
         >
           <Plus className="h-4 w-4" />
           New Template
@@ -240,7 +240,7 @@ export function AssetBuilderPage() {
       {/* Presets */}
       {!isEditing && presets && presets.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2">
+          <h3 className="text-sm font-medium text-secondary mb-3 flex items-center gap-2">
             <Wand2 className="h-4 w-4" />
             Quick Start from Preset
           </h3>
@@ -249,13 +249,13 @@ export function AssetBuilderPage() {
               <button
                 key={i}
                 onClick={() => startNew(preset)}
-                className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 text-left hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group"
+                className="rounded-xl bg-surface border border-subtle p-4 text-left hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-semibold text-white">{preset.name}</span>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                  <span className="text-sm font-semibold text-primary">{preset.name}</span>
+                  <ChevronRight className="h-4 w-4 text-tertiary group-hover:text-indigo-400 transition-colors" />
                 </div>
-                <div className="rounded-lg overflow-hidden border border-slate-700/30">
+                <div className="rounded-lg overflow-hidden border border-subtle">
                   <SvgPreview
                     template={{
                       width: preset.width || 600,
@@ -275,7 +275,7 @@ export function AssetBuilderPage() {
       {/* Template List */}
       {!isEditing && (
         <>
-          <h3 className="text-sm font-medium text-slate-400 flex items-center gap-2">
+          <h3 className="text-sm font-medium text-secondary flex items-center gap-2">
             <Layers className="h-4 w-4" />
             Your Templates
           </h3>
@@ -285,18 +285,18 @@ export function AssetBuilderPage() {
             </div>
           ) : !templates || templates.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/50 mb-4">
-                <Image className="h-8 w-8 text-slate-500" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface mb-4">
+                <Image className="h-8 w-8 text-tertiary" />
               </div>
-              <h3 className="text-lg font-medium text-white mb-1">No templates yet</h3>
-              <p className="text-sm text-slate-400 mb-4">Create your first personalized image template or start from a preset.</p>
+              <h3 className="text-lg font-medium text-primary mb-1">No templates yet</h3>
+              <p className="text-sm text-secondary mb-4">Create your first personalized image template or start from a preset.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               {templates.map((t) => (
                 <div
                   key={t.id}
-                  className="rounded-xl bg-slate-800/50 border border-slate-700/50 overflow-hidden hover:border-slate-600/50 transition-colors group cursor-pointer"
+                  className="rounded-xl bg-surface border border-subtle overflow-hidden hover:border-default transition-colors group cursor-pointer"
                   onClick={() => openTemplate(t)}
                 >
                   <div className="p-3">
@@ -305,15 +305,15 @@ export function AssetBuilderPage() {
                       params={previewParams}
                     />
                   </div>
-                  <div className="flex items-center justify-between border-t border-slate-700/30 px-4 py-3">
+                  <div className="flex items-center justify-between border-t border-subtle px-4 py-3">
                     <div>
-                      <h4 className="text-sm font-medium text-white">{t.name}</h4>
-                      <p className="text-xs text-slate-500">{t.width}x{t.height}</p>
+                      <h4 className="text-sm font-medium text-primary">{t.name}</h4>
+                      <p className="text-xs text-tertiary">{t.width}x{t.height}</p>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(t.id); }}
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400"
+                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-secondary hover:text-red-400"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -331,24 +331,24 @@ export function AssetBuilderPage() {
         <div className="grid grid-cols-5 gap-6">
           {/* Preview Panel */}
           <div className="col-span-3 space-y-4">
-            <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
+            <div className="rounded-xl bg-surface border border-subtle p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-slate-400" />
+                <h3 className="text-sm font-medium text-primary flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-secondary" />
                   Live Preview
                 </h3>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSave}
                     disabled={createMutation.isPending || updateMutation.isPending}
-                    className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-medium text-white hover:from-indigo-500 hover:to-indigo-400 transition-all"
+                    className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-3 py-1.5 text-xs font-medium text-primary hover:from-indigo-500 hover:to-indigo-400 transition-all"
                   >
                     <Save className="h-3.5 w-3.5" />
                     Save
                   </button>
                   <button
                     onClick={() => { setIsCreating(false); setSelectedTemplate(null); }}
-                    className="flex items-center gap-1.5 rounded-lg bg-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-600 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg bg-elevated px-3 py-1.5 text-xs text-secondary hover:bg-hover transition-colors"
                   >
                     <X className="h-3.5 w-3.5" />
                     Close
@@ -367,20 +367,20 @@ export function AssetBuilderPage() {
             </div>
 
             {/* Preview Variables */}
-            <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
-              <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
-                <Code className="h-4 w-4 text-slate-400" />
+            <div className="rounded-xl bg-surface border border-subtle p-4">
+              <h3 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
+                <Code className="h-4 w-4 text-secondary" />
                 Test Variables
               </h3>
               <div className="grid grid-cols-3 gap-3">
                 {Object.entries(previewParams).map(([key, value]) => (
                   <div key={key}>
-                    <label className="text-xs text-slate-500 mb-1 block">{`{{${key}}}`}</label>
+                    <label className="text-xs text-tertiary mb-1 block">{`{{${key}}}`}</label>
                     <input
                       type="text"
                       value={value}
                       onChange={(e) => setPreviewParams({ ...previewParams, [key]: e.target.value })}
-                      className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                      className="w-full rounded-lg bg-app border border-subtle px-3 py-1.5 text-sm text-primary focus:outline-none focus:border-indigo-500/50"
                     />
                   </div>
                 ))}
@@ -391,81 +391,81 @@ export function AssetBuilderPage() {
           {/* Settings Panel */}
           <div className="col-span-2 space-y-4">
             {/* Template Settings */}
-            <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 space-y-3">
-              <h3 className="text-sm font-medium text-white">Template Settings</h3>
+            <div className="rounded-xl bg-surface border border-subtle p-4 space-y-3">
+              <h3 className="text-sm font-medium text-primary">Template Settings</h3>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Name</label>
+                <label className="text-xs text-tertiary mb-1 block">Name</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                  className="w-full rounded-lg bg-app border border-subtle px-3 py-2 text-sm text-primary focus:outline-none focus:border-indigo-500/50"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Width</label>
+                  <label className="text-xs text-tertiary mb-1 block">Width</label>
                   <input
                     type="number"
                     value={editWidth}
                     onChange={(e) => setEditWidth(Number(e.target.value))}
-                    className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                    className="w-full rounded-lg bg-app border border-subtle px-3 py-2 text-sm text-primary focus:outline-none focus:border-indigo-500/50"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Height</label>
+                  <label className="text-xs text-tertiary mb-1 block">Height</label>
                   <input
                     type="number"
                     value={editHeight}
                     onChange={(e) => setEditHeight(Number(e.target.value))}
-                    className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                    className="w-full rounded-lg bg-app border border-subtle px-3 py-2 text-sm text-primary focus:outline-none focus:border-indigo-500/50"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Background</label>
+                <label className="text-xs text-tertiary mb-1 block">Background</label>
                 <div className="flex gap-2">
                   <input
                     type="color"
                     value={editBg}
                     onChange={(e) => setEditBg(e.target.value)}
-                    className="h-9 w-12 rounded-lg border border-slate-700/50 cursor-pointer"
+                    className="h-9 w-12 rounded-lg border border-subtle cursor-pointer"
                   />
                   <input
                     type="text"
                     value={editBg}
                     onChange={(e) => setEditBg(e.target.value)}
-                    className="flex-1 rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                    className="flex-1 rounded-lg bg-app border border-subtle px-3 py-2 text-sm text-primary focus:outline-none focus:border-indigo-500/50"
                   />
                 </div>
               </div>
             </div>
 
             {/* Layers */}
-            <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
+            <div className="rounded-xl bg-surface border border-subtle p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-slate-400" />
+                <h3 className="text-sm font-medium text-primary flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-secondary" />
                   Layers ({editLayers.length})
                 </h3>
                 <div className="flex gap-1">
                   <button
                     onClick={() => addLayer('text')}
-                    className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
+                    className="p-1.5 rounded-lg bg-elevated hover:bg-hover text-secondary transition-colors"
                     title="Add text"
                   >
                     <Type className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => addLayer('shape')}
-                    className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
+                    className="p-1.5 rounded-lg bg-elevated hover:bg-hover text-secondary transition-colors"
                     title="Add shape"
                   >
                     <Square className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => addLayer('image')}
-                    className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
+                    className="p-1.5 rounded-lg bg-elevated hover:bg-hover text-secondary transition-colors"
                     title="Add image"
                   >
                     <ImageIcon className="h-3.5 w-3.5" />
@@ -475,14 +475,14 @@ export function AssetBuilderPage() {
 
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                 {editLayers.length === 0 && (
-                  <p className="text-xs text-slate-500 text-center py-4">
+                  <p className="text-xs text-tertiary text-center py-4">
                     No layers yet. Add text, shapes, or images above.
                   </p>
                 )}
                 {editLayers.map((layer, i) => (
-                  <div key={i} className="rounded-lg bg-slate-900/50 border border-slate-700/30 p-3 space-y-2">
+                  <div key={i} className="rounded-lg bg-app border border-subtle p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-secondary flex items-center gap-1.5">
                         {layer.type === 'text' && <Type className="h-3 w-3 text-blue-400" />}
                         {layer.type === 'shape' && <Square className="h-3 w-3 text-emerald-400" />}
                         {layer.type === 'image' && <ImageIcon className="h-3 w-3 text-pink-400" />}
@@ -490,7 +490,7 @@ export function AssetBuilderPage() {
                       </span>
                       <button
                         onClick={() => removeLayer(i)}
-                        className="p-1 rounded hover:bg-red-500/10 text-slate-500 hover:text-red-400"
+                        className="p-1 rounded hover:bg-red-500/10 text-tertiary hover:text-red-400"
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -499,20 +499,20 @@ export function AssetBuilderPage() {
                     {/* Position */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="text-[10px] text-slate-500">X</label>
-                        <input type="number" value={layer.x} onChange={(e) => updateLayer(i, { x: Number(e.target.value) })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                        <label className="text-[10px] text-tertiary">X</label>
+                        <input type="number" value={layer.x} onChange={(e) => updateLayer(i, { x: Number(e.target.value) })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-500">Y</label>
-                        <input type="number" value={layer.y} onChange={(e) => updateLayer(i, { y: Number(e.target.value) })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                        <label className="text-[10px] text-tertiary">Y</label>
+                        <input type="number" value={layer.y} onChange={(e) => updateLayer(i, { y: Number(e.target.value) })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-500">W</label>
-                        <input type="number" value={layer.width || ''} onChange={(e) => updateLayer(i, { width: Number(e.target.value) })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                        <label className="text-[10px] text-tertiary">W</label>
+                        <input type="number" value={layer.width || ''} onChange={(e) => updateLayer(i, { width: Number(e.target.value) })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-500">H</label>
-                        <input type="number" value={layer.height || ''} onChange={(e) => updateLayer(i, { height: Number(e.target.value) })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                        <label className="text-[10px] text-tertiary">H</label>
+                        <input type="number" value={layer.height || ''} onChange={(e) => updateLayer(i, { height: Number(e.target.value) })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                       </div>
                     </div>
 
@@ -520,8 +520,8 @@ export function AssetBuilderPage() {
                     {layer.type === 'text' && (
                       <>
                         <div>
-                          <label className="text-[10px] text-slate-500">Content</label>
-                          <input type="text" value={layer.content || ''} onChange={(e) => updateLayer(i, { content: e.target.value })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                          <label className="text-[10px] text-tertiary">Content</label>
+                          <input type="text" value={layer.content || ''} onChange={(e) => updateLayer(i, { content: e.target.value })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                           <div className="flex gap-1 mt-1 flex-wrap">
                             {MERGE_TAGS.map((tag) => (
                               <button
@@ -536,19 +536,19 @@ export function AssetBuilderPage() {
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-500">Size</label>
-                            <input type="number" value={layer.fontSize || 24} onChange={(e) => updateLayer(i, { fontSize: Number(e.target.value) })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                            <label className="text-[10px] text-tertiary">Size</label>
+                            <input type="number" value={layer.fontSize || 24} onChange={(e) => updateLayer(i, { fontSize: Number(e.target.value) })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-500">Weight</label>
-                            <select value={layer.fontWeight || 'normal'} onChange={(e) => updateLayer(i, { fontWeight: e.target.value })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white">
+                            <label className="text-[10px] text-tertiary">Weight</label>
+                            <select value={layer.fontWeight || 'normal'} onChange={(e) => updateLayer(i, { fontWeight: e.target.value })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary">
                               <option value="normal">Normal</option>
                               <option value="bold">Bold</option>
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-500">Align</label>
-                            <select value={layer.align || 'left'} onChange={(e) => updateLayer(i, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white">
+                            <label className="text-[10px] text-tertiary">Align</label>
+                            <select value={layer.align || 'left'} onChange={(e) => updateLayer(i, { align: e.target.value as 'left' | 'center' | 'right' })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary">
                               <option value="left">Left</option>
                               <option value="center">Center</option>
                               <option value="right">Right</option>
@@ -556,10 +556,10 @@ export function AssetBuilderPage() {
                           </div>
                         </div>
                         <div>
-                          <label className="text-[10px] text-slate-500">Color</label>
+                          <label className="text-[10px] text-tertiary">Color</label>
                           <div className="flex gap-2">
-                            <input type="color" value={layer.color || '#000000'} onChange={(e) => updateLayer(i, { color: e.target.value })} className="h-7 w-8 rounded border border-slate-700/50 cursor-pointer" />
-                            <input type="text" value={layer.color || '#000000'} onChange={(e) => updateLayer(i, { color: e.target.value })} className="flex-1 rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                            <input type="color" value={layer.color || '#000000'} onChange={(e) => updateLayer(i, { color: e.target.value })} className="h-7 w-8 rounded border border-subtle cursor-pointer" />
+                            <input type="text" value={layer.color || '#000000'} onChange={(e) => updateLayer(i, { color: e.target.value })} className="flex-1 rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                           </div>
                         </div>
                       </>
@@ -569,22 +569,22 @@ export function AssetBuilderPage() {
                       <>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-500">Shape</label>
-                            <select value={layer.shape || 'rectangle'} onChange={(e) => updateLayer(i, { shape: e.target.value as 'rectangle' | 'circle' })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white">
+                            <label className="text-[10px] text-tertiary">Shape</label>
+                            <select value={layer.shape || 'rectangle'} onChange={(e) => updateLayer(i, { shape: e.target.value as 'rectangle' | 'circle' })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary">
                               <option value="rectangle">Rectangle</option>
                               <option value="circle">Circle</option>
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-500">Radius</label>
-                            <input type="number" value={layer.borderRadius || 0} onChange={(e) => updateLayer(i, { borderRadius: Number(e.target.value) })} className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                            <label className="text-[10px] text-tertiary">Radius</label>
+                            <input type="number" value={layer.borderRadius || 0} onChange={(e) => updateLayer(i, { borderRadius: Number(e.target.value) })} className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                           </div>
                         </div>
                         <div>
-                          <label className="text-[10px] text-slate-500">Fill</label>
+                          <label className="text-[10px] text-tertiary">Fill</label>
                           <div className="flex gap-2">
-                            <input type="color" value={layer.fill || '#e5e7eb'} onChange={(e) => updateLayer(i, { fill: e.target.value })} className="h-7 w-8 rounded border border-slate-700/50 cursor-pointer" />
-                            <input type="text" value={layer.fill || '#e5e7eb'} onChange={(e) => updateLayer(i, { fill: e.target.value })} className="flex-1 rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                            <input type="color" value={layer.fill || '#e5e7eb'} onChange={(e) => updateLayer(i, { fill: e.target.value })} className="h-7 w-8 rounded border border-subtle cursor-pointer" />
+                            <input type="text" value={layer.fill || '#e5e7eb'} onChange={(e) => updateLayer(i, { fill: e.target.value })} className="flex-1 rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                           </div>
                         </div>
                       </>
@@ -592,8 +592,8 @@ export function AssetBuilderPage() {
 
                     {layer.type === 'image' && (
                       <div>
-                        <label className="text-[10px] text-slate-500">Image URL</label>
-                        <input type="text" value={layer.src || ''} onChange={(e) => updateLayer(i, { src: e.target.value })} placeholder="https://..." className="w-full rounded bg-slate-800 border border-slate-700/50 px-2 py-1 text-xs text-white" />
+                        <label className="text-[10px] text-tertiary">Image URL</label>
+                        <input type="text" value={layer.src || ''} onChange={(e) => updateLayer(i, { src: e.target.value })} placeholder="https://..." className="w-full rounded bg-surface border border-subtle px-2 py-1 text-xs text-primary" />
                       </div>
                     )}
                   </div>

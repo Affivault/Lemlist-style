@@ -40,7 +40,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-14 items-center gap-2 px-5">
         <div className="h-2 w-2 rounded-full bg-brand" />
-        <span className="text-[15px] font-medium text-white">SkySend</span>
+        <span className="text-[15px] font-medium text-primary">SkySend</span>
       </div>
 
       {/* Navigation */}
@@ -55,8 +55,8 @@ export function Sidebar() {
                 cn(
                   'group flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
                   isActive
-                    ? 'text-white bg-active border-l-2 border-brand ml-0 pl-[10px]'
-                    : 'text-secondary hover:text-white hover:bg-hover border-l-2 border-transparent ml-0 pl-[10px]'
+                    ? 'text-primary bg-active border-l-2 border-brand ml-0 pl-[10px]'
+                    : 'text-secondary hover:text-primary hover:bg-hover border-l-2 border-transparent ml-0 pl-[10px]'
                 )
               }
             >
@@ -65,7 +65,7 @@ export function Sidebar() {
                   <item.icon
                     className={cn(
                       'h-4 w-4 flex-shrink-0 transition-colors',
-                      isActive ? 'text-white' : 'text-secondary group-hover:text-white'
+                      isActive ? 'text-primary' : 'text-secondary group-hover:text-primary'
                     )}
                     strokeWidth={1.5}
                   />
@@ -90,8 +90,8 @@ export function Sidebar() {
                   cn(
                     'group flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
                     isActive
-                      ? 'text-white bg-active border-l-2 border-brand ml-0 pl-[10px]'
-                      : 'text-secondary hover:text-white hover:bg-hover border-l-2 border-transparent ml-0 pl-[10px]'
+                      ? 'text-primary bg-active border-l-2 border-brand ml-0 pl-[10px]'
+                      : 'text-secondary hover:text-primary hover:bg-hover border-l-2 border-transparent ml-0 pl-[10px]'
                   )
                 }
               >
@@ -100,7 +100,7 @@ export function Sidebar() {
                     <item.icon
                       className={cn(
                         'h-4 w-4 flex-shrink-0 transition-colors',
-                        isActive ? 'text-white' : 'text-secondary group-hover:text-white'
+                        isActive ? 'text-primary' : 'text-secondary group-hover:text-primary'
                       )}
                       strokeWidth={1.5}
                     />

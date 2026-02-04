@@ -106,12 +106,12 @@ export function SmtpGuidePage() {
       <div>
         <Link
           to="/smtp-accounts"
-          className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-white mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to SMTP Accounts
         </Link>
-        <h1 className="text-2xl font-semibold text-white">SMTP Connection Guide</h1>
+        <h1 className="text-2xl font-semibold text-primary">SMTP Connection Guide</h1>
         <p className="text-sm text-secondary mt-1">
           Learn how to connect your email provider to SkySend.
         </p>
@@ -121,22 +121,22 @@ export function SmtpGuidePage() {
       <div className="grid grid-cols-4 gap-4">
         <div className="rounded-lg border border-subtle bg-surface p-4">
           <Server className="h-5 w-5 text-brand mb-3" />
-          <h3 className="text-sm font-medium text-white mb-1">SMTP Host</h3>
+          <h3 className="text-sm font-medium text-primary mb-1">SMTP Host</h3>
           <p className="text-xs text-secondary">Server address</p>
         </div>
         <div className="rounded-lg border border-subtle bg-surface p-4">
           <Globe className="h-5 w-5 text-brand mb-3" />
-          <h3 className="text-sm font-medium text-white mb-1">Port</h3>
+          <h3 className="text-sm font-medium text-primary mb-1">Port</h3>
           <p className="text-xs text-secondary">Usually 587 or 465</p>
         </div>
         <div className="rounded-lg border border-subtle bg-surface p-4">
           <Mail className="h-5 w-5 text-brand mb-3" />
-          <h3 className="text-sm font-medium text-white mb-1">Username</h3>
+          <h3 className="text-sm font-medium text-primary mb-1">Username</h3>
           <p className="text-xs text-secondary">Your email address</p>
         </div>
         <div className="rounded-lg border border-subtle bg-surface p-4">
           <Key className="h-5 w-5 text-brand mb-3" />
-          <h3 className="text-sm font-medium text-white mb-1">Password</h3>
+          <h3 className="text-sm font-medium text-primary mb-1">Password</h3>
           <p className="text-xs text-secondary">Password or API key</p>
         </div>
       </div>
@@ -153,8 +153,8 @@ export function SmtpGuidePage() {
               onClick={() => setSelectedProvider(provider)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 selectedProvider.name === provider.name
-                  ? 'bg-brand text-white'
-                  : 'bg-surface border border-subtle text-secondary hover:text-white hover:bg-hover'
+                  ? 'bg-brand text-primary'
+                  : 'bg-surface border border-subtle text-secondary hover:text-primary hover:bg-hover'
               }`}
             >
               {provider.name}
@@ -165,7 +165,7 @@ export function SmtpGuidePage() {
         {/* Provider Details */}
         <div className="rounded-lg border border-subtle bg-surface">
           <div className="p-5 border-b border-subtle">
-            <h3 className="font-medium text-white">{selectedProvider.name}</h3>
+            <h3 className="font-medium text-primary">{selectedProvider.name}</h3>
             <p className="text-sm text-secondary mt-1">{selectedProvider.notes}</p>
           </div>
 
@@ -178,20 +178,20 @@ export function SmtpGuidePage() {
               <div className="rounded-md bg-elevated p-3">
                 <p className="text-xs text-tertiary mb-1">SMTP Host</p>
                 <div className="flex items-center justify-between">
-                  <code className="text-sm text-white">{selectedProvider.host}</code>
+                  <code className="text-sm text-primary">{selectedProvider.host}</code>
                   <CopyButton text={selectedProvider.host} />
                 </div>
               </div>
               <div className="rounded-md bg-elevated p-3">
                 <p className="text-xs text-tertiary mb-1">Port</p>
                 <div className="flex items-center justify-between">
-                  <code className="text-sm text-white">{selectedProvider.port}</code>
+                  <code className="text-sm text-primary">{selectedProvider.port}</code>
                   <CopyButton text={selectedProvider.port.split(' ')[0]} />
                 </div>
               </div>
               <div className="rounded-md bg-elevated p-3">
                 <p className="text-xs text-tertiary mb-1">Security</p>
-                <code className="text-sm text-white">{selectedProvider.security}</code>
+                <code className="text-sm text-primary">{selectedProvider.security}</code>
               </div>
             </div>
 
@@ -239,13 +239,13 @@ export function SmtpGuidePage() {
 
       {/* CTA */}
       <div className="rounded-lg border border-subtle bg-surface p-6 text-center">
-        <h3 className="font-medium text-white mb-2">Ready to connect?</h3>
+        <h3 className="font-medium text-primary mb-2">Ready to connect?</h3>
         <p className="text-sm text-secondary mb-4">
           Add your SMTP credentials to start sending campaigns.
         </p>
         <Link
           to="/smtp-accounts"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white text-sm font-medium rounded-md hover:bg-brand-400 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-primary text-sm font-medium rounded-md hover:bg-brand-400 transition-colors"
         >
           <Mail className="h-4 w-4" />
           Add SMTP Account

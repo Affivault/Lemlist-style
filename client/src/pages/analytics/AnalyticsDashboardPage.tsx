@@ -64,7 +64,7 @@ function StatCard({
           </div>
         )}
       </div>
-      <p className="text-2xl font-semibold text-white">{value.toLocaleString()}</p>
+      <p className="text-2xl font-semibold text-primary">{value.toLocaleString()}</p>
       <div className="flex items-center justify-between mt-1">
         <p className="text-sm text-secondary">{label}</p>
         {rate !== undefined && (
@@ -79,7 +79,7 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   return (
     <div className="rounded-lg border border-subtle bg-surface p-5">
-      <h3 className="text-sm font-medium text-white mb-4">Engagement Breakdown</h3>
+      <h3 className="text-sm font-medium text-primary mb-4">Engagement Breakdown</h3>
       <div className="flex items-center gap-6">
         <div className="w-40 h-40">
           <ResponsiveContainer width="100%" height="100%">
@@ -116,7 +116,7 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
                 <span className="text-sm text-secondary">{item.name}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white">{item.value.toLocaleString()}</span>
+                <span className="text-sm font-medium text-primary">{item.value.toLocaleString()}</span>
                 <span className="text-xs text-tertiary">
                   ({total > 0 ? ((item.value / total) * 100).toFixed(1) : 0}%)
                 </span>
@@ -201,7 +201,7 @@ export function AnalyticsDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Analytics</h1>
+          <h1 className="text-2xl font-semibold text-primary">Analytics</h1>
           <p className="text-sm text-secondary mt-1">Track your email campaign performance</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-subtle bg-surface">
@@ -209,7 +209,7 @@ export function AnalyticsDashboardPage() {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d')}
-            className="bg-transparent text-sm text-white focus:outline-none cursor-pointer"
+            className="bg-transparent text-sm text-primary focus:outline-none cursor-pointer"
           >
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
@@ -233,7 +233,7 @@ export function AnalyticsDashboardPage() {
       <div className="grid grid-cols-3 gap-4">
         {/* Trend chart */}
         <div className="col-span-2 rounded-lg border border-subtle bg-surface p-5">
-          <h3 className="text-sm font-medium text-white mb-4">Weekly Performance</h3>
+          <h3 className="text-sm font-medium text-primary mb-4">Weekly Performance</h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData}>
@@ -267,14 +267,14 @@ export function AnalyticsDashboardPage() {
         <div className="p-5 border-b border-subtle">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-medium text-white">Campaign Deep Dive</h2>
+              <h2 className="font-medium text-primary">Campaign Deep Dive</h2>
               <p className="text-sm text-secondary mt-0.5">Select a campaign to view detailed analytics</p>
             </div>
             <div className="relative">
               <select
                 value={selectedCampaignId}
                 onChange={(e) => setSelectedCampaignId(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-2 rounded-md border border-default bg-surface text-sm text-white focus:outline-none focus:border-brand min-w-[180px]"
+                className="appearance-none pl-3 pr-8 py-2 rounded-md border border-default bg-surface text-sm text-primary focus:outline-none focus:border-brand min-w-[180px]"
               >
                 <option value="">Choose a campaign...</option>
                 {campaigns.map((c: any) => (
@@ -297,14 +297,14 @@ export function AnalyticsDashboardPage() {
                   <Send className="h-4 w-4" />
                   <span className="text-sm font-medium">Sent</span>
                 </div>
-                <p className="text-2xl font-semibold text-white">{campaignAnalytics.sent}</p>
+                <p className="text-2xl font-semibold text-primary">{campaignAnalytics.sent}</p>
               </div>
               <div className="p-4 rounded-md bg-brand/10 border border-brand/20">
                 <div className="flex items-center gap-2 text-brand mb-2">
                   <Mail className="h-4 w-4" />
                   <span className="text-sm font-medium">Opened</span>
                 </div>
-                <p className="text-2xl font-semibold text-white">{campaignAnalytics.opened}</p>
+                <p className="text-2xl font-semibold text-primary">{campaignAnalytics.opened}</p>
                 <p className="text-xs text-tertiary mt-1">{campaignAnalytics.open_rate?.toFixed(1)}% rate</p>
               </div>
               <div className="p-4 rounded-md bg-brand/10 border border-brand/20">
@@ -312,7 +312,7 @@ export function AnalyticsDashboardPage() {
                   <MousePointerClick className="h-4 w-4" />
                   <span className="text-sm font-medium">Clicked</span>
                 </div>
-                <p className="text-2xl font-semibold text-white">{campaignAnalytics.clicked}</p>
+                <p className="text-2xl font-semibold text-primary">{campaignAnalytics.clicked}</p>
                 <p className="text-xs text-tertiary mt-1">{campaignAnalytics.click_rate?.toFixed(1)}% rate</p>
               </div>
               <div className="p-4 rounded-md bg-red-500/10 border border-red-500/20">
@@ -320,7 +320,7 @@ export function AnalyticsDashboardPage() {
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm font-medium">Bounced</span>
                 </div>
-                <p className="text-2xl font-semibold text-white">{campaignAnalytics.bounced}</p>
+                <p className="text-2xl font-semibold text-primary">{campaignAnalytics.bounced}</p>
                 <p className="text-xs text-tertiary mt-1">{campaignAnalytics.bounce_rate?.toFixed(1)}% rate</p>
               </div>
             </div>
@@ -349,7 +349,7 @@ export function AnalyticsDashboardPage() {
             <div className="mx-auto w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
               <Target className="h-6 w-6 text-tertiary" />
             </div>
-            <h3 className="font-medium text-white mb-1">No Campaign Selected</h3>
+            <h3 className="font-medium text-primary mb-1">No Campaign Selected</h3>
             <p className="text-sm text-secondary">Choose a campaign above to view detailed analytics</p>
           </div>
         )}
@@ -357,7 +357,7 @@ export function AnalyticsDashboardPage() {
         {/* Contact breakdown table */}
         {campaignContacts && campaignContacts.contacts.length > 0 && (
           <div className="p-5 border-t border-subtle">
-            <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-primary mb-4 flex items-center gap-2">
               <Users className="h-4 w-4 text-secondary" />
               Contact Breakdown
             </h3>
@@ -382,7 +382,7 @@ export function AnalyticsDashboardPage() {
                             {(c.first_name?.[0] || c.email[0]).toUpperCase()}
                           </div>
                           <div>
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-primary">
                               {[c.first_name, c.last_name].filter(Boolean).join(' ') || c.email}
                             </span>
                             {(c.first_name || c.last_name) && (

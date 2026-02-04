@@ -65,7 +65,7 @@ export function SettingsPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-white">Settings</h1>
+        <h1 className="text-2xl font-semibold text-primary">Settings</h1>
         <p className="text-sm text-secondary mt-1">Manage your account</p>
       </div>
 
@@ -83,7 +83,7 @@ export function SettingsPage() {
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left transition-colors ${
                     isActive
                       ? 'bg-brand/10 text-brand font-medium'
-                      : 'text-secondary hover:bg-hover hover:text-white'
+                      : 'text-secondary hover:bg-hover hover:text-primary'
                   }`}
                 >
                   <Icon className={`h-4 w-4 ${isActive ? 'text-brand' : 'text-tertiary'}`} />
@@ -111,7 +111,7 @@ export function SettingsPage() {
             {activeTab === 'profile' && (
               <div className="space-y-5">
                 <div>
-                  <h2 className="font-medium text-white">Profile Information</h2>
+                  <h2 className="font-medium text-primary">Profile Information</h2>
                   <p className="text-sm text-secondary mt-1">Update your personal details</p>
                 </div>
 
@@ -120,7 +120,7 @@ export function SettingsPage() {
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">Profile Photo</p>
+                    <p className="text-sm font-medium text-primary">Profile Photo</p>
                     <p className="text-xs text-tertiary">JPG, PNG or GIF. Max 2MB</p>
                   </div>
                 </div>
@@ -133,7 +133,7 @@ export function SettingsPage() {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="John"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                   <div>
@@ -143,7 +143,7 @@ export function SettingsPage() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Doe"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export function SettingsPage() {
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="Acme Inc."
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                   <div>
@@ -166,7 +166,7 @@ export function SettingsPage() {
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
                       placeholder="Sales Manager"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                 </div>
@@ -193,7 +193,7 @@ export function SettingsPage() {
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                   >
                     <option value="America/New_York">Eastern Time (ET)</option>
                     <option value="America/Chicago">Central Time (CT)</option>
@@ -210,7 +210,7 @@ export function SettingsPage() {
             {activeTab === 'account' && (
               <div className="space-y-5">
                 <div>
-                  <h2 className="font-medium text-white">Account Security</h2>
+                  <h2 className="font-medium text-primary">Account Security</h2>
                   <p className="text-sm text-secondary mt-1">Manage your password and security</p>
                 </div>
 
@@ -220,7 +220,7 @@ export function SettingsPage() {
                       <Key className="h-4 w-4 text-brand" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">Password</p>
+                      <p className="text-sm font-medium text-primary">Password</p>
                       <p className="text-xs text-tertiary">Last changed 30 days ago</p>
                     </div>
                   </div>
@@ -234,7 +234,7 @@ export function SettingsPage() {
                         <Shield className="h-4 w-4 text-brand" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">Two-Factor Authentication</p>
+                        <p className="text-sm font-medium text-primary">Two-Factor Authentication</p>
                         <p className="text-xs text-tertiary">Add extra security</p>
                       </div>
                     </div>
@@ -247,7 +247,7 @@ export function SettingsPage() {
                 </div>
 
                 <div className="pt-5 border-t border-subtle">
-                  <h3 className="text-sm font-medium text-white mb-3">Connected Accounts</h3>
+                  <h3 className="text-sm font-medium text-primary mb-3">Connected Accounts</h3>
                   <div className="flex items-center justify-between p-3 rounded-md bg-elevated">
                     <div className="flex items-center gap-3">
                       <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export function SettingsPage() {
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                       </svg>
-                      <span className="text-sm font-medium text-white">Google</span>
+                      <span className="text-sm font-medium text-primary">Google</span>
                     </div>
                     <Button variant="secondary" size="sm">Connect</Button>
                   </div>
@@ -278,7 +278,7 @@ export function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-5">
                 <div>
-                  <h2 className="font-medium text-white">Notifications</h2>
+                  <h2 className="font-medium text-primary">Notifications</h2>
                   <p className="text-sm text-secondary mt-1">Choose what notifications you receive</p>
                 </div>
 
@@ -315,7 +315,7 @@ export function SettingsPage() {
             {activeTab === 'preferences' && (
               <div className="space-y-5">
                 <div>
-                  <h2 className="font-medium text-white">Preferences</h2>
+                  <h2 className="font-medium text-primary">Preferences</h2>
                   <p className="text-sm text-secondary mt-1">Customize your experience</p>
                 </div>
 
@@ -328,8 +328,8 @@ export function SettingsPage() {
                         onClick={() => setTheme(t)}
                         className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                           theme === t
-                            ? 'bg-brand text-white'
-                            : 'bg-elevated text-secondary hover:text-white border border-subtle'
+                            ? 'bg-brand text-primary'
+                            : 'bg-elevated text-secondary hover:text-primary border border-subtle'
                         }`}
                       >
                         <span className="capitalize">{t}</span>
@@ -347,7 +347,7 @@ export function SettingsPage() {
                     onChange={(e) => setDefaultSignature(e.target.value)}
                     placeholder="Best regards,&#10;John Doe"
                     rows={4}
-                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 resize-none"
+                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 resize-none"
                   />
                   <p className="mt-1.5 text-xs text-tertiary">
                     Use {'{{signature}}'} in emails to insert this
@@ -388,7 +388,7 @@ function ToggleSetting({
   return (
     <div className="flex items-center justify-between p-3 rounded-md bg-elevated">
       <div>
-        <p className="text-sm font-medium text-white">{label}</p>
+        <p className="text-sm font-medium text-primary">{label}</p>
         <p className="text-xs text-tertiary">{description}</p>
       </div>
       <button

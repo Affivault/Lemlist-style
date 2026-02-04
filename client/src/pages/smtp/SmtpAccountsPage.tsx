@@ -156,13 +156,13 @@ export function SmtpAccountsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">SMTP Accounts</h1>
+          <h1 className="text-2xl font-semibold text-primary">SMTP Accounts</h1>
           <p className="text-sm text-secondary mt-1">Manage your email sending accounts</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             to="/smtp-accounts/guide"
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-secondary border border-default rounded-md hover:bg-hover hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-secondary border border-default rounded-md hover:bg-hover hover:text-primary transition-colors"
           >
             <HelpCircle className="h-4 w-4" />
             Setup Guide
@@ -178,7 +178,7 @@ export function SmtpAccountsPage() {
       <div className="rounded-lg border border-subtle bg-surface p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-medium text-white">Quick Connect</h2>
+            <h2 className="text-sm font-medium text-primary">Quick Connect</h2>
             <p className="text-sm text-secondary mt-0.5">Connect your Google email with one click</p>
           </div>
           <span className="px-2 py-0.5 text-xs font-medium text-brand bg-brand/10 rounded">
@@ -200,7 +200,7 @@ export function SmtpAccountsPage() {
             </svg>
           </div>
           <div className="flex-1 text-left">
-            <p className="text-sm font-medium text-white">Connect Gmail</p>
+            <p className="text-sm font-medium text-primary">Connect Gmail</p>
             <p className="text-sm text-secondary">Use Google Workspace or Gmail</p>
           </div>
           {connectingGoogle ? (
@@ -219,14 +219,14 @@ export function SmtpAccountsPage() {
               <Server className="h-4 w-4 text-secondary" />
               <span className="text-sm text-secondary">Total Accounts</span>
             </div>
-            <p className="text-2xl font-semibold text-white">{accounts.length}</p>
+            <p className="text-2xl font-semibold text-primary">{accounts.length}</p>
           </div>
           <div className="rounded-lg border border-subtle bg-surface p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="h-4 w-4 text-secondary" />
               <span className="text-sm text-secondary">Verified</span>
             </div>
-            <p className="text-2xl font-semibold text-white">
+            <p className="text-2xl font-semibold text-primary">
               {accounts.filter((a: SmtpAccount) => a.is_verified).length}
             </p>
           </div>
@@ -235,7 +235,7 @@ export function SmtpAccountsPage() {
               <Mail className="h-4 w-4 text-secondary" />
               <span className="text-sm text-secondary">Sent Today</span>
             </div>
-            <p className="text-2xl font-semibold text-white">
+            <p className="text-2xl font-semibold text-primary">
               {accounts.reduce((sum: number, a: SmtpAccount) => sum + a.sends_today, 0)}
             </p>
           </div>
@@ -267,7 +267,7 @@ export function SmtpAccountsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-white">{account.label}</h3>
+                      <h3 className="font-medium text-primary">{account.label}</h3>
                       {account.is_verified ? (
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-brand bg-brand/10 rounded">
                           <CheckCircle2 className="h-3 w-3" />
@@ -291,14 +291,14 @@ export function SmtpAccountsPage() {
                   <button
                     onClick={() => testMutation.mutate(account.id)}
                     disabled={testMutation.isPending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary hover:text-white hover:bg-elevated rounded-md transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary hover:text-primary hover:bg-elevated rounded-md transition-colors"
                   >
                     <TestTube className="h-3.5 w-3.5" />
                     Test
                   </button>
                   <button
                     onClick={() => openEdit(account)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary hover:text-white hover:bg-elevated rounded-md transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary hover:text-primary hover:bg-elevated rounded-md transition-colors"
                   >
                     <Settings className="h-3.5 w-3.5" />
                     Edit
@@ -363,7 +363,7 @@ export function SmtpAccountsPage() {
           />
 
           <div className="border-t border-subtle pt-4">
-            <h4 className="text-sm font-medium text-white mb-3">SMTP Settings</h4>
+            <h4 className="text-sm font-medium text-primary mb-3">SMTP Settings</h4>
             <div className="grid grid-cols-3 gap-4">
               <Input
                 label="Host"
@@ -400,7 +400,7 @@ export function SmtpAccountsPage() {
           </div>
 
           <div className="border-t border-subtle pt-4">
-            <h4 className="text-sm font-medium text-white mb-3">IMAP Settings (optional)</h4>
+            <h4 className="text-sm font-medium text-primary mb-3">IMAP Settings (optional)</h4>
             <div className="grid grid-cols-3 gap-4">
               <Input
                 label="IMAP Host"

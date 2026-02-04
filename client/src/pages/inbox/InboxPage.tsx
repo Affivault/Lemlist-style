@@ -124,7 +124,7 @@ export function InboxPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Unified Inbox</h1>
+          <h1 className="text-2xl font-semibold text-primary">Unified Inbox</h1>
           <p className="text-sm text-secondary mt-1">
             {saraStats?.pending_review ? `${saraStats.pending_review} replies need action` : 'All replies in one place'}
           </p>
@@ -135,7 +135,7 @@ export function InboxPage() {
               onClick={() => setViewMode('action_cards')}
               className={cn(
                 'rounded px-3 py-1.5 text-xs font-medium transition-all',
-                viewMode === 'action_cards' ? 'bg-brand text-white' : 'text-secondary hover:text-white'
+                viewMode === 'action_cards' ? 'bg-brand text-primary' : 'text-secondary hover:text-primary'
               )}
             >
               <Bot className="inline h-3.5 w-3.5 mr-1" />
@@ -145,7 +145,7 @@ export function InboxPage() {
               onClick={() => setViewMode('classic')}
               className={cn(
                 'rounded px-3 py-1.5 text-xs font-medium transition-all',
-                viewMode === 'classic' ? 'bg-brand text-white' : 'text-secondary hover:text-white'
+                viewMode === 'classic' ? 'bg-brand text-primary' : 'text-secondary hover:text-primary'
               )}
             >
               <Mail className="inline h-3.5 w-3.5 mr-1" />
@@ -154,7 +154,7 @@ export function InboxPage() {
           </div>
           <button
             onClick={() => markAllReadMutation.mutate()}
-            className="flex items-center gap-1.5 rounded-md bg-surface border border-subtle px-3 py-1.5 text-xs text-secondary hover:text-white hover:bg-hover transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-surface border border-subtle px-3 py-1.5 text-xs text-secondary hover:text-primary hover:bg-hover transition-colors"
           >
             <CheckCheck className="h-3.5 w-3.5" />
             Mark all read
@@ -174,7 +174,7 @@ export function InboxPage() {
             onClick={() => setFilter(tab.value)}
             className={cn(
               'px-4 py-2 text-sm font-medium border-b-2 transition-all -mb-px',
-              filter === tab.value ? 'border-brand text-white' : 'border-transparent text-secondary hover:text-white'
+              filter === tab.value ? 'border-brand text-primary' : 'border-transparent text-secondary hover:text-primary'
             )}
           >
             {tab.label}
@@ -195,7 +195,7 @@ export function InboxPage() {
           <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
             <Inbox className="h-6 w-6 text-tertiary" />
           </div>
-          <h3 className="font-medium text-white mb-1">No messages</h3>
+          <h3 className="font-medium text-primary mb-1">No messages</h3>
           <p className="text-sm text-secondary">
             {filter === 'needs_action' ? 'No replies need your attention right now.' : 'Replies from your campaigns will appear here.'}
           </p>
@@ -250,7 +250,7 @@ export function InboxPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={cn('text-sm truncate', !msg.is_read ? 'font-medium text-white' : 'text-secondary')}>
+                      <span className={cn('text-sm truncate', !msg.is_read ? 'font-medium text-primary' : 'text-secondary')}>
                         {msg.contact_name || msg.from_email}
                       </span>
                       {msg.campaign_name && (
@@ -290,7 +290,7 @@ export function InboxPage() {
                             value={editedReply}
                             onChange={(e) => setEditedReply(e.target.value)}
                             rows={5}
-                            className="w-full rounded-md bg-elevated border border-brand/30 p-3 text-sm text-white focus:outline-none focus:border-brand resize-none"
+                            className="w-full rounded-md bg-elevated border border-brand/30 p-3 text-sm text-primary focus:outline-none focus:border-brand resize-none"
                           />
                         ) : (
                           <div className="rounded-md bg-brand/5 border border-brand/20 p-3 text-sm text-secondary whitespace-pre-wrap">
@@ -321,7 +321,7 @@ export function InboxPage() {
                                 else approveMutation.mutate({ id: msg.id });
                               }}
                               disabled={approveMutation.isPending}
-                              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors"
+                              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary hover:bg-brand-400 transition-colors"
                             >
                               <Send className="h-4 w-4" />
                               {isEditing ? 'Send Edited Reply' : 'Approve & Send'}
@@ -329,14 +329,14 @@ export function InboxPage() {
                             {!isEditing && (
                               <button
                                 onClick={() => { setEditingId(msg.id); setEditedReply(msg.sara_draft_reply || ''); }}
-                                className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:text-white hover:bg-hover"
+                                className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-hover"
                               >
                                 <Edit3 className="h-4 w-4" />
                                 Edit
                               </button>
                             )}
                             {isEditing && (
-                              <button onClick={() => { setEditingId(null); setEditedReply(''); }} className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:text-white">
+                              <button onClick={() => { setEditingId(null); setEditedReply(''); }} className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:text-primary">
                                 Cancel
                               </button>
                             )}
@@ -346,14 +346,14 @@ export function InboxPage() {
                           <button
                             onClick={() => approveMutation.mutate({ id: msg.id })}
                             disabled={approveMutation.isPending}
-                            className="flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-400 transition-colors"
+                            className="flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-primary hover:bg-orange-400 transition-colors"
                           >
                             <XCircle className="h-4 w-4" />
                             {msg.sara_action === 'unsubscribe' ? 'Confirm Unsubscribe' : 'Confirm Stop'}
                           </button>
                         )}
                         {msg.sara_action === 'archive' && (
-                          <button onClick={() => approveMutation.mutate({ id: msg.id })} className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-4 py-2 text-sm text-secondary hover:text-white">
+                          <button onClick={() => approveMutation.mutate({ id: msg.id })} className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-4 py-2 text-sm text-secondary hover:text-primary">
                             <CheckCircle2 className="h-4 w-4" />
                             Archive
                           </button>
@@ -399,7 +399,7 @@ export function InboxPage() {
               >
                 <div className="flex items-center gap-2">
                   {!msg.is_read ? <Mail className="h-4 w-4 shrink-0 text-brand" /> : <MailOpen className="h-4 w-4 shrink-0 text-tertiary" />}
-                  <span className={cn('truncate text-sm', !msg.is_read ? 'font-medium text-white' : 'text-secondary')}>
+                  <span className={cn('truncate text-sm', !msg.is_read ? 'font-medium text-primary' : 'text-secondary')}>
                     {msg.contact_name || msg.from_email}
                   </span>
                 </div>
@@ -419,7 +419,7 @@ export function InboxPage() {
           <div className="flex-1 overflow-y-auto rounded-lg bg-surface border border-subtle p-6">
             {selectedMessage ? (
               <div>
-                <h2 className="font-medium text-white">{selectedMessage.subject || '(No subject)'}</h2>
+                <h2 className="font-medium text-primary">{selectedMessage.subject || '(No subject)'}</h2>
                 <div className="mt-2 flex items-center gap-4 text-sm text-secondary">
                   <span>From: {selectedMessage.from_email}</span>
                   <span>{formatDateTime(selectedMessage.received_at)}</span>

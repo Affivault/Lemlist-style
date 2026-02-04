@@ -133,7 +133,7 @@ export function CampaignDetailPage() {
     <div className="space-y-6 max-w-5xl">
       <button
         onClick={() => navigate('/campaigns')}
-        className="flex items-center gap-1 text-sm text-secondary hover:text-white transition-colors"
+        className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Campaigns
@@ -143,7 +143,7 @@ export function CampaignDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-white">{campaign.name}</h1>
+            <h1 className="text-2xl font-semibold text-primary">{campaign.name}</h1>
             <StatusBadge status={campaign.status} type="campaign" />
           </div>
           <p className="mt-1 text-sm text-secondary">
@@ -203,8 +203,8 @@ export function CampaignDetailPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
               activeTab === tab.id
-                ? 'border-brand text-white'
-                : 'border-transparent text-secondary hover:text-white'
+                ? 'border-brand text-primary'
+                : 'border-transparent text-secondary hover:text-primary'
             }`}
           >
             {tab.label}
@@ -227,7 +227,7 @@ export function CampaignDetailPage() {
 
               {chartData.some((d) => d.value > 0) && (
                 <div className="rounded-lg border border-subtle bg-surface p-5">
-                  <h3 className="mb-4 text-sm font-medium text-white">Performance</h3>
+                  <h3 className="mb-4 text-sm font-medium text-primary">Performance</h3>
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
@@ -248,27 +248,27 @@ export function CampaignDetailPage() {
           )}
 
           <div className="rounded-lg border border-subtle bg-surface p-5">
-            <h3 className="mb-4 text-sm font-medium text-white">Campaign Settings</h3>
+            <h3 className="mb-4 text-sm font-medium text-primary">Campaign Settings</h3>
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <dt className="text-tertiary">Timezone</dt>
-                <dd className="font-medium text-white">{campaign.timezone}</dd>
+                <dd className="font-medium text-primary">{campaign.timezone}</dd>
               </div>
               <div>
                 <dt className="text-tertiary">Send Window</dt>
-                <dd className="font-medium text-white">
+                <dd className="font-medium text-primary">
                   {campaign.send_window_start || '—'} – {campaign.send_window_end || '—'}
                 </dd>
               </div>
               <div>
                 <dt className="text-tertiary">Send Days</dt>
-                <dd className="font-medium capitalize text-white">
+                <dd className="font-medium capitalize text-primary">
                   {campaign.send_days?.join(', ') || 'Weekdays'}
                 </dd>
               </div>
               <div>
                 <dt className="text-tertiary">Total Contacts</dt>
-                <dd className="font-medium text-white">{campaign.total_contacts}</dd>
+                <dd className="font-medium text-primary">{campaign.total_contacts}</dd>
               </div>
             </dl>
           </div>
@@ -291,7 +291,7 @@ export function CampaignDetailPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-brand" />
-                        <span className="font-medium text-white">{step.subject || 'Untitled Email'}</span>
+                        <span className="font-medium text-primary">{step.subject || 'Untitled Email'}</span>
                       </div>
                       {step.body_text && (
                         <p className="mt-1 line-clamp-2 text-sm text-secondary">{step.body_text}</p>
@@ -300,7 +300,7 @@ export function CampaignDetailPage() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-amber-500" />
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-primary">
                         Wait {step.delay_days}d {step.delay_hours}h {step.delay_minutes}m
                       </span>
                     </div>
@@ -336,7 +336,7 @@ export function CampaignDetailPage() {
                   {campaignContacts.data.map((cc: any) => (
                     <tr key={cc.id} className="border-b border-subtle last:border-0 hover:bg-hover">
                       <td className="px-4 py-3">
-                        <span className="font-medium text-white">
+                        <span className="font-medium text-primary">
                           {[cc.contact?.first_name, cc.contact?.last_name].filter(Boolean).join(' ') || cc.contact?.email || '—'}
                         </span>
                         {cc.contact?.email && (
@@ -376,7 +376,7 @@ function StatCard({ icon: Icon, label, value, rate, isNegative }: {
         <Icon className={`h-4 w-4 ${isNegative ? 'text-red-400' : 'text-secondary'}`} />
         <span className="text-sm text-secondary">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-white">{value}</p>
+      <p className="text-2xl font-semibold text-primary">{value}</p>
       {rate !== undefined && <p className="text-xs text-tertiary mt-1">{rate}%</p>}
     </div>
   );

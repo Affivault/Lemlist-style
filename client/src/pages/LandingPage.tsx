@@ -56,14 +56,14 @@ export function LandingPage() {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-brand" />
-            <span className="text-base font-semibold text-white">SkySend</span>
+            <span className="text-base font-semibold text-primary">SkySend</span>
           </Link>
 
           <div className="hidden items-center gap-6 md:flex">
-            <a href="#features" className="text-sm text-secondary transition-colors hover:text-white">
+            <a href="#features" className="text-sm text-secondary transition-colors hover:text-primary">
               Features
             </a>
-            <a href="#how-it-works" className="text-sm text-secondary transition-colors hover:text-white">
+            <a href="#how-it-works" className="text-sm text-secondary transition-colors hover:text-primary">
               How It Works
             </a>
           </div>
@@ -71,7 +71,7 @@ export function LandingPage() {
           <div className="hidden items-center gap-3 md:flex">
             <Link
               to="/login"
-              className="px-3 py-1.5 text-sm text-secondary transition-colors hover:text-white"
+              className="px-3 py-1.5 text-sm text-secondary transition-colors hover:text-primary"
             >
               Log in
             </Link>
@@ -100,7 +100,7 @@ export function LandingPage() {
               How It Works
             </a>
             <div className="mt-3 flex flex-col gap-2">
-              <Link to="/login" className="rounded-md border border-default px-4 py-2 text-center text-sm text-white">
+              <Link to="/login" className="rounded-md border border-default px-4 py-2 text-center text-sm text-primary">
                 Log in
               </Link>
               <Link to="/signup" className="rounded-md bg-brand px-4 py-2 text-center text-sm font-medium text-white">
@@ -115,7 +115,7 @@ export function LandingPage() {
       <section className="pt-14">
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32 lg:py-40">
           <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
               Cold email outreach
               <br />
               <span className="text-brand">that actually works</span>
@@ -136,7 +136,7 @@ export function LandingPage() {
               </Link>
               <a
                 href="#features"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-default px-6 py-2.5 text-sm font-medium text-secondary transition-colors hover:bg-hover hover:text-white sm:w-auto"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-default px-6 py-2.5 text-sm font-medium text-secondary transition-colors hover:bg-hover hover:text-primary sm:w-auto"
               >
                 Learn more
               </a>
@@ -153,7 +153,7 @@ export function LandingPage() {
       <section id="features" className="border-t border-subtle">
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold text-primary sm:text-3xl">
               Everything you need
             </h2>
             <p className="mt-3 text-secondary">
@@ -168,7 +168,7 @@ export function LandingPage() {
                 className="rounded-lg border border-subtle bg-surface p-6"
               >
                 <feature.icon className="h-5 w-5 text-brand" />
-                <h3 className="mt-4 text-sm font-medium text-white">{feature.title}</h3>
+                <h3 className="mt-4 text-sm font-medium text-primary">{feature.title}</h3>
                 <p className="mt-2 text-sm text-secondary">{feature.description}</p>
               </div>
             ))}
@@ -180,7 +180,7 @@ export function LandingPage() {
       <section id="how-it-works" className="border-t border-subtle">
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold text-primary sm:text-3xl">
               How it works
             </h2>
             <p className="mt-3 text-secondary">
@@ -198,7 +198,7 @@ export function LandingPage() {
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-subtle bg-surface text-sm font-medium text-brand">
                   {step.num}
                 </div>
-                <h3 className="mt-4 text-sm font-medium text-white">{step.title}</h3>
+                <h3 className="mt-4 text-sm font-medium text-primary">{step.title}</h3>
                 <p className="mt-2 text-sm text-secondary">{step.desc}</p>
               </div>
             ))}
@@ -212,7 +212,7 @@ export function LandingPage() {
           <div className="mx-auto max-w-3xl">
             <div className="grid gap-12 md:grid-cols-2 md:items-center">
               <div>
-                <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+                <h2 className="text-2xl font-semibold text-primary sm:text-3xl">
                   Built for teams that move fast
                 </h2>
                 <p className="mt-4 text-secondary">
@@ -259,7 +259,7 @@ export function LandingPage() {
       <section className="border-t border-subtle">
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
           <div className="mx-auto max-w-xl text-center">
-            <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+            <h2 className="text-2xl font-semibold text-primary sm:text-3xl">
               Ready to get started?
             </h2>
             <p className="mt-3 text-secondary">
@@ -275,7 +275,7 @@ export function LandingPage() {
               </Link>
               <Link
                 to="/login"
-                className="flex w-full items-center justify-center rounded-md border border-default px-6 py-2.5 text-sm font-medium text-secondary transition-colors hover:bg-hover hover:text-white sm:w-auto"
+                className="flex w-full items-center justify-center rounded-md border border-default px-6 py-2.5 text-sm font-medium text-secondary transition-colors hover:bg-hover hover:text-primary sm:w-auto"
               >
                 Sign in
               </Link>
@@ -290,7 +290,7 @@ export function LandingPage() {
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-brand" />
-              <span className="text-sm font-medium text-white">SkySend</span>
+              <span className="text-sm font-medium text-primary">SkySend</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-tertiary">
               <a href="#features" className="transition-colors hover:text-secondary">Features</a>
@@ -299,7 +299,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="mt-6 text-center text-xs text-tertiary">
-            © {new Date().getFullYear()} SkySend
+            &copy; {new Date().getFullYear()} SkySend
           </div>
         </div>
       </footer>

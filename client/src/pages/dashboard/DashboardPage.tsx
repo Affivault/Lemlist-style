@@ -37,7 +37,7 @@ function StatCard({
             <Icon className="h-5 w-5 text-secondary" />
             <span className="text-sm text-secondary">{label}</span>
           </div>
-          <p className="text-2xl font-semibold text-white">{value}</p>
+          <p className="text-2xl font-semibold text-primary">{value}</p>
           {sub && <p className="text-sm text-secondary">{sub}</p>}
         </div>
 
@@ -79,7 +79,7 @@ function MetricCard({
         <Icon className="h-5 w-5 text-secondary" />
         <span className="text-sm text-secondary">{label}</span>
       </div>
-      <p className="text-3xl font-semibold text-white mb-1">{percentage}%</p>
+      <p className="text-3xl font-semibold text-primary mb-1">{percentage}%</p>
       <p className="text-sm text-secondary">{total.toLocaleString()} total</p>
     </div>
   );
@@ -97,7 +97,7 @@ function QuickAction({
   return (
     <Link
       to={href}
-      className="flex items-center justify-between py-3 px-4 rounded-lg text-secondary hover:text-white hover:bg-hover transition-colors group"
+      className="flex items-center justify-between py-3 px-4 rounded-lg text-secondary hover:text-primary hover:bg-hover transition-colors group"
     >
       <div className="flex items-center gap-3">
         <Icon className="h-4 w-4" />
@@ -141,12 +141,12 @@ export function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-primary">Dashboard</h1>
           <p className="text-sm text-secondary mt-1">Your outreach overview</p>
         </div>
         <button
           onClick={() => navigate('/campaigns/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-primary text-sm font-medium rounded-lg transition-colors"
         >
           <Plus className="h-4 w-4" />
           New Campaign
