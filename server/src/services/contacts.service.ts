@@ -10,7 +10,11 @@ interface ListParams {
   limit?: number;
   search?: string;
   tag_ids?: string[];
+  list_id?: string;
   is_unsubscribed?: boolean;
+  is_bounced?: boolean;
+  dcs_min?: number;
+  dcs_max?: number;
   sort_by?: string;
   sort_order?: string;
 }
@@ -19,10 +23,28 @@ export const contactsService = {
   async list(userId: string, params: ListParams) {
     const { page, limit, from, to } = getPagination(params);
 
+    // If filtering by list_id, get contact IDs in that list first
+    let listContactIds: string[] | null = null;
+    if (params.list_id) {
+      const { data: listContacts } = await supabaseAdmin
+        .from('list_contacts')
+        .select('contact_id')
+        .eq('list_id', params.list_id);
+      listContactIds = (listContacts || []).map((lc: any) => lc.contact_id);
+      if (listContactIds.length === 0) {
+        return formatPaginatedResponse([], 0, page, limit);
+      }
+    }
+
     let query = supabaseAdmin
       .from('contacts')
       .select('*, contact_tags(tag_id, tags(*))', { count: 'exact' })
       .eq('user_id', userId);
+
+    // Filter by list contacts if specified
+    if (listContactIds) {
+      query = query.in('id', listContactIds);
+    }
 
     if (params.search) {
       query = query.or(`email.ilike.%${params.search}%,first_name.ilike.%${params.search}%,last_name.ilike.%${params.search}%,company.ilike.%${params.search}%`);
@@ -30,6 +52,18 @@ export const contactsService = {
 
     if (params.is_unsubscribed !== undefined) {
       query = query.eq('is_unsubscribed', params.is_unsubscribed);
+    }
+
+    if (params.is_bounced !== undefined) {
+      query = query.eq('is_bounced', params.is_bounced);
+    }
+
+    if (params.dcs_min !== undefined) {
+      query = query.gte('dcs_score', params.dcs_min);
+    }
+
+    if (params.dcs_max !== undefined) {
+      query = query.lte('dcs_score', params.dcs_max);
     }
 
     const sortBy = params.sort_by || 'created_at';
@@ -195,5 +229,77 @@ export const contactsService = {
         .eq('contact_id', contactId)
         .in('tag_id', tagIds);
     }
+  },
+
+  async bulkDelete(userId: string, contactIds: string[]) {
+    // Verify contacts belong to user and delete them
+    const { error, count } = await supabaseAdmin
+      .from('contacts')
+      .delete()
+      .eq('user_id', userId)
+      .in('id', contactIds);
+
+    if (error) throw new AppError(error.message, 500);
+
+    for (const id of contactIds) {
+      fireEvent(userId, 'contact.deleted', { contact_id: id }).catch(() => {});
+    }
+
+    return { deleted: count || 0 };
+  },
+
+  async export(userId: string, contactIds?: string[], format: 'csv' | 'json' = 'csv') {
+    let query = supabaseAdmin
+      .from('contacts')
+      .select('email, first_name, last_name, company, job_title, phone, linkedin_url, website, source, is_unsubscribed, is_bounced, dcs_score, created_at')
+      .eq('user_id', userId);
+
+    if (contactIds && contactIds.length > 0) {
+      query = query.in('id', contactIds);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new AppError(error.message, 500);
+
+    if (format === 'json') {
+      return { data, format: 'json' };
+    }
+
+    // CSV format
+    const csv = Papa.unparse(data || []);
+    return { data: csv, format: 'csv' };
+  },
+
+  async getStats(userId: string) {
+    const { count: total } = await supabaseAdmin
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    const { count: unsubscribed } = await supabaseAdmin
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_unsubscribed', true);
+
+    const { count: bounced } = await supabaseAdmin
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_bounced', true);
+
+    const { count: verified } = await supabaseAdmin
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .not('dcs_score', 'is', null);
+
+    return {
+      total: total || 0,
+      unsubscribed: unsubscribed || 0,
+      bounced: bounced || 0,
+      verified: verified || 0,
+      active: (total || 0) - (unsubscribed || 0) - (bounced || 0),
+    };
   },
 };

@@ -64,4 +64,33 @@ export const contactsController = {
       res.status(204).send();
     } catch (err) { next(err); }
   },
+
+  async bulkDelete(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await contactsService.bulkDelete(req.userId!, req.body.contact_ids);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
+  async export(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { contact_ids, format } = req.body;
+      const result = await contactsService.export(req.userId!, contact_ids, format);
+
+      if (result.format === 'csv') {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=contacts.csv');
+        res.send(result.data);
+      } else {
+        res.json(result.data);
+      }
+    } catch (err) { next(err); }
+  },
+
+  async getStats(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const stats = await contactsService.getStats(req.userId!);
+      res.json(stats);
+    } catch (err) { next(err); }
+  },
 };
