@@ -26,12 +26,9 @@ import {
   Search,
   Building2,
   ChevronRight,
-  Sparkles,
   SkipForward,
-  ShieldCheck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { StepType } from '@lemlist/shared';
 import type {
   CreateCampaignInput,
   CreateStepInput,
@@ -44,9 +41,9 @@ const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const WIZARD_STEPS = [
-  { label: 'Settings', icon: Settings, description: 'Campaign configuration' },
-  { label: 'Sequence', icon: Layers, description: 'Build email flow' },
-  { label: 'Contacts', icon: Users, description: 'Select recipients' },
+  { label: 'Settings', icon: Settings },
+  { label: 'Sequence', icon: Layers },
+  { label: 'Contacts', icon: Users },
 ];
 
 export function CampaignCreatePage() {
@@ -214,10 +211,7 @@ export function CampaignCreatePage() {
   if (isEdit && loadingCampaign) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-sm text-slate-400">Loading campaign...</p>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -225,12 +219,12 @@ export function CampaignCreatePage() {
   const contacts = contactsData?.data || [];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/campaigns')}
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-secondary hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Campaigns
@@ -245,34 +239,33 @@ export function CampaignCreatePage() {
         </Button>
       </div>
 
-      <h1 className="text-3xl font-bold text-white">
+      <h1 className="text-2xl font-semibold text-white">
         {isEdit ? 'Edit Campaign' : 'Create Campaign'}
       </h1>
 
       {/* Wizard Steps */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         {WIZARD_STEPS.map((ws, i) => {
           const StepIcon = ws.icon;
           return (
             <button
               key={ws.label}
               onClick={() => setWizardStep(i)}
-              className={`flex-1 flex items-center gap-3 rounded-xl px-5 py-4 text-left transition-all duration-200 ${
+              className={`flex-1 flex items-center gap-3 rounded-md px-4 py-3 text-left transition-colors ${
                 wizardStep === i
-                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                  ? 'bg-brand text-white'
                   : i < wizardStep
-                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                  : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:border-slate-600'
+                  ? 'bg-brand/10 text-brand border border-brand/20'
+                  : 'bg-surface border border-subtle text-secondary hover:bg-hover'
               }`}
             >
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-emerald-500/20' : 'bg-slate-700/50'
+              <div className={`flex h-8 w-8 items-center justify-center rounded-md ${
+                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-brand/20' : 'bg-elevated'
               }`}>
-                {i < wizardStep ? <CheckCircle2 className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
+                {i < wizardStep ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
               </div>
               <div>
-                <p className="text-sm font-semibold">Step {i + 1}: {ws.label}</p>
-                <p className={`text-xs ${wizardStep === i ? 'text-white/70' : 'text-slate-500'}`}>{ws.description}</p>
+                <p className="text-sm font-medium">Step {i + 1}: {ws.label}</p>
               </div>
             </button>
           );
@@ -281,17 +274,17 @@ export function CampaignCreatePage() {
 
       {/* Step 1: Campaign Settings */}
       {wizardStep === 0 && (
-        <div className="bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden">
-          <div className="p-6 border-b border-slate-800 bg-slate-800/30">
-            <h2 className="text-lg font-semibold text-white">Campaign Settings</h2>
-            <p className="text-sm text-slate-400">Configure your campaign name, sending account, and schedule.</p>
+        <div className="rounded-lg border border-subtle bg-surface">
+          <div className="p-5 border-b border-subtle">
+            <h2 className="font-medium text-white">Campaign Settings</h2>
+            <p className="text-sm text-secondary mt-1">Configure your campaign</p>
           </div>
-          <div className="p-6 space-y-5">
+          <div className="p-5 space-y-4">
             <Input
               label="Campaign Name"
               value={campaignForm.name}
               onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
-              placeholder="e.g., Q1 Outreach - Tech Companies"
+              placeholder="e.g., Q1 Outreach"
               required
             />
             <Select
@@ -306,18 +299,18 @@ export function CampaignCreatePage() {
                 })),
               ]}
             />
-            <div className="border-t border-slate-800 pt-5">
-              <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-slate-400" />
+            <div className="border-t border-subtle pt-4">
+              <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-secondary" />
                 Sending Schedule
               </h3>
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <Input label="Timezone" value={campaignForm.timezone || 'UTC'} onChange={(e) => setCampaignForm({ ...campaignForm, timezone: e.target.value })} />
-                <Input label="Send Window Start" type="time" value={campaignForm.send_window_start || '09:00'} onChange={(e) => setCampaignForm({ ...campaignForm, send_window_start: e.target.value })} />
-                <Input label="Send Window End" type="time" value={campaignForm.send_window_end || '17:00'} onChange={(e) => setCampaignForm({ ...campaignForm, send_window_end: e.target.value })} />
+                <Input label="Start Time" type="time" value={campaignForm.send_window_start || '09:00'} onChange={(e) => setCampaignForm({ ...campaignForm, send_window_start: e.target.value })} />
+                <Input label="End Time" type="time" value={campaignForm.send_window_end || '17:00'} onChange={(e) => setCampaignForm({ ...campaignForm, send_window_end: e.target.value })} />
               </div>
               <div>
-                <label className="mb-3 block text-sm font-medium text-slate-300">Active Days</label>
+                <label className="mb-2 block text-sm font-medium text-secondary">Active Days</label>
                 <div className="flex gap-2">
                   {DAYS.map((day, i) => (
                     <button
@@ -330,10 +323,10 @@ export function CampaignCreatePage() {
                           send_days: current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
                         });
                       }}
-                      className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                         (campaignForm.send_days || []).includes(day)
-                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm'
-                          : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'
+                          ? 'bg-brand text-white'
+                          : 'bg-elevated text-secondary hover:text-white'
                       }`}
                     >
                       {DAY_LABELS[i]}
@@ -342,51 +335,11 @@ export function CampaignCreatePage() {
                 </div>
               </div>
             </div>
-
-            {/* Deliverability Section */}
-            <div className="border-t border-slate-800 pt-5">
-              <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-slate-400" />
-                Deliverability
-              </h3>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  DCS Threshold (Deliverability Confidence Score)
-                </label>
-                <p className="text-xs text-slate-500 mb-3">
-                  Only send to contacts with a verification score at or above this threshold. Set to 0 to disable filtering.
-                </p>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={(campaignForm as any).dcs_threshold || 0}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, dcs_threshold: parseInt(e.target.value) } as any)}
-                    className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                  />
-                  <div className={`flex items-center justify-center w-16 h-10 rounded-xl text-sm font-bold ${
-                    ((campaignForm as any).dcs_threshold || 0) >= 70
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                      : ((campaignForm as any).dcs_threshold || 0) >= 40
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                      : 'bg-slate-700/50 text-slate-400 border border-slate-600'
-                  }`}>
-                    {(campaignForm as any).dcs_threshold || 0}
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs text-slate-500 mt-1.5 px-1">
-                  <span>No filter</span>
-                  <span>Strict</span>
-                </div>
-              </div>
-            </div>
           </div>
-          <div className="flex justify-end p-6 border-t border-slate-800 bg-slate-800/30">
-            <Button onClick={() => setWizardStep(1)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+          <div className="flex justify-end p-5 border-t border-subtle">
+            <Button onClick={() => setWizardStep(1)}>
               Next: Build Sequence
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -395,26 +348,26 @@ export function CampaignCreatePage() {
       {/* Step 2: Sequence Builder */}
       {wizardStep === 1 && (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3 bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden">
-            <div className="p-5 border-b border-slate-800 bg-slate-800/30">
+          <div className="lg:col-span-3 rounded-lg border border-subtle bg-surface">
+            <div className="p-5 border-b border-subtle">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Campaign Flow</h2>
-                  <p className="text-sm text-slate-400">Build your email sequence visually</p>
+                  <h2 className="font-medium text-white">Campaign Flow</h2>
+                  <p className="text-sm text-secondary mt-1">Build your email sequence</p>
                 </div>
                 <div className="flex gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
-                    <Mail className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-brand bg-brand/10">
+                    <Mail className="h-3 w-3" />
                     {steps.filter(s => s.step_type === 'email').length} Emails
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-xs font-medium border border-amber-500/20">
-                    <Clock className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-amber-500 bg-amber-500/10">
+                    <Clock className="h-3 w-3" />
                     {steps.filter(s => s.step_type === 'delay').length} Delays
                   </span>
                 </div>
               </div>
             </div>
-            <div className="p-6 bg-slate-900/30">
+            <div className="p-5">
               <FlowBuilder
                 steps={steps}
                 onStepsChange={setSteps}
@@ -427,19 +380,19 @@ export function CampaignCreatePage() {
           {/* Email Editor */}
           <div className="lg:col-span-2">
             {editingStep !== null && steps[editingStep]?.step_type === 'email' ? (
-              <div className="bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden sticky top-20">
-                <div className="p-5 border-b border-slate-800 bg-indigo-500/10">
+              <div className="rounded-lg border border-subtle bg-surface sticky top-20">
+                <div className="p-4 border-b border-subtle bg-brand/5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-white">Edit Email</h3>
-                      <p className="text-xs text-slate-400">Step {editingStep + 1}</p>
+                      <h3 className="font-medium text-white">Edit Email</h3>
+                      <p className="text-xs text-secondary">Step {editingStep + 1}</p>
                     </div>
                     <PersonalizationDropdown onInsert={insertPersonalization} />
                   </div>
                 </div>
-                <div className="p-5 space-y-4">
+                <div className="p-4 space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Subject Line</label>
+                    <label className="block text-sm font-medium text-secondary mb-1.5">Subject</label>
                     <input
                       ref={subjectRef}
                       type="text"
@@ -447,76 +400,73 @@ export function CampaignCreatePage() {
                       onChange={(e) => updateStep(editingStep, { subject: e.target.value })}
                       onFocus={() => setActiveField('subject')}
                       placeholder="e.g., Quick question about {{company}}"
-                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-900/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-slate-300">Email Body</label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-medium text-secondary">Body</label>
                       <PersonalizationDropdown onInsert={insertPersonalization} variant="icon" />
                     </div>
                     <textarea
                       ref={bodyRef}
-                      className="w-full min-h-[300px] rounded-xl border border-slate-700 bg-slate-900/50 p-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono"
+                      className="w-full min-h-[250px] rounded-md border border-default bg-surface p-3 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 font-mono"
                       value={steps[editingStep].body_html || ''}
                       onChange={(e) => updateStep(editingStep, { body_html: e.target.value })}
                       onFocus={() => setActiveField('body')}
-                      placeholder={`<p>Hi {{first_name}},</p>\n\n<p>I noticed that {{company}} is...</p>\n\n<p>Best,\n{{sender_name}}</p>`}
+                      placeholder={`<p>Hi {{first_name}},</p>\n\n<p>I noticed that {{company}} is...</p>`}
                     />
                   </div>
-                  <div className="border-t border-slate-700 pt-4">
-                    <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 cursor-pointer hover:bg-slate-700/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={steps[editingStep].skip_if_replied !== false}
-                        onChange={(e) => updateStep(editingStep, { skip_if_replied: e.target.checked })}
-                        className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500"
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-white flex items-center gap-2">
-                          <SkipForward className="h-4 w-4 text-slate-400" />
-                          Skip if replied
-                        </p>
-                        <p className="text-xs text-slate-500">Don't send if the contact already replied</p>
-                      </div>
-                    </label>
-                  </div>
+                  <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={steps[editingStep].skip_if_replied !== false}
+                      onChange={(e) => updateStep(editingStep, { skip_if_replied: e.target.checked })}
+                      className="h-4 w-4 rounded border-default bg-surface text-brand focus:ring-brand"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-white flex items-center gap-1.5">
+                        <SkipForward className="h-3.5 w-3.5 text-secondary" />
+                        Skip if replied
+                      </p>
+                      <p className="text-xs text-tertiary">Don't send if the contact already replied</p>
+                    </div>
+                  </label>
                 </div>
               </div>
             ) : editingStep !== null && steps[editingStep]?.step_type === 'delay' ? (
-              <div className="bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden sticky top-20">
-                <div className="p-5 border-b border-slate-800 bg-amber-500/10">
-                  <h3 className="font-semibold text-white">Configure Delay</h3>
-                  <p className="text-xs text-slate-400">Step {editingStep + 1}</p>
+              <div className="rounded-lg border border-subtle bg-surface sticky top-20">
+                <div className="p-4 border-b border-subtle bg-amber-500/5">
+                  <h3 className="font-medium text-white">Configure Delay</h3>
+                  <p className="text-xs text-secondary">Step {editingStep + 1}</p>
                 </div>
-                <div className="p-5 space-y-4">
+                <div className="p-4 space-y-4">
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">Days</label>
-                      <input type="number" min="0" value={steps[editingStep].delay_days || 0} onChange={(e) => updateStep(editingStep, { delay_days: parseInt(e.target.value) || 0 })} className="w-full h-11 rounded-xl border border-slate-700 bg-slate-900/50 px-3 text-center text-lg font-semibold text-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                      <label className="block text-xs font-medium text-secondary mb-1">Days</label>
+                      <input type="number" min="0" value={steps[editingStep].delay_days || 0} onChange={(e) => updateStep(editingStep, { delay_days: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-white focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">Hours</label>
-                      <input type="number" min="0" max="23" value={steps[editingStep].delay_hours || 0} onChange={(e) => updateStep(editingStep, { delay_hours: parseInt(e.target.value) || 0 })} className="w-full h-11 rounded-xl border border-slate-700 bg-slate-900/50 px-3 text-center text-lg font-semibold text-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                      <label className="block text-xs font-medium text-secondary mb-1">Hours</label>
+                      <input type="number" min="0" max="23" value={steps[editingStep].delay_hours || 0} onChange={(e) => updateStep(editingStep, { delay_hours: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-white focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-400 mb-1.5">Minutes</label>
-                      <input type="number" min="0" max="59" value={steps[editingStep].delay_minutes || 0} onChange={(e) => updateStep(editingStep, { delay_minutes: parseInt(e.target.value) || 0 })} className="w-full h-11 rounded-xl border border-slate-700 bg-slate-900/50 px-3 text-center text-lg font-semibold text-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+                      <label className="block text-xs font-medium text-secondary mb-1">Minutes</label>
+                      <input type="number" min="0" max="59" value={steps[editingStep].delay_minutes || 0} onChange={(e) => updateStep(editingStep, { delay_minutes: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-white focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
                     </div>
                   </div>
-                  <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/20">
-                    <p className="text-sm text-amber-300"><strong>Tip:</strong> A 1-3 day delay between emails typically performs best for cold outreach.</p>
+                  <div className="rounded-md bg-amber-500/10 border border-amber-500/20 p-3">
+                    <p className="text-xs text-amber-500">Tip: A 1-3 day delay between emails typically performs best.</p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-800/50 rounded-xl border border-slate-800 p-8 text-center sticky top-20">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
-                  <Sparkles className="h-7 w-7 text-indigo-400" />
+              <div className="rounded-lg border border-subtle bg-surface p-6 text-center sticky top-20">
+                <div className="w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center mx-auto mb-3">
+                  <Mail className="h-6 w-6 text-brand" />
                 </div>
-                <h3 className="font-semibold text-white mb-2">Step Editor</h3>
-                <p className="text-sm text-slate-400 mb-4">Click "Edit" on an email step in the flow to customize its content here.</p>
-                <p className="text-xs text-slate-500">Use the personalization dropdown to insert dynamic variables.</p>
+                <h3 className="font-medium text-white mb-1">Step Editor</h3>
+                <p className="text-sm text-secondary">Click "Edit" on an email step to customize it here.</p>
               </div>
             )}
           </div>
@@ -526,9 +476,9 @@ export function CampaignCreatePage() {
               <ArrowLeft className="h-4 w-4" />
               Back: Settings
             </Button>
-            <Button onClick={() => setWizardStep(2)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+            <Button onClick={() => setWizardStep(2)}>
               Next: Select Contacts
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -536,16 +486,16 @@ export function CampaignCreatePage() {
 
       {/* Step 3: Select Contacts */}
       {wizardStep === 2 && (
-        <div className="bg-slate-800/50 rounded-xl border border-slate-800 overflow-hidden">
-          <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+        <div className="rounded-lg border border-subtle bg-surface">
+          <div className="p-5 border-b border-subtle">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Select Recipients</h2>
-                <p className="text-sm text-slate-400">Choose which contacts will receive this campaign.</p>
+                <h2 className="font-medium text-white">Select Recipients</h2>
+                <p className="text-sm text-secondary mt-1">Choose contacts for this campaign</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-sm font-medium border border-indigo-500/20">
-                  <Users className="h-4 w-4" />
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-brand bg-brand/10">
+                  <Users className="h-3 w-3" />
                   {selectedContactIds.length} selected
                 </span>
                 <Button variant="secondary" size="sm" onClick={() => setShowContactModal(true)}>
@@ -555,33 +505,33 @@ export function CampaignCreatePage() {
               </div>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-5">
             {selectedContactIds.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
-                  <Users className="h-8 w-8 text-indigo-400" />
+              <div className="text-center py-8">
+                <div className="w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-6 w-6 text-brand" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">No contacts selected</h3>
-                <p className="text-slate-400 mb-6">Click "Add Contacts" to choose people who will receive this campaign.</p>
-                <Button onClick={() => setShowContactModal(true)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+                <h3 className="font-medium text-white mb-1">No contacts selected</h3>
+                <p className="text-sm text-secondary mb-4">Click "Add Contacts" to choose recipients.</p>
+                <Button onClick={() => setShowContactModal(true)}>
                   <UserPlus className="h-4 w-4" />
                   Select Contacts
                 </Button>
               </div>
             ) : (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6 text-center">
-                <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
-                <p className="text-lg font-semibold text-emerald-300">{selectedContactIds.length} contacts ready</p>
-                <p className="text-sm text-emerald-400/70 mt-1">These contacts will receive all {steps.filter(s => s.step_type === 'email').length} emails in your sequence.</p>
+              <div className="rounded-md bg-brand/10 border border-brand/20 p-4 text-center">
+                <CheckCircle2 className="h-8 w-8 text-brand mx-auto mb-2" />
+                <p className="font-medium text-brand">{selectedContactIds.length} contacts ready</p>
+                <p className="text-sm text-brand/70 mt-1">These contacts will receive all {steps.filter(s => s.step_type === 'email').length} emails.</p>
               </div>
             )}
           </div>
-          <div className="flex justify-between p-6 border-t border-slate-800 bg-slate-800/30">
+          <div className="flex justify-between p-5 border-t border-subtle">
             <Button variant="secondary" onClick={() => setWizardStep(1)}>
               <ArrowLeft className="h-4 w-4" />
               Back: Sequence
             </Button>
-            <Button onClick={handleSave} disabled={createCampaignMutation.isPending} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/30">
+            <Button onClick={handleSave} disabled={createCampaignMutation.isPending}>
               <Save className="h-4 w-4" />
               {createCampaignMutation.isPending ? 'Saving...' : 'Save Campaign'}
             </Button>
@@ -593,33 +543,33 @@ export function CampaignCreatePage() {
       <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Select Contacts" size="lg">
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full h-11 rounded-xl border border-slate-700 bg-slate-900/50 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
+            <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full rounded-md border border-default bg-surface pl-10 pr-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
           </div>
-          <div className="max-h-[400px] overflow-y-auto rounded-xl border border-slate-700">
+          <div className="max-h-[350px] overflow-y-auto rounded-md border border-subtle">
             {contacts.map((contact: ContactWithTags) => (
-              <label key={contact.id} className="flex cursor-pointer items-center gap-4 p-4 hover:bg-indigo-500/10 border-b border-slate-800 last:border-0 transition-colors">
-                <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500" />
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-400/10 flex items-center justify-center text-indigo-400 font-semibold text-sm border border-indigo-500/20">
+              <label key={contact.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-hover border-b border-subtle last:border-0 transition-colors">
+                <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-default bg-surface text-brand focus:ring-brand" />
+                <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center text-brand text-xs font-medium">
                   {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white">{[contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.email}</p>
-                  <p className="text-xs text-slate-400">{contact.email}</p>
+                  <p className="text-xs text-tertiary">{contact.email}</p>
                 </div>
                 {contact.company && (
-                  <span className="flex items-center gap-1 text-xs text-slate-500">
-                    <Building2 className="h-3.5 w-3.5" />
+                  <span className="flex items-center gap-1 text-xs text-tertiary">
+                    <Building2 className="h-3 w-3" />
                     {contact.company}
                   </span>
                 )}
               </label>
             ))}
-            {contacts.length === 0 && <p className="p-8 text-center text-sm text-slate-500">No contacts found</p>}
+            {contacts.length === 0 && <p className="p-6 text-center text-sm text-tertiary">No contacts found</p>}
           </div>
           <div className="flex items-center justify-between pt-2">
-            <p className="text-sm text-slate-400">{selectedContactIds.length} selected</p>
-            <Button onClick={() => setShowContactModal(false)} className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400">
+            <p className="text-sm text-secondary">{selectedContactIds.length} selected</p>
+            <Button onClick={() => setShowContactModal(false)}>
               <Check className="h-4 w-4" />
               Done
             </Button>

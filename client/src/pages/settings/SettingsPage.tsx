@@ -14,7 +14,6 @@ import {
   LogOut,
   CheckCircle,
   AlertCircle,
-  Camera,
 } from 'lucide-react';
 
 type Tab = 'profile' | 'account' | 'notifications' | 'preferences';
@@ -37,47 +36,42 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [saving, setSaving] = useState(false);
 
-  // Profile state
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [company, setCompany] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [timezone, setTimezone] = useState('America/New_York');
 
-  // Notification state
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [campaignAlerts, setCampaignAlerts] = useState(true);
   const [replyNotifications, setReplyNotifications] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
-  // Preferences state
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('dark');
   const [defaultSignature, setDefaultSignature] = useState('');
 
   const handleSave = async () => {
     setSaving(true);
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success('Settings saved successfully');
+    toast.success('Settings saved');
     setSaving(false);
   };
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success('Signed out successfully');
+    toast.success('Signed out');
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
-        <p className="mt-2 text-slate-400">Manage your account settings and preferences</p>
+    <div className="max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-white">Settings</h1>
+        <p className="text-sm text-secondary mt-1">Manage your account</p>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex gap-6">
         {/* Sidebar */}
-        <div className="w-56 flex-shrink-0">
+        <div className="w-48 flex-shrink-0">
           <nav className="space-y-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -86,26 +80,25 @@ export function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left transition-colors ${
                     isActive
-                      ? 'bg-indigo-500/20 text-indigo-400 font-medium'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                      ? 'bg-brand/10 text-brand font-medium'
+                      : 'text-secondary hover:bg-hover hover:text-white'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-400' : 'text-slate-500'}`} />
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-brand' : 'text-tertiary'}`} />
                   {tab.label}
                 </button>
               );
             })}
           </nav>
 
-          {/* Sign out button */}
-          <div className="mt-8 pt-8 border-t border-slate-800">
+          <div className="mt-6 pt-6 border-t border-subtle">
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-400 hover:bg-red-500/10 transition-all duration-200"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left text-red-400 hover:bg-red-500/10 transition-colors"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4" />
               Sign out
             </button>
           </div>
@@ -113,111 +106,94 @@ export function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1">
-          <div className="bg-slate-800/50 rounded-xl border border-slate-800 shadow-sm p-6">
+          <div className="rounded-lg border border-subtle bg-surface p-6">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Profile Information</h2>
-                  <p className="text-sm text-slate-400 mt-1">Update your personal information and public profile</p>
+                  <h2 className="font-medium text-white">Profile Information</h2>
+                  <p className="text-sm text-secondary mt-1">Update your personal details</p>
                 </div>
 
-                {/* Avatar section */}
-                <div className="flex items-center gap-6 p-4 bg-slate-800/30 rounded-xl">
-                  <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                      {user?.email?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <button className="absolute -bottom-1 -right-1 p-2 bg-slate-700 rounded-full shadow-md border border-slate-600 hover:bg-slate-600 transition-colors">
-                      <Camera className="h-4 w-4 text-slate-300" />
-                    </button>
+                <div className="flex items-center gap-4 p-4 rounded-md bg-elevated">
+                  <div className="w-14 h-14 rounded-full bg-brand/20 flex items-center justify-center text-brand text-lg font-semibold">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <p className="font-medium text-white">Profile Photo</p>
-                    <p className="text-sm text-slate-400">JPG, PNG or GIF. Max size 2MB</p>
+                    <p className="text-sm font-medium text-white">Profile Photo</p>
+                    <p className="text-xs text-tertiary">JPG, PNG or GIF. Max 2MB</p>
                   </div>
                 </div>
 
-                {/* Form fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      First Name
-                    </label>
+                    <label className="block text-sm font-medium text-secondary mb-1.5">First Name</label>
                     <input
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="John"
-                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Last Name
-                    </label>
+                    <label className="block text-sm font-medium text-secondary mb-1.5">Last Name</label>
                     <input
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Doe"
-                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Company
-                    </label>
+                    <label className="block text-sm font-medium text-secondary mb-1.5">Company</label>
                     <input
                       type="text"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="Acme Inc."
-                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Job Title
-                    </label>
+                    <label className="block text-sm font-medium text-secondary mb-1.5">Job Title</label>
                     <input
                       type="text"
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
                       placeholder="Sales Manager"
-                      className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-secondary mb-1.5">Email</label>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 flex items-center h-11 rounded-xl border border-slate-700 px-4 bg-slate-800/30">
-                      <Mail className="h-4 w-4 text-slate-500 mr-3" />
-                      <span className="text-slate-400">{user?.email || 'Not set'}</span>
+                    <div className="flex-1 flex items-center gap-2 rounded-md border border-subtle bg-elevated px-3 py-2">
+                      <Mail className="h-4 w-4 text-tertiary" />
+                      <span className="text-sm text-secondary">{user?.email || 'Not set'}</span>
                     </div>
-                    <span className="flex items-center gap-1.5 text-sm text-green-400">
-                      <CheckCircle className="h-4 w-4" />
+                    <span className="flex items-center gap-1 text-xs text-brand">
+                      <CheckCircle className="h-3.5 w-3.5" />
                       Verified
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <Globe className="inline h-4 w-4 mr-1.5 text-slate-500" />
+                  <label className="block text-sm font-medium text-secondary mb-1.5">
+                    <Globe className="inline h-3.5 w-3.5 mr-1 text-tertiary" />
                     Timezone
                   </label>
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full h-11 rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none"
+                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                   >
                     <option value="America/New_York">Eastern Time (ET)</option>
                     <option value="America/Chicago">Central Time (CT)</option>
@@ -225,8 +201,6 @@ export function SettingsPage() {
                     <option value="America/Los_Angeles">Pacific Time (PT)</option>
                     <option value="Europe/London">London (GMT)</option>
                     <option value="Europe/Paris">Paris (CET)</option>
-                    <option value="Asia/Tokyo">Tokyo (JST)</option>
-                    <option value="Australia/Sydney">Sydney (AEST)</option>
                   </select>
                 </div>
               </div>
@@ -234,82 +208,67 @@ export function SettingsPage() {
 
             {/* Account Tab */}
             {activeTab === 'account' && (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Account Security</h2>
-                  <p className="text-sm text-slate-400 mt-1">Manage your password and security settings</p>
+                  <h2 className="font-medium text-white">Account Security</h2>
+                  <p className="text-sm text-secondary mt-1">Manage your password and security</p>
                 </div>
 
-                {/* Password section */}
-                <div className="p-5 bg-slate-800/30 rounded-xl space-y-4">
+                <div className="p-4 rounded-md bg-elevated space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-700 rounded-lg">
-                      <Key className="h-5 w-5 text-indigo-400" />
+                    <div className="p-2 rounded-md bg-surface">
+                      <Key className="h-4 w-4 text-brand" />
                     </div>
                     <div>
-                      <p className="font-medium text-white">Password</p>
-                      <p className="text-sm text-slate-400">Last changed 30 days ago</p>
+                      <p className="text-sm font-medium text-white">Password</p>
+                      <p className="text-xs text-tertiary">Last changed 30 days ago</p>
                     </div>
                   </div>
-                  <Button variant="secondary" size="sm">
-                    Change Password
-                  </Button>
+                  <Button variant="secondary" size="sm">Change Password</Button>
                 </div>
 
-                {/* Two-factor section */}
-                <div className="p-5 bg-slate-800/30 rounded-xl space-y-4">
+                <div className="p-4 rounded-md bg-elevated space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-slate-700 rounded-lg">
-                        <Shield className="h-5 w-5 text-green-400" />
+                      <div className="p-2 rounded-md bg-surface">
+                        <Shield className="h-4 w-4 text-brand" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">Two-Factor Authentication</p>
-                        <p className="text-sm text-slate-400">Add an extra layer of security</p>
+                        <p className="text-sm font-medium text-white">Two-Factor Authentication</p>
+                        <p className="text-xs text-tertiary">Add extra security</p>
                       </div>
                     </div>
-                    <span className="flex items-center gap-1.5 text-sm text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full">
-                      <AlertCircle className="h-4 w-4" />
+                    <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
+                      <AlertCircle className="h-3 w-3" />
                       Not enabled
                     </span>
                   </div>
-                  <Button variant="secondary" size="sm">
-                    Enable 2FA
-                  </Button>
+                  <Button variant="secondary" size="sm">Enable 2FA</Button>
                 </div>
 
-                {/* Connected accounts */}
-                <div className="pt-6 border-t border-slate-800">
-                  <h3 className="font-medium text-white mb-4">Connected Accounts</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 bg-slate-800/30 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <svg className="h-6 w-6" viewBox="0 0 24 24">
-                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                        </svg>
-                        <span className="font-medium text-white">Google</span>
-                      </div>
-                      <Button variant="secondary" size="sm">Connect</Button>
+                <div className="pt-5 border-t border-subtle">
+                  <h3 className="text-sm font-medium text-white mb-3">Connected Accounts</h3>
+                  <div className="flex items-center justify-between p-3 rounded-md bg-elevated">
+                    <div className="flex items-center gap-3">
+                      <svg className="h-5 w-5" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                      </svg>
+                      <span className="text-sm font-medium text-white">Google</span>
                     </div>
+                    <Button variant="secondary" size="sm">Connect</Button>
                   </div>
                 </div>
 
-                {/* Danger zone */}
-                <div className="pt-6 border-t border-slate-800">
-                  <h3 className="font-medium text-red-400 mb-4">Danger Zone</h3>
-                  <div className="p-5 border border-red-500/30 rounded-xl bg-red-900/20">
-                    <p className="text-sm text-slate-400 mb-3">
-                      Once you delete your account, there is no going back. Please be certain.
+                <div className="pt-5 border-t border-subtle">
+                  <h3 className="text-sm font-medium text-red-400 mb-3">Danger Zone</h3>
+                  <div className="p-4 border border-red-500/20 rounded-md bg-red-500/5">
+                    <p className="text-sm text-secondary mb-3">
+                      Once you delete your account, there is no going back.
                     </p>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                    >
-                      Delete Account
-                    </Button>
+                    <Button variant="danger" size="sm">Delete Account</Button>
                   </div>
                 </div>
               </div>
@@ -317,13 +276,13 @@ export function SettingsPage() {
 
             {/* Notifications Tab */}
             {activeTab === 'notifications' && (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Notification Preferences</h2>
-                  <p className="text-sm text-slate-400 mt-1">Choose what notifications you want to receive</p>
+                  <h2 className="font-medium text-white">Notifications</h2>
+                  <p className="text-sm text-secondary mt-1">Choose what notifications you receive</p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <ToggleSetting
                     label="Email Notifications"
                     description="Receive email notifications for important updates"
@@ -354,63 +313,55 @@ export function SettingsPage() {
 
             {/* Preferences Tab */}
             {activeTab === 'preferences' && (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">App Preferences</h2>
-                  <p className="text-sm text-slate-400 mt-1">Customize your SkySend experience</p>
+                  <h2 className="font-medium text-white">Preferences</h2>
+                  <p className="text-sm text-secondary mt-1">Customize your experience</p>
                 </div>
 
-                {/* Theme */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-3">Theme</label>
-                  <div className="flex gap-3">
+                  <label className="block text-sm font-medium text-secondary mb-2">Theme</label>
+                  <div className="flex gap-2">
                     {(['light', 'dark', 'system'] as const).map((t) => (
                       <button
                         key={t}
                         onClick={() => setTheme(t)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${
+                        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                           theme === t
-                            ? 'border-indigo-500 bg-indigo-500/20 text-indigo-400'
-                            : 'border-slate-700 hover:border-slate-600 text-slate-400'
+                            ? 'bg-brand text-white'
+                            : 'bg-elevated text-secondary hover:text-white border border-subtle'
                         }`}
                       >
-                        <span className="capitalize font-medium">{t}</span>
+                        <span className="capitalize">{t}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Default signature */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-secondary mb-1.5">
                     Default Email Signature
                   </label>
                   <textarea
                     value={defaultSignature}
                     onChange={(e) => setDefaultSignature(e.target.value)}
-                    placeholder="Best regards,&#10;John Doe&#10;Sales Manager"
+                    placeholder="Best regards,&#10;John Doe"
                     rows={4}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-white placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 resize-none"
                   />
-                  <p className="mt-2 text-xs text-slate-500">
-                    Use {'{{signature}}'} merge tag in your emails to insert this signature
+                  <p className="mt-1.5 text-xs text-tertiary">
+                    Use {'{{signature}}'} in emails to insert this
                   </p>
                 </div>
               </div>
             )}
 
             {/* Save button */}
-            <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-500/25"
-              >
-                {saving ? (
-                  'Saving...'
-                ) : (
+            <div className="mt-6 pt-5 border-t border-subtle flex justify-end">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="h-4 w-4" />
                     Save Changes
                   </>
                 )}
@@ -435,20 +386,20 @@ function ToggleSetting({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-800/30 rounded-xl">
+    <div className="flex items-center justify-between p-3 rounded-md bg-elevated">
       <div>
-        <p className="font-medium text-white">{label}</p>
-        <p className="text-sm text-slate-400">{description}</p>
+        <p className="text-sm font-medium text-white">{label}</p>
+        <p className="text-xs text-tertiary">{description}</p>
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-          checked ? 'bg-indigo-600' : 'bg-slate-600'
+        className={`relative w-10 h-6 rounded-full transition-colors ${
+          checked ? 'bg-brand' : 'bg-elevated border border-subtle'
         }`}
       >
         <span
-          className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-            checked ? 'translate-x-5' : 'translate-x-0'
+          className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+            checked ? 'translate-x-4' : 'translate-x-0'
           }`}
         />
       </button>

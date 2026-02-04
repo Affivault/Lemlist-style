@@ -9,16 +9,13 @@ import {
   Key,
   Plus,
   Trash2,
-  Send,
   CheckCircle2,
   XCircle,
   Copy,
   Eye,
   EyeOff,
-  RefreshCw,
   Shield,
   Clock,
-  AlertTriangle,
   Zap,
   X,
 } from 'lucide-react';
@@ -40,20 +37,17 @@ export function DeveloperPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('webhooks');
 
-  // --- Webhook state ---
   const [showCreateWebhook, setShowCreateWebhook] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookLabel, setWebhookLabel] = useState('');
   const [webhookEvents, setWebhookEvents] = useState<string[]>([]);
   const [showDeliveries, setShowDeliveries] = useState<string | null>(null);
 
-  // --- API Key state ---
   const [showCreateKey, setShowCreateKey] = useState(false);
   const [keyName, setKeyName] = useState('');
   const [newRawKey, setNewRawKey] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
 
-  // Queries
   const { data: endpoints, isLoading: loadingEndpoints } = useQuery({
     queryKey: ['webhook-endpoints'],
     queryFn: webhookApi.listEndpoints,
@@ -72,7 +66,6 @@ export function DeveloperPage() {
     enabled: tab === 'api-keys',
   });
 
-  // Mutations
   const createEndpointMutation = useMutation({
     mutationFn: () => webhookApi.createEndpoint({ url: webhookUrl, label: webhookLabel || undefined, events: webhookEvents }),
     onSuccess: () => {
@@ -136,24 +129,19 @@ export function DeveloperPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg">
-          <Code2 className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Developer</h1>
-          <p className="text-sm text-slate-400">Webhooks, API keys, and integrations</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-white">Developer</h1>
+        <p className="text-sm text-secondary mt-1">Webhooks, API keys, and integrations</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-700/50 pb-0">
+      <div className="flex gap-1 border-b border-subtle">
         <button
           onClick={() => setTab('webhooks')}
-          className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'webhooks' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+          className={cn('flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-all',
+            tab === 'webhooks' ? 'border-brand text-white' : 'border-transparent text-secondary hover:text-white'
           )}
         >
           <Webhook className="h-4 w-4" />
@@ -161,8 +149,8 @@ export function DeveloperPage() {
         </button>
         <button
           onClick={() => setTab('api-keys')}
-          className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'api-keys' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+          className={cn('flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-all',
+            tab === 'api-keys' ? 'border-brand text-white' : 'border-transparent text-secondary hover:text-white'
           )}
         >
           <Key className="h-4 w-4" />
@@ -170,53 +158,50 @@ export function DeveloperPage() {
         </button>
       </div>
 
-      {/* ========== WEBHOOKS TAB ========== */}
+      {/* Webhooks Tab */}
       {tab === 'webhooks' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-400">Receive real-time notifications when events happen in SkySend.</p>
+            <p className="text-sm text-secondary">Receive real-time notifications when events happen.</p>
             <button
               onClick={() => setShowCreateWebhook(true)}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-sm font-medium text-white hover:from-indigo-500 hover:to-indigo-400 transition-all shadow-sm"
+              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Add Webhook
             </button>
           </div>
 
-          {/* Create Form */}
           {showCreateWebhook && (
-            <div className="rounded-xl bg-slate-800/50 border border-indigo-500/20 p-5 space-y-4">
+            <div className="rounded-lg bg-surface border border-brand/20 p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-white">New Webhook Endpoint</h3>
-                <button onClick={() => setShowCreateWebhook(false)} className="text-slate-400 hover:text-white"><X className="h-4 w-4" /></button>
+                <h3 className="text-sm font-medium text-white">New Webhook Endpoint</h3>
+                <button onClick={() => setShowCreateWebhook(false)} className="text-secondary hover:text-white"><X className="h-4 w-4" /></button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Endpoint URL</label>
-                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50" />
+                  <label className="text-xs text-tertiary mb-1 block">Endpoint URL</label>
+                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-white placeholder:text-tertiary focus:outline-none focus:border-brand" />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Label</label>
-                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50" />
+                  <label className="text-xs text-tertiary mb-1 block">Label</label>
+                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-white placeholder:text-tertiary focus:outline-none focus:border-brand" />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-2 block">Subscribe to events</label>
+                <label className="text-xs text-tertiary mb-2 block">Subscribe to events</label>
                 <div className="space-y-3">
                   {Object.entries(EVENT_CATEGORIES).map(([category, events]) => (
                     <div key={category}>
-                      <p className="text-xs font-medium text-slate-400 mb-1">{category}</p>
+                      <p className="text-xs font-medium text-secondary mb-1">{category}</p>
                       <div className="flex flex-wrap gap-2">
                         {events.map((event) => (
                           <button
                             key={event}
                             onClick={() => toggleEvent(event)}
                             className={cn(
-                              'rounded-lg border px-2.5 py-1 text-xs transition-all',
-                              webhookEvents.includes(event)
-                                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300'
-                                : 'bg-slate-700/30 border-slate-600/30 text-slate-400 hover:text-white'
+                              'rounded border px-2.5 py-1 text-xs transition-all',
+                              webhookEvents.includes(event) ? 'bg-brand/10 border-brand/30 text-brand' : 'bg-elevated border-subtle text-secondary hover:text-white'
                             )}
                           >
                             {event}
@@ -230,7 +215,7 @@ export function DeveloperPage() {
               <button
                 onClick={() => createEndpointMutation.mutate()}
                 disabled={!webhookUrl || webhookEvents.length === 0 || createEndpointMutation.isPending}
-                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-sm font-medium text-white hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 transition-all"
+                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create Webhook
@@ -238,49 +223,49 @@ export function DeveloperPage() {
             </div>
           )}
 
-          {/* Endpoints list */}
           {loadingEndpoints ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
             </div>
           ) : !endpoints || endpoints.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Webhook className="h-10 w-10 text-slate-500 mb-3" />
-              <h3 className="text-lg font-medium text-white mb-1">No webhooks configured</h3>
-              <p className="text-sm text-slate-400">Add a webhook to receive real-time event notifications.</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
+                <Webhook className="h-6 w-6 text-tertiary" />
+              </div>
+              <h3 className="font-medium text-white mb-1">No webhooks configured</h3>
+              <p className="text-sm text-secondary">Add a webhook to receive real-time event notifications.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {endpoints.map((ep) => (
-                <div key={ep.id} className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
+                <div key={ep.id} className="rounded-lg bg-surface border border-subtle p-4">
                   <div className="flex items-center gap-3">
-                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-emerald-400' : 'bg-slate-500')} />
+                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-brand' : 'bg-tertiary')} />
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-white">{ep.label}</h4>
-                      <p className="text-xs text-slate-400 truncate font-mono">{ep.url}</p>
+                      <p className="text-xs text-tertiary truncate font-mono">{ep.url}</p>
                     </div>
-                    <span className="text-xs text-slate-500">{ep.events.length} events</span>
-                    <button onClick={() => testEndpointMutation.mutate(ep.id)} className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 text-xs flex items-center gap-1">
+                    <span className="text-xs text-tertiary">{ep.events.length} events</span>
+                    <button onClick={() => testEndpointMutation.mutate(ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-white text-xs flex items-center gap-1">
                       <Zap className="h-3 w-3" /> Test
                     </button>
-                    <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 text-xs flex items-center gap-1">
+                    <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-white text-xs flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Logs
                     </button>
-                    <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400">
+                    <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded hover:bg-red-500/10 text-secondary hover:text-red-400">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  {/* Delivery logs */}
                   {showDeliveries === ep.id && deliveries && (
-                    <div className="mt-3 border-t border-slate-700/30 pt-3 space-y-2 max-h-60 overflow-y-auto">
+                    <div className="mt-3 border-t border-subtle pt-3 space-y-2 max-h-60 overflow-y-auto">
                       {deliveries.length === 0 ? (
-                        <p className="text-xs text-slate-500 text-center py-2">No deliveries yet</p>
+                        <p className="text-xs text-tertiary text-center py-2">No deliveries yet</p>
                       ) : deliveries.map((d) => (
                         <div key={d.id} className="flex items-center gap-3 text-xs">
-                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-                          <span className="text-slate-300 font-mono">{d.event_type}</span>
-                          <span className="text-slate-500">{d.status_code || 'ERR'}</span>
-                          <span className="text-slate-500 ml-auto">{formatDateTime(d.created_at)}</span>
+                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-brand shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
+                          <span className="text-secondary font-mono">{d.event_type}</span>
+                          <span className="text-tertiary">{d.status_code || 'ERR'}</span>
+                          <span className="text-tertiary ml-auto">{formatDateTime(d.created_at)}</span>
                         </div>
                       ))}
                     </div>
@@ -292,62 +277,60 @@ export function DeveloperPage() {
         </div>
       )}
 
-      {/* ========== API KEYS TAB ========== */}
+      {/* API Keys Tab */}
       {tab === 'api-keys' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-400">Manage API keys for headless access to SkySend.</p>
+            <p className="text-sm text-secondary">Manage API keys for headless access to SkySend.</p>
             <button
               onClick={() => setShowCreateKey(true)}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-sm font-medium text-white hover:from-indigo-500 hover:to-indigo-400 transition-all shadow-sm"
+              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Create Key
             </button>
           </div>
 
-          {/* New key created - show once */}
           {newRawKey && (
-            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-4 space-y-2">
+            <div className="rounded-lg bg-brand/10 border border-brand/30 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span className="text-sm font-medium text-emerald-300">API key created. Copy it now - it will not be shown again.</span>
+                <CheckCircle2 className="h-4 w-4 text-brand" />
+                <span className="text-sm font-medium text-brand">API key created. Copy it now - it will not be shown again.</span>
               </div>
               <div className="flex items-center gap-2">
-                <code className={cn('flex-1 rounded-lg bg-slate-900/80 px-3 py-2 text-sm font-mono', showKey ? 'text-white' : 'text-slate-500')}>
+                <code className={cn('flex-1 rounded bg-elevated px-3 py-2 text-sm font-mono', showKey ? 'text-white' : 'text-tertiary')}>
                   {showKey ? newRawKey : newRawKey.substring(0, 16) + '••••••••••••••••'}
                 </code>
-                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">
+                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-white">
                   {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
                 <button
                   onClick={() => { navigator.clipboard.writeText(newRawKey); toast.success('Copied!'); }}
-                  className="p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-white"
                 >
                   <Copy className="h-4 w-4" />
                 </button>
               </div>
-              <button onClick={() => { setNewRawKey(null); setShowKey(false); }} className="text-xs text-slate-400 hover:text-white">
+              <button onClick={() => { setNewRawKey(null); setShowKey(false); }} className="text-xs text-tertiary hover:text-white">
                 Dismiss
               </button>
             </div>
           )}
 
-          {/* Create form */}
           {showCreateKey && !newRawKey && (
-            <div className="rounded-xl bg-slate-800/50 border border-indigo-500/20 p-5 space-y-4">
+            <div className="rounded-lg bg-surface border border-brand/20 p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-white">New API Key</h3>
-                <button onClick={() => setShowCreateKey(false)} className="text-slate-400 hover:text-white"><X className="h-4 w-4" /></button>
+                <h3 className="text-sm font-medium text-white">New API Key</h3>
+                <button onClick={() => setShowCreateKey(false)} className="text-secondary hover:text-white"><X className="h-4 w-4" /></button>
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Key Name</label>
-                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-lg bg-slate-900/50 border border-slate-700/50 px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50" />
+                <label className="text-xs text-tertiary mb-1 block">Key Name</label>
+                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-white placeholder:text-tertiary focus:outline-none focus:border-brand" />
               </div>
               <button
                 onClick={() => createKeyMutation.mutate()}
                 disabled={!keyName || createKeyMutation.isPending}
-                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-all"
+                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors"
               >
                 <Key className="h-4 w-4" />
                 Generate Key
@@ -355,47 +338,48 @@ export function DeveloperPage() {
             </div>
           )}
 
-          {/* Keys list */}
           {loadingKeys ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
             </div>
           ) : !apiKeys || apiKeys.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Key className="h-10 w-10 text-slate-500 mb-3" />
-              <h3 className="text-lg font-medium text-white mb-1">No API keys</h3>
-              <p className="text-sm text-slate-400">Create an API key to access SkySend programmatically.</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
+                <Key className="h-6 w-6 text-tertiary" />
+              </div>
+              <h3 className="font-medium text-white mb-1">No API keys</h3>
+              <p className="text-sm text-secondary">Create an API key to access SkySend programmatically.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {apiKeys.map((key) => (
-                <div key={key.id} className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 flex items-center gap-4">
-                  <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg', key.is_active ? 'bg-emerald-500/10' : 'bg-red-500/10')}>
-                    <Key className={cn('h-4 w-4', key.is_active ? 'text-emerald-400' : 'text-red-400')} />
+                <div key={key.id} className="rounded-lg bg-surface border border-subtle p-4 flex items-center gap-4">
+                  <div className={cn('flex h-9 w-9 items-center justify-center rounded', key.is_active ? 'bg-brand/10' : 'bg-red-500/10')}>
+                    <Key className={cn('h-4 w-4', key.is_active ? 'text-brand' : 'text-red-400')} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-medium text-white">{key.name}</h4>
-                    <p className="text-xs text-slate-400 font-mono">{key.key_prefix}••••••••</p>
+                    <p className="text-xs text-tertiary font-mono">{key.key_prefix}••••••••</p>
                   </div>
                   <div className="text-right">
-                    <span className={cn('text-xs rounded-full px-2 py-0.5', key.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400')}>
+                    <span className={cn('text-xs rounded-full px-2 py-0.5', key.is_active ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-400')}>
                       {key.is_active ? 'Active' : 'Revoked'}
                     </span>
                     {key.last_used_at && (
-                      <p className="text-[10px] text-slate-500 mt-1">Last used {formatDateTime(key.last_used_at)}</p>
+                      <p className="text-[10px] text-tertiary mt-1">Last used {formatDateTime(key.last_used_at)}</p>
                     )}
                   </div>
                   {key.is_active && (
                     <button
                       onClick={() => revokeKeyMutation.mutate(key.id)}
-                      className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-orange-500/10 hover:text-orange-400 text-xs flex items-center gap-1"
+                      className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:bg-orange-500/10 hover:text-orange-400 text-xs flex items-center gap-1"
                     >
                       <Shield className="h-3 w-3" /> Revoke
                     </button>
                   )}
                   <button
                     onClick={() => deleteKeyMutation.mutate(key.id)}
-                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400"
+                    className="p-1.5 rounded hover:bg-red-500/10 text-secondary hover:text-red-400"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
