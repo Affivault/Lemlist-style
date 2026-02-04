@@ -3,6 +3,8 @@ import { authMiddleware } from '../middleware/auth.middleware.js';
 import { apiKeyMiddleware } from '../middleware/apikey.middleware.js';
 import { contactRoutes } from './contact.routes.js';
 import { tagRoutes } from './tag.routes.js';
+import { listsRoutes } from './lists.routes.js';
+import { segmentsRoutes } from './segments.routes.js';
 import { campaignRoutes } from './campaign.routes.js';
 import { smtpRoutes } from './smtp.routes.js';
 import { analyticsRoutes } from './analytics.routes.js';
@@ -23,6 +25,8 @@ routes.use(authMiddleware);
 
 routes.use('/contacts', contactRoutes);
 routes.use('/tags', tagRoutes);
+routes.use('/lists', listsRoutes);
+routes.use('/segments', segmentsRoutes);
 routes.use('/campaigns', campaignRoutes);
 routes.use('/smtp-accounts', smtpRoutes);
 routes.use('/analytics', analyticsRoutes);
