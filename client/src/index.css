@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,64 +6,84 @@
 
 @layer base {
   :root {
-    /* Premium dark theme with violet/indigo accents */
-    --bg-app: #09090b;
-    --bg-surface: #18181b;
-    --bg-elevated: #27272a;
-    --bg-hover: #3f3f46;
-    --bg-active: rgba(139, 92, 246, 0.15);
+    /* Enterprise light theme - black and white */
+    --bg-app: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #FAFAFA;
+    --bg-hover: #F5F5F5;
+    --bg-active: #F0F0F0;
+    --bg-muted: #F9FAFB;
 
-    --border-subtle: rgba(255, 255, 255, 0.06);
-    --border-default: rgba(255, 255, 255, 0.1);
-    --border-strong: rgba(255, 255, 255, 0.2);
+    --border-subtle: #E5E7EB;
+    --border-default: #D1D5DB;
+    --border-strong: #9CA3AF;
 
-    --text-primary: #fafafa;
-    --text-secondary: #a1a1aa;
-    --text-tertiary: #71717a;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --text-muted: #D1D5DB;
 
-    /* Vibrant violet/purple accent */
-    --accent: #8b5cf6;
-    --accent-secondary: #a78bfa;
-    --accent-glow: rgba(139, 92, 246, 0.4);
+    /* Accent - pure black for enterprise look */
+    --accent: #111827;
+    --accent-hover: #1F2937;
+    --accent-muted: #374151;
 
-    /* Gradient colors */
-    --gradient-start: #8b5cf6;
-    --gradient-mid: #ec4899;
-    --gradient-end: #f97316;
+    /* Status colors - muted, professional */
+    --success: #059669;
+    --success-bg: #ECFDF5;
+    --warning: #D97706;
+    --warning-bg: #FFFBEB;
+    --error: #DC2626;
+    --error-bg: #FEF2F2;
+    --info: #2563EB;
+    --info-bg: #EFF6FF;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 60px var(--accent-glow);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
 
-    color-scheme: dark;
-  }
-
-  .light {
-    --bg-app: #fafafa;
-    --bg-surface: #ffffff;
-    --bg-elevated: #f4f4f5;
-    --bg-hover: #e4e4e7;
-    --bg-active: rgba(139, 92, 246, 0.1);
-
-    --border-subtle: rgba(0, 0, 0, 0.06);
-    --border-default: rgba(0, 0, 0, 0.1);
-    --border-strong: rgba(0, 0, 0, 0.2);
-
-    --text-primary: #09090b;
-    --text-secondary: #52525b;
-    --text-tertiary: #a1a1aa;
-
-    --accent: #7c3aed;
-    --accent-secondary: #8b5cf6;
-    --accent-glow: rgba(124, 58, 237, 0.3);
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
-    --shadow-glow: 0 0 60px var(--accent-glow);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
 
     color-scheme: light;
+  }
+
+  .dark {
+    --bg-app: #0A0A0A;
+    --bg-surface: #111111;
+    --bg-elevated: #1A1A1A;
+    --bg-hover: #222222;
+    --bg-active: #2A2A2A;
+    --bg-muted: #141414;
+
+    --border-subtle: #262626;
+    --border-default: #333333;
+    --border-strong: #444444;
+
+    --text-primary: #FAFAFA;
+    --text-secondary: #A1A1A1;
+    --text-tertiary: #737373;
+    --text-muted: #525252;
+
+    --accent: #FFFFFF;
+    --accent-hover: #E5E5E5;
+    --accent-muted: #A1A1A1;
+
+    --success: #10B981;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --warning: #F59E0B;
+    --warning-bg: rgba(245, 158, 11, 0.1);
+    --error: #EF4444;
+    --error-bg: rgba(239, 68, 68, 0.1);
+    --info: #3B82F6;
+    --info-bg: rgba(59, 130, 246, 0.1);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+
+    color-scheme: dark;
   }
 
   html {
@@ -71,207 +91,232 @@
   }
 
   body {
-    @apply bg-app text-primary antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    @apply antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-app);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
     background: var(--accent);
-    color: white;
+    color: var(--bg-app);
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
     background: var(--border-default);
-    border-radius: 4px;
+    border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: var(--border-strong);
   }
 }
 
+@layer utilities {
+  .bg-app { background-color: var(--bg-app); }
+  .bg-surface { background-color: var(--bg-surface); }
+  .bg-elevated { background-color: var(--bg-elevated); }
+  .bg-hover { background-color: var(--bg-hover); }
+  .bg-muted { background-color: var(--bg-muted); }
+
+  .border-subtle { border-color: var(--border-subtle); }
+  .border-default { border-color: var(--border-default); }
+  .border-strong { border-color: var(--border-strong); }
+
+  .text-primary { color: var(--text-primary); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-tertiary { color: var(--text-tertiary); }
+  .text-muted { color: var(--text-muted); }
+}
+
 @layer components {
-  /* Premium gradient text */
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
-  }
-
-  /* Glowing accent button */
-  .btn-glow {
-    @apply relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white transition-all duration-300;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
-    box-shadow: 0 0 20px var(--accent-glow), 0 4px 15px rgba(0, 0, 0, 0.3);
-  }
-  .btn-glow:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 40px var(--accent-glow), 0 8px 25px rgba(0, 0, 0, 0.4);
-  }
-
-  /* Ghost button with border */
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-default px-6 py-3 text-sm font-medium text-primary transition-all duration-300;
-    background: rgba(255, 255, 255, 0.03);
-  }
-  .btn-ghost:hover {
-    @apply border-strong;
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  /* Solid button */
-  .btn-solid {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200;
+  /* Primary button - solid black */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors;
     background: var(--accent);
-    color: white;
+    color: var(--bg-app);
+    border-radius: var(--radius-md);
   }
-  .btn-solid:hover {
-    background: var(--accent-secondary);
-    transform: translateY(-1px);
+  .btn-primary:hover {
+    background: var(--accent-hover);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
-  /* Secondary button */
+  /* Secondary button - outlined */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-default px-4 py-2.5 text-sm font-medium text-primary transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors;
     background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
   }
   .btn-secondary:hover {
-    @apply border-strong bg-elevated;
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
   }
 
-  /* Premium card with glow on hover */
-  .card-glow {
-    @apply relative rounded-2xl border border-subtle p-6 transition-all duration-300;
-    background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-app) 100%);
+  /* Ghost button - minimal */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
   }
-  .card-glow::before {
-    content: '';
-    @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300;
-    background: linear-gradient(135deg, var(--accent-glow), transparent);
-    z-index: -1;
-  }
-  .card-glow:hover {
-    @apply border-default;
-    transform: translateY(-4px);
-  }
-  .card-glow:hover::before {
-    @apply opacity-100;
+  .btn-ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 
-  /* Simple card */
+  /* Danger button */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors;
+    background: var(--error);
+    color: white;
+    border-radius: var(--radius-md);
+  }
+  .btn-danger:hover {
+    opacity: 0.9;
+  }
+
+  /* Card */
   .card {
-    @apply rounded-xl border border-subtle bg-surface p-5;
-  }
-
-  /* Floating orb effects */
-  .orb {
-    @apply absolute rounded-full blur-3xl;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
-    opacity: 0.15;
-    animation: float 20s ease-in-out infinite;
-  }
-
-  /* Grid background pattern */
-  .grid-pattern {
-    background-image:
-      linear-gradient(var(--border-subtle) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-    background-size: 60px 60px;
-  }
-
-  /* Gradient border card */
-  .gradient-border {
-    @apply relative rounded-2xl p-[1px];
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
-  }
-  .gradient-border > * {
-    @apply rounded-2xl bg-app;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
   }
 
   /* Input field */
   .input-field {
-    @apply w-full rounded-lg border border-subtle bg-surface px-4 py-3 text-sm text-primary placeholder:text-tertiary transition-all duration-200;
+    @apply w-full px-3 py-2 text-sm transition-colors;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+  }
+  .input-field::placeholder {
+    color: var(--text-tertiary);
   }
   .input-field:focus {
-    @apply border-accent outline-none;
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
   }
 
-  /* Navigation link */
-  .nav-link {
-    @apply relative text-sm text-secondary transition-colors duration-200;
-  }
-  .nav-link:hover {
-    @apply text-primary;
-  }
-  .nav-link.active {
-    @apply text-primary;
-  }
-  .nav-link.active::after {
-    content: '';
-    @apply absolute -bottom-1 left-0 h-0.5 w-full rounded-full;
-    background: var(--accent);
-  }
-
-  /* Badge */
+  /* Badge - minimal */
   .badge {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium;
-    background: var(--bg-active);
-    color: var(--accent);
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+  }
+  .badge-success {
+    background: var(--success-bg);
+    color: var(--success);
+  }
+  .badge-warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+  }
+  .badge-error {
+    background: var(--error-bg);
+    color: var(--error);
+  }
+  .badge-info {
+    background: var(--info-bg);
+    color: var(--info);
   }
 
-  /* Stat card */
-  .stat-card {
-    @apply rounded-xl border border-subtle bg-surface/50 p-4 backdrop-blur-sm;
+  /* Table */
+  .table-header {
+    @apply text-xs font-medium uppercase tracking-wider;
+    color: var(--text-tertiary);
+  }
+  .table-cell {
+    @apply py-3 text-sm;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .table-row:hover {
+    background: var(--bg-hover);
+  }
+
+  /* Stat value */
+  .stat-value {
+    @apply text-2xl font-semibold tracking-tight;
+    color: var(--text-primary);
+  }
+  .stat-label {
+    @apply text-sm;
+    color: var(--text-secondary);
+  }
+
+  /* Section title */
+  .section-title {
+    @apply text-sm font-semibold tracking-tight;
+    color: var(--text-primary);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+  }
+
+  /* Link */
+  .link {
+    @apply text-sm font-medium transition-colors;
+    color: var(--text-secondary);
+  }
+  .link:hover {
+    color: var(--text-primary);
+  }
+
+  /* Empty state */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 text-center;
+  }
+  .empty-state-icon {
+    @apply mb-4;
+    color: var(--text-tertiary);
+  }
+  .empty-state-title {
+    @apply text-sm font-medium mb-1;
+    color: var(--text-primary);
+  }
+  .empty-state-description {
+    @apply text-sm;
+    color: var(--text-secondary);
   }
 }
 
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(10px, -20px) scale(1.05); }
-  50% { transform: translate(-5px, 10px) scale(0.95); }
-  75% { transform: translate(-15px, -10px) scale(1.02); }
+/* Animations - subtle and professional */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes glow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.8; }
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
 }
 
-.animate-fade-up {
-  animation: fadeUp 0.6s ease-out forwards;
-}
-
-.animate-glow {
-  animation: glow 4s ease-in-out infinite;
-}
-
-/* Stagger animations */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
-.stagger-6 { animation-delay: 0.6s; }
-
-/* Gradient mesh background */
-.mesh-gradient {
-  background:
-    radial-gradient(at 40% 20%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, rgba(249, 115, 22, 0.08) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
 }

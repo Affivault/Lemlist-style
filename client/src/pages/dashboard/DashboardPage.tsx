@@ -4,129 +4,104 @@ import { campaignsApi } from '../../api/campaigns.api';
 import { Spinner } from '../../components/ui/Spinner';
 import {
   Plus,
-  ArrowRight,
+  ArrowUpRight,
   Megaphone,
   Users,
   Mail,
-  BarChart3,
-  TrendingUp,
-  Zap,
-  Play,
-  Clock,
-  Check,
-  ChevronRight,
+  MousePointer,
+  ArrowRight,
+  Send,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import type { Campaign } from '@lemlist/shared';
 
-// Stat card with gradient background
 function StatCard({
-  icon: Icon,
   label,
   value,
   change,
-  gradient,
+  icon: Icon,
 }: {
-  icon: React.ElementType;
   label: string;
   value: string | number;
   change?: number;
-  gradient: string;
+  icon: React.ElementType;
 }) {
   return (
-    <div className="relative rounded-2xl border border-subtle bg-surface p-5 overflow-hidden group hover:border-default transition-all">
-      {/* Background gradient glow */}
-      <div className={cn("absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity", gradient)} />
-
-      <div className="relative">
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-4", gradient.replace('bg-', 'bg-opacity-20 '))}>
-          <Icon className={cn("h-5 w-5", gradient.replace('bg-', 'text-').replace('-500', '-400'))} />
-        </div>
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-[13px] text-secondary mb-1">{label}</p>
-            <p className="text-3xl font-bold text-primary">{value}</p>
-          </div>
-          {change !== undefined && (
-            <div className={cn(
-              "flex items-center gap-1 text-[12px] font-medium",
-              change >= 0 ? "text-emerald-400" : "text-red-400"
-            )}>
-              <TrendingUp className={cn("h-3.5 w-3.5", change < 0 && "rotate-180")} />
-              {Math.abs(change)}%
-            </div>
-          )}
-        </div>
+    <div className="p-5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm text-[var(--text-secondary)]">{label}</span>
+        <Icon className="h-4 w-4 text-[var(--text-tertiary)]" strokeWidth={1.5} />
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">
+          {value}
+        </span>
+        {change !== undefined && (
+          <span
+            className={cn(
+              'text-xs font-medium',
+              change >= 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'
+            )}
+          >
+            {change >= 0 ? '+' : ''}{change}%
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-// Campaign card
-function CampaignCard({ campaign }: { campaign: Campaign }) {
+function CampaignRow({ campaign }: { campaign: Campaign }) {
   const navigate = useNavigate();
 
-  const statusConfig = {
-    draft: { color: 'text-tertiary', bg: 'bg-elevated', icon: Clock },
-    active: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: Play },
-    paused: { color: 'text-amber-400', bg: 'bg-amber-500/10', icon: Clock },
-    completed: { color: 'text-violet-400', bg: 'bg-violet-500/10', icon: Check },
+  const statusStyles = {
+    draft: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
+    active: 'bg-[var(--success-bg)] text-[var(--success)]',
+    paused: 'bg-[var(--warning-bg)] text-[var(--warning)]',
+    completed: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
   };
-
-  const status = statusConfig[campaign.status as keyof typeof statusConfig] || statusConfig.draft;
-  const StatusIcon = status.icon;
 
   return (
     <button
       onClick={() => navigate(`/campaigns/${campaign.id}`)}
-      className="flex flex-col p-5 rounded-xl border border-subtle bg-surface hover:border-default hover:bg-elevated/50 transition-all text-left group"
+      className="w-full flex items-center justify-between py-3 px-4 hover:bg-[var(--bg-hover)] transition-colors text-left border-b border-[var(--border-subtle)] last:border-b-0"
     >
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="text-[15px] font-semibold text-primary group-hover:text-violet-400 transition-colors">
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-[var(--text-primary)]">
           {campaign.name}
-        </h3>
-        <ChevronRight className="h-4 w-4 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+        </span>
+        <span
+          className={cn(
+            'px-2 py-0.5 text-xs font-medium rounded capitalize',
+            statusStyles[campaign.status as keyof typeof statusStyles] || statusStyles.draft
+          )}
+        >
+          {campaign.status}
+        </span>
       </div>
-      <div className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium w-fit",
-        status.bg, status.color
-      )}>
-        <StatusIcon className="h-3 w-3" />
-        <span className="capitalize">{campaign.status}</span>
-      </div>
+      <ArrowRight className="h-4 w-4 text-[var(--text-tertiary)]" />
     </button>
   );
 }
 
-// Quick action link
-function QuickAction({
-  icon: Icon,
+function MetricCard({
   label,
-  description,
-  href,
-  gradient,
+  value,
+  subtext,
 }: {
-  icon: React.ElementType;
   label: string;
-  description: string;
-  href: string;
-  gradient: string;
+  value: string;
+  subtext?: string;
 }) {
   return (
-    <Link
-      to={href}
-      className="flex items-center gap-4 p-4 rounded-xl border border-subtle bg-surface hover:border-default hover:bg-elevated/50 transition-all group"
-    >
-      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", gradient)}>
-        <Icon className="h-5 w-5 text-white" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="text-[14px] font-medium text-primary group-hover:text-violet-400 transition-colors">{label}</h4>
-        <p className="text-[12px] text-secondary truncate">{description}</p>
-      </div>
-      <ArrowRight className="h-4 w-4 text-tertiary group-hover:text-violet-400 group-hover:translate-x-1 transition-all" />
-    </Link>
+    <div className="p-4 border border-[var(--border-subtle)] rounded-lg">
+      <div className="text-sm text-[var(--text-secondary)] mb-1">{label}</div>
+      <div className="text-xl font-semibold text-[var(--text-primary)]">{value}</div>
+      {subtext && (
+        <div className="text-xs text-[var(--text-tertiary)] mt-1">{subtext}</div>
+      )}
+    </div>
   );
 }
 
@@ -169,186 +144,147 @@ export function DashboardPage() {
   const recentCampaigns = campaigns?.data || [];
 
   return (
-    <div className="max-w-6xl space-y-8">
-      {/* Welcome header */}
-      <div className="flex items-start justify-between">
+    <div className="max-w-5xl space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Welcome back</h1>
-          <p className="text-secondary mt-1">Here's what's happening with your campaigns</p>
+          <h1 className="text-xl font-semibold text-[var(--text-primary)]">Dashboard</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+            Overview of your email outreach performance
+          </p>
         </div>
-        <button
-          onClick={() => navigate('/campaigns/new')}
-          className="btn-solid"
-        >
+        <button onClick={() => navigate('/campaigns/new')} className="btn-primary">
           <Plus className="h-4 w-4" />
           New Campaign
         </button>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
         <StatCard
-          icon={Megaphone}
-          label="Total Campaigns"
+          label="Campaigns"
           value={stats.total_campaigns}
-          change={12}
-          gradient="bg-violet-500"
+          icon={Megaphone}
         />
         <StatCard
-          icon={Users}
-          label="Total Contacts"
+          label="Contacts"
           value={stats.total_contacts.toLocaleString()}
-          change={8}
-          gradient="bg-pink-500"
+          icon={Users}
         />
         <StatCard
-          icon={Mail}
           label="Emails Sent"
           value={stats.total_sent.toLocaleString()}
-          change={24}
-          gradient="bg-orange-500"
+          icon={Mail}
         />
         <StatCard
-          icon={BarChart3}
-          label="Open Rate"
-          value={`${stats.avg_open_rate}%`}
-          change={5}
-          gradient="bg-emerald-500"
+          label="Active"
+          value={stats.active_campaigns}
+          icon={ArrowUpRight}
         />
       </div>
 
-      {/* Two columns */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* Content grid */}
+      <div className="grid grid-cols-3 gap-6">
         {/* Recent campaigns */}
-        <div className="lg:col-span-2">
+        <div className="col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-primary">Recent Campaigns</h2>
-            <Link to="/campaigns" className="text-[13px] text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+              Recent Campaigns
+            </h2>
+            <Link
+              to="/campaigns"
+              className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
               View all
-              <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
-          {recentCampaigns.length > 0 ? (
-            <div className="grid sm:grid-cols-2 gap-4">
-              {recentCampaigns.slice(0, 4).map((campaign) => (
-                <CampaignCard key={campaign.id} campaign={campaign} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-16 rounded-xl border border-dashed border-subtle">
-              <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4">
-                <Megaphone className="h-6 w-6 text-violet-400" />
+          <div className="border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface)] overflow-hidden">
+            {recentCampaigns.length > 0 ? (
+              recentCampaigns.slice(0, 5).map((campaign) => (
+                <CampaignRow key={campaign.id} campaign={campaign} />
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <Megaphone className="h-8 w-8 text-[var(--text-tertiary)] mx-auto mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                  No campaigns yet
+                </p>
+                <p className="text-sm text-[var(--text-secondary)] mb-4">
+                  Create your first campaign to get started
+                </p>
+                <button onClick={() => navigate('/campaigns/new')} className="btn-primary">
+                  <Plus className="h-4 w-4" />
+                  Create Campaign
+                </button>
               </div>
-              <h3 className="text-[15px] font-semibold text-primary mb-1">No campaigns yet</h3>
-              <p className="text-[13px] text-secondary mb-4">Create your first campaign to get started</p>
-              <button
-                onClick={() => navigate('/campaigns/new')}
-                className="btn-solid"
-              >
-                <Plus className="h-4 w-4" />
-                Create Campaign
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Quick actions */}
+        {/* Engagement metrics */}
         <div>
-          <h2 className="text-lg font-semibold text-primary mb-4">Quick Actions</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
+            Engagement
+          </h2>
           <div className="space-y-3">
-            <QuickAction
-              icon={Plus}
-              label="New Campaign"
-              description="Create a new email sequence"
-              href="/campaigns/new"
-              gradient="bg-gradient-to-br from-violet-500 to-pink-500"
+            <MetricCard
+              label="Open Rate"
+              value={`${stats.avg_open_rate}%`}
+              subtext={`${stats.total_opened.toLocaleString()} opened`}
             />
-            <QuickAction
-              icon={Users}
-              label="Import Contacts"
-              description="Upload a CSV file"
-              href="/contacts"
-              gradient="bg-gradient-to-br from-pink-500 to-orange-500"
+            <MetricCard
+              label="Click Rate"
+              value={`${stats.avg_click_rate}%`}
+              subtext={`${stats.total_clicked.toLocaleString()} clicked`}
             />
-            <QuickAction
-              icon={Zap}
-              label="SMTP Setup"
-              description="Connect your email"
-              href="/smtp-accounts"
-              gradient="bg-gradient-to-br from-orange-500 to-amber-500"
-            />
-            <QuickAction
-              icon={BarChart3}
-              label="View Analytics"
-              description="Track performance"
-              href="/analytics"
-              gradient="bg-gradient-to-br from-emerald-500 to-teal-500"
+            <MetricCard
+              label="Reply Rate"
+              value={`${stats.avg_reply_rate}%`}
+              subtext={`${stats.total_replied.toLocaleString()} replies`}
             />
           </div>
         </div>
       </div>
 
-      {/* Engagement metrics */}
+      {/* Quick links */}
       <div>
-        <h2 className="text-lg font-semibold text-primary mb-4">Engagement Metrics</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-5 rounded-xl border border-subtle bg-surface">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                <Mail className="h-4 w-4 text-violet-400" />
-              </div>
-              <span className="text-[13px] text-secondary">Open Rate</span>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-primary">{stats.avg_open_rate}%</span>
-              <span className="text-[12px] text-emerald-400 mb-1">+2.3%</span>
-            </div>
-            <div className="mt-3 h-1.5 bg-elevated rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full"
-                style={{ width: `${stats.avg_open_rate}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="p-5 rounded-xl border border-subtle bg-surface">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center">
-                <Zap className="h-4 w-4 text-pink-400" />
-              </div>
-              <span className="text-[13px] text-secondary">Click Rate</span>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-primary">{stats.avg_click_rate}%</span>
-              <span className="text-[12px] text-emerald-400 mb-1">+1.8%</span>
-            </div>
-            <div className="mt-3 h-1.5 bg-elevated rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-pink-500 to-orange-500 rounded-full"
-                style={{ width: `${Math.min(stats.avg_click_rate * 2, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="p-5 rounded-xl border border-subtle bg-surface">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-orange-400" />
-              </div>
-              <span className="text-[13px] text-secondary">Reply Rate</span>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-primary">{stats.avg_reply_rate}%</span>
-              <span className="text-[12px] text-emerald-400 mb-1">+3.1%</span>
-            </div>
-            <div className="mt-3 h-1.5 bg-elevated rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full"
-                style={{ width: `${Math.min(stats.avg_reply_rate * 3, 100)}%` }}
-              />
-            </div>
-          </div>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-4 gap-3">
+          <Link
+            to="/campaigns/new"
+            className="p-4 border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] transition-colors group"
+          >
+            <Megaphone className="h-5 w-5 text-[var(--text-tertiary)] mb-2 group-hover:text-[var(--text-secondary)]" strokeWidth={1.5} />
+            <div className="text-sm font-medium text-[var(--text-primary)]">New Campaign</div>
+            <div className="text-xs text-[var(--text-tertiary)]">Create email sequence</div>
+          </Link>
+          <Link
+            to="/contacts"
+            className="p-4 border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] transition-colors group"
+          >
+            <Users className="h-5 w-5 text-[var(--text-tertiary)] mb-2 group-hover:text-[var(--text-secondary)]" strokeWidth={1.5} />
+            <div className="text-sm font-medium text-[var(--text-primary)]">Import Contacts</div>
+            <div className="text-xs text-[var(--text-tertiary)]">Upload CSV file</div>
+          </Link>
+          <Link
+            to="/smtp-accounts"
+            className="p-4 border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] transition-colors group"
+          >
+            <Send className="h-5 w-5 text-[var(--text-tertiary)] mb-2 group-hover:text-[var(--text-secondary)]" strokeWidth={1.5} />
+            <div className="text-sm font-medium text-[var(--text-primary)]">SMTP Setup</div>
+            <div className="text-xs text-[var(--text-tertiary)]">Connect email</div>
+          </Link>
+          <Link
+            to="/analytics"
+            className="p-4 border border-[var(--border-subtle)] rounded-lg hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] transition-colors group"
+          >
+            <MousePointer className="h-5 w-5 text-[var(--text-tertiary)] mb-2 group-hover:text-[var(--text-secondary)]" strokeWidth={1.5} />
+            <div className="text-sm font-medium text-[var(--text-primary)]">Analytics</div>
+            <div className="text-xs text-[var(--text-tertiary)]">Track performance</div>
+          </Link>
         </div>
       </div>
     </div>
