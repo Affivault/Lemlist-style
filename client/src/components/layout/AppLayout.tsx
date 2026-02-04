@@ -6,11 +6,11 @@ import { ThemeProvider } from '../../context/ThemeContext';
 export function AppLayout() {
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-app">
+      <div className="min-h-screen bg-[var(--bg-app)]">
         <Sidebar />
-        <div className="pl-[260px]">
+        <div className="pl-60">
           <Header />
-          <main className="px-10 py-8">
+          <main className="px-8 py-6">
             <Outlet />
           </main>
         </div>

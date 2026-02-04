@@ -16,8 +16,7 @@ import {
   Users,
   FolderOpen,
   Pencil,
-  ArrowUpRight,
-  MoreHorizontal,
+  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { CreateContactInput, ContactWithTags, ContactList } from '@lemlist/shared';
@@ -33,15 +32,6 @@ const emptyContact: CreateContactInput = {
   linkedin_url: '',
   website: '',
 };
-
-const LIST_COLORS = [
-  { name: 'Violet', value: '#8b5cf6' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Emerald', value: '#10b981' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Cyan', value: '#06b6d4' },
-];
 
 export function ContactsListPage() {
   const navigate = useNavigate();
@@ -60,12 +50,11 @@ export function ContactsListPage() {
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
-  const [listForm, setListForm] = useState({ name: '', description: '', color: LIST_COLORS[0].value });
+  const [listForm, setListForm] = useState({ name: '', description: '' });
   const [editingList, setEditingList] = useState<ContactList | null>(null);
 
   const activeListId = searchParams.get('list') || null;
 
-  // Queries
   const { data: contactsData, isLoading } = useQuery({
     queryKey: ['contacts', page, search, activeListId],
     queryFn: () => contactsApi.list({
@@ -86,7 +75,6 @@ export function ContactsListPage() {
     queryFn: contactsApi.getStats,
   });
 
-  // Mutations
   const createMutation = useMutation({
     mutationFn: (input: CreateContactInput) =>
       editId ? contactsApi.update(editId, input) : contactsApi.create(input),
@@ -119,7 +107,7 @@ export function ContactsListPage() {
   });
 
   const createListMutation = useMutation({
-    mutationFn: (input: { name: string; description?: string; color?: string }) =>
+    mutationFn: (input: { name: string; description?: string }) =>
       editingList ? listsApi.update(editingList.id, input) : listsApi.create(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lists'] });
@@ -153,7 +141,6 @@ export function ContactsListPage() {
     },
   });
 
-  // Helpers
   const closeCreateModal = () => {
     setShowCreateModal(false);
     setEditId(null);
@@ -163,7 +150,7 @@ export function ContactsListPage() {
   const closeListModal = () => {
     setShowListModal(false);
     setEditingList(null);
-    setListForm({ name: '', description: '', color: LIST_COLORS[0].value });
+    setListForm({ name: '', description: '' });
   };
 
   const openEdit = (contact: ContactWithTags) => {
@@ -252,81 +239,63 @@ export function ContactsListPage() {
     : 'All Contacts';
 
   return (
-    <div className="flex gap-8">
+    <div className="flex gap-6">
       {/* Sidebar */}
-      <div className="w-56 flex-shrink-0">
-        <div className="sticky top-24 space-y-6">
-          {/* Lists */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold text-tertiary uppercase tracking-widest">Lists</span>
+      <div className="w-52 flex-shrink-0">
+        <div className="sticky top-20 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Lists</span>
+            <button
+              onClick={() => setShowListModal(true)}
+              className="p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] rounded transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="space-y-0.5">
+            <button
+              onClick={() => setSearchParams({})}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                !activeListId
+                  ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+              )}
+            >
+              <Users className="h-4 w-4" strokeWidth={1.5} />
+              <span className="flex-1 text-left">All Contacts</span>
+              <span className="text-xs text-[var(--text-tertiary)]">{stats?.total || 0}</span>
+            </button>
+            {lists?.map((list) => (
               <button
-                onClick={() => setShowListModal(true)}
-                className="p-1 text-tertiary hover:text-violet-400 rounded transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="space-y-1">
-              <button
-                onClick={() => setSearchParams({})}
+                key={list.id}
+                onClick={() => setSearchParams({ list: list.id })}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all",
-                  !activeListId
-                    ? "text-white bg-gradient-to-r from-violet-500/20 to-pink-500/10 border border-violet-500/30"
-                    : "text-secondary hover:text-primary hover:bg-surface"
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  activeListId === list.id
+                    ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
                 )}
               >
-                <Users className="h-4 w-4" />
-                <span className="flex-1 text-left">All Contacts</span>
-                <span className="text-[11px] text-tertiary">{stats?.total || 0}</span>
+                <FolderOpen className="h-4 w-4" strokeWidth={1.5} />
+                <span className="flex-1 text-left truncate">{list.name}</span>
+                <span className="text-xs text-[var(--text-tertiary)]">{list.contact_count || 0}</span>
               </button>
-              {lists?.map((list) => (
-                <button
-                  key={list.id}
-                  onClick={() => setSearchParams({ list: list.id })}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all group",
-                    activeListId === list.id
-                      ? "text-white bg-gradient-to-r from-violet-500/20 to-pink-500/10 border border-violet-500/30"
-                      : "text-secondary hover:text-primary hover:bg-surface"
-                  )}
-                >
-                  <div
-                    className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                    style={{ backgroundColor: list.color }}
-                  />
-                  <span className="flex-1 text-left truncate">{list.name}</span>
-                  <span className="text-[11px] text-tertiary">{list.contact_count || 0}</span>
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
-
-          {/* Create list */}
-          <button
-            onClick={() => setShowListModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-4 border border-dashed border-subtle rounded-xl text-[13px] text-secondary hover:text-violet-400 hover:border-violet-500/30 transition-all"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create new list</span>
-          </button>
         </div>
       </div>
 
       {/* Main content */}
       <div className="flex-1 min-w-0">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-primary">{currentListName}</h1>
-            <p className="text-secondary mt-1">{totalContacts} contacts</p>
+            <h1 className="text-xl font-semibold text-[var(--text-primary)]">{currentListName}</h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-0.5">{totalContacts} contacts</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowImportModal(true)}
-              className="btn-secondary"
-            >
+            <button onClick={() => setShowImportModal(true)} className="btn-secondary">
               <Upload className="h-4 w-4" />
               Import
             </button>
@@ -334,10 +303,7 @@ export function ContactsListPage() {
               <Download className="h-4 w-4" />
               Export
             </button>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-solid"
-            >
+            <button onClick={() => setShowCreateModal(true)} className="btn-primary">
               <Plus className="h-4 w-4" />
               Add Contact
             </button>
@@ -345,9 +311,9 @@ export function ContactsListPage() {
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
+        <div className="mb-4">
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-tertiary)]" />
             <input
               type="text"
               value={search}
@@ -360,13 +326,10 @@ export function ContactsListPage() {
 
         {/* Bulk actions */}
         {someSelected && (
-          <div className="flex items-center gap-4 mb-4 p-3 rounded-xl bg-violet-500/10 border border-violet-500/30">
-            <span className="text-[13px] font-medium text-primary">{selectedContacts.size} selected</span>
+          <div className="flex items-center gap-4 mb-4 p-3 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+            <span className="text-sm font-medium text-[var(--text-primary)]">{selectedContacts.size} selected</span>
             <div className="flex items-center gap-2 ml-auto">
-              <button
-                onClick={() => setShowAddToListModal(true)}
-                className="btn-secondary text-[12px] h-8"
-              >
+              <button onClick={() => setShowAddToListModal(true)} className="btn-secondary text-sm h-8">
                 <FolderOpen className="h-3.5 w-3.5" />
                 Add to list
               </button>
@@ -376,14 +339,14 @@ export function ContactsListPage() {
                     bulkDeleteMutation.mutate(Array.from(selectedContacts));
                   }
                 }}
-                className="flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
+                className="btn-danger text-sm h-8"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
               </button>
               <button
                 onClick={() => setSelectedContacts(new Set())}
-                className="p-1.5 text-secondary hover:text-primary rounded transition-colors"
+                className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -397,14 +360,12 @@ export function ContactsListPage() {
             <Spinner size="lg" />
           </div>
         ) : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 rounded-xl border border-dashed border-subtle">
-            <div className="w-14 h-14 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-4">
-              <Users className="h-7 w-7 text-violet-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-primary mb-1">No contacts yet</h3>
-            <p className="text-[13px] text-secondary mb-6">Get started by adding contacts or importing a CSV file.</p>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setShowCreateModal(true)} className="btn-solid">
+          <div className="flex flex-col items-center justify-center py-16 rounded-lg border border-[var(--border-subtle)]">
+            <Users className="h-10 w-10 text-[var(--text-tertiary)] mb-4" strokeWidth={1.5} />
+            <h3 className="text-sm font-medium text-[var(--text-primary)] mb-1">No contacts yet</h3>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">Get started by adding contacts or importing a CSV file.</p>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowCreateModal(true)} className="btn-primary">
                 <Plus className="h-4 w-4" />
                 Add Contact
               </button>
@@ -415,32 +376,32 @@ export function ContactsListPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-subtle overflow-hidden">
+          <div className="border border-[var(--border-subtle)] rounded-lg overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-subtle bg-surface">
+                <tr className="bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)]">
                   <th className="px-4 py-3 w-10">
                     <input
                       type="checkbox"
                       checked={allSelected}
                       onChange={toggleSelectAll}
-                      className="rounded border-subtle"
+                      className="rounded border-[var(--border-default)]"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-tertiary uppercase tracking-wider">Name</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-tertiary uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-tertiary uppercase tracking-wider">Company</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-tertiary uppercase tracking-wider">Added</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Company</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Added</th>
                   <th className="px-4 py-3 w-10"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-subtle">
+              <tbody>
                 {contacts.map((contact) => (
                   <tr
                     key={contact.id}
                     className={cn(
-                      "group hover:bg-surface/50 transition-colors",
-                      selectedContacts.has(contact.id) && "bg-violet-500/5"
+                      "group hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0",
+                      selectedContacts.has(contact.id) && "bg-[var(--bg-elevated)]"
                     )}
                   >
                     <td className="px-4 py-3">
@@ -448,25 +409,25 @@ export function ContactsListPage() {
                         type="checkbox"
                         checked={selectedContacts.has(contact.id)}
                         onChange={() => toggleSelectContact(contact.id)}
-                        className="rounded border-subtle"
+                        className="rounded border-[var(--border-default)]"
                       />
                     </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => navigate(`/contacts/${contact.id}`)}
-                        className="text-[13px] font-medium text-primary hover:text-violet-400 transition-colors"
+                        className="text-sm font-medium text-[var(--text-primary)] hover:underline"
                       >
                         {[contact.first_name, contact.last_name].filter(Boolean).join(' ') || '—'}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-secondary">{contact.email}</td>
-                    <td className="px-4 py-3 text-[13px] text-secondary">{contact.company || '—'}</td>
-                    <td className="px-4 py-3 text-[13px] text-tertiary">{formatDate(contact.created_at)}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{contact.email}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{contact.company || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--text-tertiary)]">{formatDate(contact.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => openEdit(contact)}
-                          className="p-1.5 text-secondary hover:text-violet-400 rounded transition-colors"
+                          className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -474,7 +435,7 @@ export function ContactsListPage() {
                           onClick={() => {
                             if (confirm('Delete this contact?')) deleteMutation.mutate(contact.id);
                           }}
-                          className="p-1.5 text-secondary hover:text-red-400 rounded transition-colors"
+                          className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--error)] rounded transition-colors"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -489,23 +450,23 @@ export function ContactsListPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6">
-            <p className="text-[13px] text-secondary">
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-[var(--text-secondary)]">
               Showing {(page - 1) * DEFAULT_PAGE_SIZE + 1} - {Math.min(page * DEFAULT_PAGE_SIZE, totalContacts)} of {totalContacts}
             </p>
             <div className="flex items-center gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="p-2 text-secondary hover:text-primary disabled:opacity-50 border border-subtle rounded-lg hover:bg-surface transition-colors"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 border border-[var(--border-subtle)] rounded-md hover:bg-[var(--bg-hover)] transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-[13px] text-secondary px-2">Page {page} of {totalPages}</span>
+              <span className="text-sm text-[var(--text-secondary)] px-2">Page {page} of {totalPages}</span>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
-                className="p-2 text-secondary hover:text-primary disabled:opacity-50 border border-subtle rounded-lg hover:bg-surface transition-colors"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 border border-[var(--border-subtle)] rounded-md hover:bg-[var(--bg-hover)] transition-colors"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -514,20 +475,20 @@ export function ContactsListPage() {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Create/Edit Contact Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeCreateModal} />
-          <div className="relative bg-surface border border-subtle rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-subtle">
-              <h2 className="text-lg font-semibold text-primary">{editId ? 'Edit Contact' : 'Add Contact'}</h2>
-              <button onClick={closeCreateModal} className="p-1 text-secondary hover:text-primary rounded transition-colors">
+          <div className="fixed inset-0 bg-black/50" onClick={closeCreateModal} />
+          <div className="relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg w-full max-w-md shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">{editId ? 'Edit Contact' : 'Add Contact'}</h2>
+              <button onClick={closeCreateModal} className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form); }} className="p-5 space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form); }} className="p-4 space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-primary mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Email</label>
                 <input
                   type="email"
                   value={form.email}
@@ -539,7 +500,7 @@ export function ContactsListPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[13px] font-medium text-primary mb-1.5">First Name</label>
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">First Name</label>
                   <input
                     type="text"
                     value={form.first_name || ''}
@@ -549,7 +510,7 @@ export function ContactsListPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-medium text-primary mb-1.5">Last Name</label>
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Last Name</label>
                   <input
                     type="text"
                     value={form.last_name || ''}
@@ -560,7 +521,7 @@ export function ContactsListPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-primary mb-1.5">Company</label>
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Company</label>
                 <input
                   type="text"
                   value={form.company || ''}
@@ -573,7 +534,7 @@ export function ContactsListPage() {
                 <button type="button" onClick={closeCreateModal} className="btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" disabled={createMutation.isPending} className="btn-solid">
+                <button type="submit" disabled={createMutation.isPending} className="btn-primary">
                   {createMutation.isPending ? 'Saving...' : editId ? 'Update' : 'Add Contact'}
                 </button>
               </div>
@@ -582,23 +543,24 @@ export function ContactsListPage() {
         </div>
       )}
 
+      {/* Import Modal */}
       {showImportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowImportModal(false)} />
-          <div className="relative bg-surface border border-subtle rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-subtle">
-              <h2 className="text-lg font-semibold text-primary">Import Contacts</h2>
-              <button onClick={() => setShowImportModal(false)} className="p-1 text-secondary hover:text-primary rounded transition-colors">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setShowImportModal(false)} />
+          <div className="relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg w-full max-w-md shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Import Contacts</h2>
+              <button onClick={() => setShowImportModal(false)} className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-5 space-y-4">
-              <div className="relative border border-dashed border-subtle rounded-xl p-8 text-center hover:border-violet-500/30 hover:bg-violet-500/5 transition-all cursor-pointer">
-                <Upload className="h-10 w-10 text-violet-400 mx-auto mb-3" strokeWidth={1.5} />
-                <p className="text-[14px] font-medium text-primary mb-1">
+            <div className="p-4 space-y-4">
+              <div className="relative border border-dashed border-[var(--border-default)] rounded-lg p-8 text-center hover:border-[var(--border-strong)] transition-colors cursor-pointer">
+                <Upload className="h-8 w-8 text-[var(--text-tertiary)] mx-auto mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
                   {importFile ? importFile.name : 'Drop your CSV file here'}
                 </p>
-                <p className="text-[12px] text-tertiary">or click to browse</p>
+                <p className="text-xs text-[var(--text-tertiary)]">or click to browse</p>
                 <input
                   type="file"
                   accept=".csv"
@@ -611,10 +573,10 @@ export function ContactsListPage() {
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {csvHeaders.map((header) => (
                     <div key={header} className="flex items-center gap-3">
-                      <span className="w-28 truncate text-[13px] text-primary">{header}</span>
-                      <ArrowUpRight className="h-3.5 w-3.5 text-tertiary flex-shrink-0" />
+                      <span className="w-28 truncate text-sm text-[var(--text-primary)]">{header}</span>
+                      <ArrowRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] flex-shrink-0" />
                       <select
-                        className="flex-1 h-8 px-2 text-[13px] bg-elevated border border-subtle rounded-lg text-primary"
+                        className="flex-1 h-8 px-2 text-sm bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-md text-[var(--text-primary)]"
                         value={columnMapping[header] || ''}
                         onChange={(e) => setColumnMapping({ ...columnMapping, [header]: e.target.value })}
                       >
@@ -638,7 +600,7 @@ export function ContactsListPage() {
                 <button
                   disabled={!importFile || importMutation.isPending}
                   onClick={() => importFile && importMutation.mutate({ file: importFile, mapping: columnMapping })}
-                  className="btn-solid"
+                  className="btn-primary"
                 >
                   {importMutation.isPending ? 'Importing...' : 'Import'}
                 </button>
@@ -648,19 +610,20 @@ export function ContactsListPage() {
         </div>
       )}
 
+      {/* Create List Modal */}
       {showListModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeListModal} />
-          <div className="relative bg-surface border border-subtle rounded-2xl w-full max-w-sm shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-subtle">
-              <h2 className="text-lg font-semibold text-primary">{editingList ? 'Edit List' : 'Create List'}</h2>
-              <button onClick={closeListModal} className="p-1 text-secondary hover:text-primary rounded transition-colors">
+          <div className="fixed inset-0 bg-black/50" onClick={closeListModal} />
+          <div className="relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg w-full max-w-sm shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">{editingList ? 'Edit List' : 'Create List'}</h2>
+              <button onClick={closeListModal} className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); createListMutation.mutate(listForm); }} className="p-5 space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); createListMutation.mutate(listForm); }} className="p-4 space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-primary mb-1.5">Name</label>
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Name</label>
                 <input
                   type="text"
                   value={listForm.name}
@@ -670,28 +633,11 @@ export function ContactsListPage() {
                   className="input-field"
                 />
               </div>
-              <div>
-                <label className="block text-[13px] font-medium text-primary mb-2">Color</label>
-                <div className="flex gap-2">
-                  {LIST_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => setListForm({ ...listForm, color: color.value })}
-                      className={cn(
-                        "w-8 h-8 rounded-lg transition-all",
-                        listForm.color === color.value && "ring-2 ring-offset-2 ring-offset-surface ring-white"
-                      )}
-                      style={{ backgroundColor: color.value }}
-                    />
-                  ))}
-                </div>
-              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={closeListModal} className="btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" disabled={createListMutation.isPending} className="btn-solid">
+                <button type="submit" disabled={createListMutation.isPending} className="btn-primary">
                   {createListMutation.isPending ? 'Saving...' : editingList ? 'Update' : 'Create'}
                 </button>
               </div>
@@ -700,35 +646,36 @@ export function ContactsListPage() {
         </div>
       )}
 
+      {/* Add to List Modal */}
       {showAddToListModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAddToListModal(false)} />
-          <div className="relative bg-surface border border-subtle rounded-2xl w-full max-w-sm shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-subtle">
-              <h2 className="text-lg font-semibold text-primary">Add to List</h2>
-              <button onClick={() => setShowAddToListModal(false)} className="p-1 text-secondary hover:text-primary rounded transition-colors">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setShowAddToListModal(false)} />
+          <div className="relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg w-full max-w-sm shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Add to List</h2>
+              <button onClick={() => setShowAddToListModal(false)} className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-5">
-              <p className="text-[13px] text-secondary mb-4">Add {selectedContacts.size} contacts to a list</p>
+            <div className="p-4">
+              <p className="text-sm text-[var(--text-secondary)] mb-4">Add {selectedContacts.size} contacts to a list</p>
               <div className="space-y-1 max-h-64 overflow-y-auto">
                 {lists?.map((list) => (
                   <button
                     key={list.id}
                     onClick={() => addToListMutation.mutate({ listId: list.id, contactIds: Array.from(selectedContacts) })}
                     disabled={addToListMutation.isPending}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-hover transition-colors disabled:opacity-50"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50"
                   >
-                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: list.color }} />
-                    <span className="flex-1 text-left text-[13px] font-medium text-primary">{list.name}</span>
-                    <span className="text-[11px] text-tertiary">{list.contact_count}</span>
+                    <FolderOpen className="h-4 w-4 text-[var(--text-tertiary)]" />
+                    <span className="flex-1 text-left text-sm font-medium text-[var(--text-primary)]">{list.name}</span>
+                    <span className="text-xs text-[var(--text-tertiary)]">{list.contact_count}</span>
                   </button>
                 ))}
               </div>
               <button
                 onClick={() => { setShowAddToListModal(false); setShowListModal(true); }}
-                className="w-full flex items-center justify-center gap-2 mt-4 py-3 border border-dashed border-subtle rounded-xl text-[13px] text-secondary hover:text-violet-400 hover:border-violet-500/30 transition-colors"
+                className="w-full flex items-center justify-center gap-2 mt-4 py-2 border border-dashed border-[var(--border-default)] rounded-md text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create new list
