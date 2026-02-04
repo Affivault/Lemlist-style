@@ -1,119 +1,113 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../../api/analytics.api';
+import { campaignsApi } from '../../api/campaigns.api';
 import { Spinner } from '../../components/ui/Spinner';
 import {
-  BarChart3,
-  Users,
-  Send,
-  Mail,
-  MousePointerClick,
-  MessageSquare,
   Plus,
+  Check,
   UserPlus,
-  TrendingUp,
-  TrendingDown,
   ChevronRight,
+  Megaphone,
+  Users,
+  Mail,
+  BarChart3,
+  Play,
+  Pause,
+  Clock,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { cn } from '../../lib/utils';
+import type { Campaign } from '@lemlist/shared';
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  trend,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  sub?: string;
-  trend?: number;
-}) {
+// Campaign card - Render style
+function CampaignCard({ campaign }: { campaign: Campaign }) {
+  const navigate = useNavigate();
+
+  const statusConfig = {
+    draft: { color: 'text-tertiary', label: 'Draft', icon: Clock },
+    active: { color: 'text-brand', label: 'All services running', icon: Check },
+    paused: { color: 'text-amber-600', label: 'Paused', icon: Pause },
+    completed: { color: 'text-secondary', label: 'Completed', icon: Check },
+  };
+
+  const status = statusConfig[campaign.status as keyof typeof statusConfig] || statusConfig.draft;
+  const StatusIcon = status.icon;
+
   return (
-    <div className="bg-surface border border-subtle rounded-lg p-5">
-      <div className="flex items-start justify-between">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Icon className="h-5 w-5 text-secondary" />
-            <span className="text-sm text-secondary">{label}</span>
-          </div>
-          <p className="text-2xl font-semibold text-primary">{value}</p>
-          {sub && <p className="text-sm text-secondary">{sub}</p>}
-        </div>
-
-        {trend !== undefined && (
-          <div
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
-              trend >= 0
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-red-500/10 text-red-400'
-            }`}
-          >
-            {trend >= 0 ? (
-              <TrendingUp className="h-3 w-3" />
-            ) : (
-              <TrendingDown className="h-3 w-3" />
-            )}
-            {Math.abs(trend)}%
-          </div>
-        )}
+    <button
+      onClick={() => navigate(`/campaigns/${campaign.id}`)}
+      className="flex flex-col p-5 border border-subtle rounded-lg hover:border-default transition-colors text-left group"
+    >
+      <h3 className="text-[15px] font-semibold text-primary mb-3">
+        {campaign.name}
+      </h3>
+      <div className={cn(
+        "inline-flex items-center gap-1.5 text-[13px] font-medium",
+        status.color
+      )}>
+        <StatusIcon className="h-3.5 w-3.5" />
+        <span>{status.label}</span>
       </div>
-    </div>
+    </button>
   );
 }
 
-function MetricCard({
-  icon: Icon,
-  label,
-  percentage,
-  total,
-}: {
-  icon: React.ElementType;
-  label: string;
-  percentage: number;
-  total: number;
-}) {
+// Create new card - Render style with dashed border
+function CreateNewCard({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <div className="bg-surface border border-subtle rounded-lg p-5">
-      <div className="flex items-center gap-3 mb-4">
-        <Icon className="h-5 w-5 text-secondary" />
-        <span className="text-sm text-secondary">{label}</span>
-      </div>
-      <p className="text-3xl font-semibold text-primary mb-1">{percentage}%</p>
-      <p className="text-sm text-secondary">{total.toLocaleString()} total</p>
-    </div>
+    <button
+      onClick={onClick}
+      className="flex items-center justify-center gap-2 p-5 border border-dashed border-subtle rounded-lg hover:border-default hover:bg-hover/50 transition-colors text-secondary hover:text-primary"
+    >
+      <Plus className="h-4 w-4" />
+      <span className="text-[14px] font-medium">{label}</span>
+    </button>
   );
 }
 
+// Quick action item - Render style
 function QuickAction({
   icon: Icon,
   label,
+  value,
   href,
 }: {
   icon: React.ElementType;
   label: string;
+  value?: string | number;
   href: string;
 }) {
   return (
     <Link
       to={href}
-      className="flex items-center justify-between py-3 px-4 rounded-lg text-secondary hover:text-primary hover:bg-hover transition-colors group"
+      className="flex items-center justify-between py-3.5 border-b border-subtle last:border-0 group"
     >
       <div className="flex items-center gap-3">
-        <Icon className="h-4 w-4" />
-        <span className="text-sm">{label}</span>
+        <Icon className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+        <span className="text-[13px] text-secondary group-hover:text-primary transition-colors">{label}</span>
       </div>
-      <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="flex items-center gap-2">
+        {value && <span className="text-[13px] font-medium text-tertiary">{value}</span>}
+        <ChevronRight className="h-4 w-4 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
     </Link>
   );
 }
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { data, isLoading } = useQuery({
+
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['analytics', 'overview'],
     queryFn: analyticsApi.overview,
   });
+
+  const { data: campaigns, isLoading: campaignsLoading } = useQuery({
+    queryKey: ['campaigns'],
+    queryFn: () => campaignsApi.list({ limit: 5 }),
+  });
+
+  const isLoading = analyticsLoading || campaignsLoading;
 
   if (isLoading) {
     return (
@@ -123,7 +117,7 @@ export function DashboardPage() {
     );
   }
 
-  const stats = data || {
+  const stats = analytics || {
     total_campaigns: 0,
     active_campaigns: 0,
     total_contacts: 0,
@@ -136,90 +130,85 @@ export function DashboardPage() {
     avg_reply_rate: 0,
   };
 
+  const recentCampaigns = campaigns?.data || [];
+
   return (
-    <div className="space-y-10 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-primary">Dashboard</h1>
-          <p className="text-sm text-secondary mt-1">Your outreach overview</p>
+    <div className="max-w-5xl">
+      {/* Header - Render style */}
+      <div className="flex items-start justify-between mb-10">
+        <h1 className="text-[32px] font-semibold text-primary">Overview</h1>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 text-[13px] font-medium text-brand hover:text-brand-600 transition-colors">
+            <UserPlus className="h-4 w-4" />
+            Invite your team
+          </button>
+          <button
+            onClick={() => navigate('/campaigns/new')}
+            className="flex items-center gap-1.5 h-9 px-4 text-[13px] font-medium bg-neutral-900 text-white rounded-md hover:bg-neutral-800 transition-colors dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+          >
+            <Plus className="h-4 w-4" />
+            New
+          </button>
         </div>
-        <button
-          onClick={() => navigate('/campaigns/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-primary text-sm font-medium rounded-lg transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          New Campaign
-        </button>
       </div>
 
-      {/* Stats Grid */}
-      <div>
-        <h2 className="text-sm font-medium text-secondary uppercase tracking-wide mb-4">
-          Overview
-        </h2>
+      {/* Campaigns Section - Render style */}
+      <section className="mb-10">
+        <h2 className="text-[15px] font-semibold text-primary mb-4">Campaigns</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {recentCampaigns.slice(0, 2).map((campaign) => (
+            <CampaignCard key={campaign.id} campaign={campaign} />
+          ))}
+          <CreateNewCard
+            onClick={() => navigate('/campaigns/new')}
+            label="Create new campaign"
+          />
+        </div>
+      </section>
+
+      {/* Quick Stats - Render style minimal cards */}
+      <section className="mb-10">
+        <h2 className="text-[15px] font-semibold text-primary mb-4">Quick Stats</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            icon={BarChart3}
-            label="Campaigns"
-            value={stats.total_campaigns}
-            sub={`${stats.active_campaigns} active`}
-            trend={12}
-          />
-          <StatCard
-            icon={Users}
-            label="Contacts"
-            value={stats.total_contacts.toLocaleString()}
-            trend={8}
-          />
-          <StatCard
-            icon={Send}
-            label="Emails Sent"
-            value={stats.total_sent.toLocaleString()}
-            trend={24}
-          />
-          <StatCard
-            icon={MessageSquare}
-            label="Replies"
-            value={stats.total_replied.toLocaleString()}
-            trend={15}
-          />
-        </div>
-      </div>
+          <div className="p-5 border border-subtle rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Megaphone className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+              <span className="text-[13px] text-secondary">Campaigns</span>
+            </div>
+            <p className="text-[24px] font-semibold text-primary">{stats.total_campaigns}</p>
+            <p className="text-[12px] text-tertiary mt-1">{stats.active_campaigns} active</p>
+          </div>
 
-      {/* Engagement Metrics */}
-      <div>
-        <h2 className="text-sm font-medium text-secondary uppercase tracking-wide mb-4">
-          Engagement
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <MetricCard
-            icon={Mail}
-            label="Open Rate"
-            percentage={stats.avg_open_rate}
-            total={stats.total_opened}
-          />
-          <MetricCard
-            icon={MousePointerClick}
-            label="Click Rate"
-            percentage={stats.avg_click_rate}
-            total={stats.total_clicked}
-          />
-          <MetricCard
-            icon={MessageSquare}
-            label="Reply Rate"
-            percentage={stats.avg_reply_rate}
-            total={stats.total_replied}
-          />
-        </div>
-      </div>
+          <div className="p-5 border border-subtle rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+              <span className="text-[13px] text-secondary">Contacts</span>
+            </div>
+            <p className="text-[24px] font-semibold text-primary">{stats.total_contacts.toLocaleString()}</p>
+          </div>
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-sm font-medium text-secondary uppercase tracking-wide mb-4">
-          Quick Actions
-        </h2>
-        <div className="bg-surface border border-subtle rounded-lg divide-y divide-subtle">
+          <div className="p-5 border border-subtle rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Mail className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+              <span className="text-[13px] text-secondary">Emails Sent</span>
+            </div>
+            <p className="text-[24px] font-semibold text-primary">{stats.total_sent.toLocaleString()}</p>
+          </div>
+
+          <div className="p-5 border border-subtle rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-4 w-4 text-secondary" strokeWidth={1.75} />
+              <span className="text-[13px] text-secondary">Open Rate</span>
+            </div>
+            <p className="text-[24px] font-semibold text-primary">{stats.avg_open_rate}%</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions - Render style list */}
+      <section>
+        <h2 className="text-[15px] font-semibold text-primary mb-4">Quick Actions</h2>
+        <div className="border border-subtle rounded-lg px-5">
           <QuickAction
             icon={Plus}
             label="Create a new campaign"
@@ -228,6 +217,7 @@ export function DashboardPage() {
           <QuickAction
             icon={UserPlus}
             label="Import contacts"
+            value={`${stats.total_contacts} total`}
             href="/contacts"
           />
           <QuickAction
@@ -235,8 +225,14 @@ export function DashboardPage() {
             label="Connect SMTP account"
             href="/smtp-accounts"
           />
+          <QuickAction
+            icon={BarChart3}
+            label="View analytics"
+            value={`${stats.total_sent} sent`}
+            href="/analytics"
+          />
         </div>
-      </div>
+      </section>
     </div>
   );
 }
