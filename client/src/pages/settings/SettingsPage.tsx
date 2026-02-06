@@ -82,11 +82,11 @@ export function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-left transition-all duration-200 ${
                     isActive
-                      ? 'bg-[var(--brand-subtle)] text-[var(--brand)]'
+                      ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-[var(--brand)]' : 'text-[var(--text-tertiary)]'}`} strokeWidth={1.5} />
+                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`} strokeWidth={1.5} />
                   {tab.label}
                 </button>
               );
@@ -116,7 +116,7 @@ export function SettingsPage() {
                 </div>
 
                 <div className="flex items-center gap-4 p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white text-lg font-semibold shadow-md">
+                  <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] text-lg font-semibold">
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
@@ -216,8 +216,8 @@ export function SettingsPage() {
 
                 <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-[var(--brand-subtle)] flex items-center justify-center">
-                      <Key className="h-5 w-5 text-[var(--brand)]" />
+                    <div className="h-10 w-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                      <Key className="h-5 w-5 text-[var(--text-primary)]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">Password</p>
@@ -230,8 +230,8 @@ export function SettingsPage() {
                 <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-[var(--brand-subtle)] flex items-center justify-center">
-                        <Shield className="h-5 w-5 text-[var(--brand)]" />
+                      <div className="h-10 w-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                        <Shield className="h-5 w-5 text-[var(--text-primary)]" />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-[var(--text-primary)]">Two-Factor Authentication</p>
@@ -326,10 +326,10 @@ export function SettingsPage() {
                       <button
                         key={t}
                         onClick={() => setTheme(t)}
-                        className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 border ${
                           theme === t
-                            ? 'bg-[var(--brand)] text-white shadow-md shadow-[var(--brand)]/20'
-                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-default)]'
+                            ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--text-primary)]'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                         }`}
                       >
                         <span className="capitalize">{t}</span>
@@ -358,7 +358,7 @@ export function SettingsPage() {
 
             {/* Save button */}
             <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex justify-end">
-              <button onClick={handleSave} disabled={saving} className="btn-brand rounded-lg px-6 py-2.5">
+              <button onClick={handleSave} disabled={saving} className="btn-primary rounded-lg px-6 py-2.5">
                 {saving ? 'Saving...' : (
                   <>
                     <Save className="h-4 w-4" />
@@ -394,7 +394,7 @@ function ToggleSetting({
       <button
         onClick={() => onChange(!checked)}
         className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-          checked ? 'bg-[var(--brand)]' : 'bg-[var(--border-default)]'
+          checked ? 'bg-[var(--accent)]' : 'bg-[var(--border-default)]'
         }`}
       >
         <span

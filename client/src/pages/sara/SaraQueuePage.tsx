@@ -143,7 +143,7 @@ export function SaraQueuePage() {
         <div className="p-4 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface)]">
           <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Intent Distribution</h3>
           <div className="flex gap-2 flex-wrap">
-            {stats.top_intents.map((item) => {
+            {stats.top_intents.map((item: any) => {
               const config = INTENT_CONFIG[item.intent] || INTENT_CONFIG.other;
               const IntentIcon = config.icon;
               return (

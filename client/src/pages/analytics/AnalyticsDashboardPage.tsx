@@ -32,7 +32,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-const COLORS = ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b'];
+/* Monochrome palette for charts — works in both light and dark themes */
+const COLORS = ['#0A0A0B', '#6B6B76', '#9B9BA5', '#CDCDD6'];
 
 const tooltipStyle = {
   backgroundColor: 'var(--bg-elevated)',
@@ -53,68 +54,29 @@ const tooltipItemStyle = {
   fontSize: '13px',
 };
 
-type StatColor = 'brand' | 'info' | 'success' | 'violet' | 'error';
-
-const statColorMap: Record<StatColor, { iconBg: string; iconColor: string; accent: string }> = {
-  brand: {
-    iconBg: 'bg-[var(--brand-subtle)]',
-    iconColor: 'text-[var(--brand)]',
-    accent: 'from-[var(--brand-subtle)] to-transparent',
-  },
-  info: {
-    iconBg: 'bg-[var(--info-bg)]',
-    iconColor: 'text-[var(--info)]',
-    accent: 'from-[var(--info-bg)] to-transparent',
-  },
-  success: {
-    iconBg: 'bg-[var(--success-bg)]',
-    iconColor: 'text-[var(--success)]',
-    accent: 'from-[var(--success-bg)] to-transparent',
-  },
-  violet: {
-    iconBg: 'bg-violet-500/10',
-    iconColor: 'text-violet-500',
-    accent: 'from-violet-500/5 to-transparent',
-  },
-  error: {
-    iconBg: 'bg-[var(--error-bg)]',
-    iconColor: 'text-[var(--error)]',
-    accent: 'from-[var(--error-bg)] to-transparent',
-  },
-};
-
 function StatCard({
   icon: Icon,
   label,
   value,
   rate,
   trend,
-  color = 'brand',
 }: {
   icon: React.ElementType;
   label: string;
   value: number;
   rate?: number;
   trend?: number;
-  color?: StatColor;
 }) {
-  const colors = statColorMap[color];
-
   return (
     <div
       className="relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition-all duration-300 hover:border-[var(--border-default)] hover:translate-y-[-2px] group"
       style={{ boxShadow: 'var(--shadow-card)' }}
     >
-      {/* Subtle gradient accent */}
-      <div
-        className={`absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl opacity-50 rounded-bl-full pointer-events-none transition-opacity duration-300 group-hover:opacity-80 ${colors.accent}`}
-      />
-
       <div className="relative flex items-center justify-between mb-4">
         <div
-          className={`flex items-center justify-center h-10 w-10 rounded-xl transition-transform duration-300 group-hover:scale-110 ${colors.iconBg}`}
+          className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--bg-elevated)] transition-transform duration-300 group-hover:scale-110"
         >
-          <Icon className={`h-5 w-5 ${colors.iconColor}`} strokeWidth={1.5} />
+          <Icon className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={1.5} />
         </div>
         {trend !== undefined && (
           <span
@@ -193,7 +155,7 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
             >
               <div className="flex items-center gap-2.5">
                 <div
-                  className="w-2.5 h-2.5 rounded-full ring-2 ring-offset-1 ring-offset-[var(--bg-surface)]"
+                  className="w-2.5 h-2.5 rounded-full"
                   style={{
                     backgroundColor: COLORS[index % COLORS.length],
                     boxShadow: `0 0 0 2px var(--bg-surface), 0 0 0 3.5px ${COLORS[index % COLORS.length]}30`,
@@ -255,11 +217,11 @@ export function AnalyticsDashboardPage() {
 
   const chartData = campaignAnalytics
     ? [
-        { name: 'Sent', value: campaignAnalytics.sent, fill: 'var(--brand)' },
-        { name: 'Opened', value: campaignAnalytics.opened, fill: 'var(--info)' },
-        { name: 'Clicked', value: campaignAnalytics.clicked, fill: 'var(--success)' },
-        { name: 'Replied', value: campaignAnalytics.replied, fill: '#8b5cf6' },
-        { name: 'Bounced', value: campaignAnalytics.bounced, fill: 'var(--error)' },
+        { name: 'Sent', value: campaignAnalytics.sent, fill: '#0A0A0B' },
+        { name: 'Opened', value: campaignAnalytics.opened, fill: '#6B6B76' },
+        { name: 'Clicked', value: campaignAnalytics.clicked, fill: '#9B9BA5' },
+        { name: 'Replied', value: campaignAnalytics.replied, fill: '#CDCDD6' },
+        { name: 'Bounced', value: campaignAnalytics.bounced, fill: '#E4E4E7' },
       ]
     : [];
 
@@ -333,7 +295,6 @@ export function AnalyticsDashboardPage() {
             label="Total Sent"
             value={overview.total_sent}
             trend={12}
-            color="brand"
           />
           <StatCard
             icon={Mail}
@@ -341,7 +302,6 @@ export function AnalyticsDashboardPage() {
             value={overview.total_opened}
             rate={overview.avg_open_rate}
             trend={8}
-            color="info"
           />
           <StatCard
             icon={MousePointerClick}
@@ -349,7 +309,6 @@ export function AnalyticsDashboardPage() {
             value={overview.total_clicked}
             rate={overview.avg_click_rate}
             trend={-3}
-            color="success"
           />
           <StatCard
             icon={MessageSquare}
@@ -357,13 +316,11 @@ export function AnalyticsDashboardPage() {
             value={overview.total_replied}
             rate={overview.avg_reply_rate}
             trend={15}
-            color="violet"
           />
           <StatCard
             icon={Target}
             label="Campaigns"
             value={overview.total_campaigns}
-            color="error"
           />
         </div>
       )}
@@ -384,11 +341,11 @@ export function AnalyticsDashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[var(--brand)]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--text-primary)]" />
                 <span className="text-xs text-[var(--text-tertiary)]">Sent</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[var(--info)]" />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B6B76' }} />
                 <span className="text-xs text-[var(--text-tertiary)]">Opened</span>
               </div>
             </div>
@@ -398,12 +355,12 @@ export function AnalyticsDashboardPage() {
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#0A0A0B" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#0A0A0B" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#6B6B76" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#6B6B76" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
@@ -429,22 +386,22 @@ export function AnalyticsDashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="sent"
-                  stroke="#6366F1"
+                  stroke="#0A0A0B"
                   strokeWidth={2.5}
                   fill="url(#colorSent)"
                   name="Sent"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#6366F1', stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: '#0A0A0B', stroke: 'var(--bg-surface)', strokeWidth: 2 }}
                 />
                 <Area
                   type="monotone"
                   dataKey="opened"
-                  stroke="#3B82F6"
+                  stroke="#6B6B76"
                   strokeWidth={2.5}
                   fill="url(#colorOpened)"
                   name="Opened"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#3B82F6', stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: '#6B6B76', stroke: 'var(--bg-surface)', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -472,7 +429,7 @@ export function AnalyticsDashboardPage() {
               <select
                 value={selectedCampaignId}
                 onChange={(e) => setSelectedCampaignId(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-subtle)] min-w-[220px] transition-all duration-200 cursor-pointer"
+                className="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--text-primary)] min-w-[220px] transition-all duration-200 cursor-pointer"
               >
                 <option value="">Choose a campaign...</option>
                 {campaigns.map((c: any) => (
@@ -490,24 +447,22 @@ export function AnalyticsDashboardPage() {
           <div className="p-6 space-y-6">
             {/* Campaign stats */}
             <div className="grid grid-cols-4 gap-4">
-              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--brand-subtle)] border border-[var(--brand)]/15 transition-all duration-200 hover:border-[var(--brand)]/30 group">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[var(--brand)]/10 to-transparent rounded-bl-full pointer-events-none" />
+              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all duration-200 hover:border-[var(--border-default)] group">
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--brand)]/15">
-                    <Send className="h-4 w-4 text-[var(--brand)]" />
+                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-surface)]">
+                    <Send className="h-4 w-4 text-[var(--text-primary)]" />
                   </div>
-                  <span className="text-sm font-medium text-[var(--brand)]">Sent</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">Sent</span>
                 </div>
                 <p className="stat-value">{campaignAnalytics.sent}</p>
               </div>
 
-              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--info-bg)] border border-[var(--info)]/15 transition-all duration-200 hover:border-[var(--info)]/30 group">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[var(--info)]/10 to-transparent rounded-bl-full pointer-events-none" />
+              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all duration-200 hover:border-[var(--border-default)] group">
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--info)]/15">
-                    <Mail className="h-4 w-4 text-[var(--info)]" />
+                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-surface)]">
+                    <Mail className="h-4 w-4 text-[var(--text-primary)]" />
                   </div>
-                  <span className="text-sm font-medium text-[var(--info)]">Opened</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">Opened</span>
                 </div>
                 <p className="stat-value">{campaignAnalytics.opened}</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">
@@ -515,13 +470,12 @@ export function AnalyticsDashboardPage() {
                 </p>
               </div>
 
-              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--success-bg)] border border-[var(--success)]/15 transition-all duration-200 hover:border-[var(--success)]/30 group">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[var(--success)]/10 to-transparent rounded-bl-full pointer-events-none" />
+              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all duration-200 hover:border-[var(--border-default)] group">
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--success)]/15">
-                    <MousePointerClick className="h-4 w-4 text-[var(--success)]" />
+                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-surface)]">
+                    <MousePointerClick className="h-4 w-4 text-[var(--text-primary)]" />
                   </div>
-                  <span className="text-sm font-medium text-[var(--success)]">Clicked</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">Clicked</span>
                 </div>
                 <p className="stat-value">{campaignAnalytics.clicked}</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">
@@ -529,13 +483,12 @@ export function AnalyticsDashboardPage() {
                 </p>
               </div>
 
-              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--error-bg)] border border-[var(--error)]/15 transition-all duration-200 hover:border-[var(--error)]/30 group">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[var(--error)]/10 to-transparent rounded-bl-full pointer-events-none" />
+              <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all duration-200 hover:border-[var(--border-default)] group">
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--error)]/15">
-                    <AlertTriangle className="h-4 w-4 text-[var(--error)]" />
+                  <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-surface)]">
+                    <AlertTriangle className="h-4 w-4 text-[var(--text-primary)]" />
                   </div>
-                  <span className="text-sm font-medium text-[var(--error)]">Bounced</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">Bounced</span>
                 </div>
                 <p className="stat-value">{campaignAnalytics.bounced}</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">
@@ -586,7 +539,7 @@ export function AnalyticsDashboardPage() {
           </div>
         ) : (
           <div className="p-16 text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center mb-4 ring-1 ring-[var(--border-subtle)]">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center mb-4 border border-[var(--border-subtle)]">
               <Target className="h-6 w-6 text-[var(--text-tertiary)]" />
             </div>
             <h3 className="font-semibold text-[var(--text-primary)] mb-1.5">No Campaign Selected</h3>
@@ -600,8 +553,8 @@ export function AnalyticsDashboardPage() {
         {campaignContacts && campaignContacts.contacts.length > 0 && (
           <div className="p-6 border-t border-[var(--border-subtle)]">
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2.5">
-              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-[var(--brand-subtle)]">
-                <Users className="h-3.5 w-3.5 text-[var(--brand)]" />
+              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-[var(--bg-elevated)]">
+                <Users className="h-3.5 w-3.5 text-[var(--text-primary)]" />
               </div>
               Contact Breakdown
             </h3>
@@ -625,7 +578,7 @@ export function AnalyticsDashboardPage() {
                     >
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-[var(--brand-subtle)] flex items-center justify-center text-[var(--brand)] text-xs font-semibold ring-1 ring-[var(--brand)]/10">
+                          <div className="w-8 h-8 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] text-xs font-semibold border border-[var(--border-subtle)]">
                             {(c.first_name?.[0] || c.email[0]).toUpperCase()}
                           </div>
                           <div>
@@ -641,7 +594,7 @@ export function AnalyticsDashboardPage() {
                       <td className="py-3.5 px-4">
                         <Badge
                           variant={
-                            c.status === 'replied' ? 'purple' :
+                            c.status === 'replied' ? 'info' :
                             c.status === 'bounced' ? 'danger' :
                             c.status === 'opened' || c.status === 'clicked' ? 'success' :
                             'default'
@@ -661,7 +614,7 @@ export function AnalyticsDashboardPage() {
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         {c.replied ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--brand-subtle)] text-[var(--brand)]">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--bg-elevated)] text-[var(--text-primary)]">
                             <MessageSquare className="h-3 w-3" />
                             Yes
                           </span>

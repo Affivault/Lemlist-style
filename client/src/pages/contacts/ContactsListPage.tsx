@@ -257,7 +257,7 @@ export function ContactsListPage() {
             </span>
             <button
               onClick={() => setShowListModal(true)}
-              className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--brand)] hover:bg-[var(--brand-subtle)] rounded-lg transition-all duration-200"
+              className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-all duration-200"
               title="Create new list"
             >
               <Plus className="h-4 w-4" />
@@ -269,7 +269,7 @@ export function ContactsListPage() {
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                 !activeListId
-                  ? "bg-[var(--brand-subtle)] text-[var(--brand)] shadow-sm"
+                  ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
               )}
             >
@@ -278,7 +278,7 @@ export function ContactsListPage() {
               <span className={cn(
                 "text-[11px] font-semibold px-2 py-0.5 rounded-full",
                 !activeListId
-                  ? "bg-[var(--brand)] bg-opacity-10 text-[var(--brand)]"
+                  ? "bg-[var(--bg-hover)] text-[var(--text-primary)]"
                   : "text-[var(--text-tertiary)]"
               )}>
                 {stats?.total || 0}
@@ -291,7 +291,7 @@ export function ContactsListPage() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                   activeListId === list.id
-                    ? "bg-[var(--brand-subtle)] text-[var(--brand)] shadow-sm"
+                    ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
                 )}
               >
@@ -300,7 +300,7 @@ export function ContactsListPage() {
                 <span className={cn(
                   "text-[11px] font-semibold px-2 py-0.5 rounded-full",
                   activeListId === list.id
-                    ? "bg-[var(--brand)] bg-opacity-10 text-[var(--brand)]"
+                    ? "bg-[var(--bg-hover)] text-[var(--text-primary)]"
                     : "text-[var(--text-tertiary)]"
                 )}>
                   {list.contact_count || 0}
@@ -341,7 +341,7 @@ export function ContactsListPage() {
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="btn-brand rounded-lg"
+              className="btn-primary rounded-lg"
             >
               <Plus className="h-4 w-4" />
               Add Contact
@@ -358,7 +358,7 @@ export function ContactsListPage() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search by name, email, or company..."
-              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_var(--brand-subtle)] transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--border-default)] focus:shadow-[0_0_0_3px_var(--bg-elevated)] transition-all duration-200"
             />
             {search && (
               <button
@@ -378,9 +378,9 @@ export function ContactsListPage() {
 
         {/* Bulk actions bar */}
         {someSelected && (
-          <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl bg-[var(--brand-subtle)] border border-[var(--brand)] border-opacity-20 animate-fade-in">
+          <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] animate-fade-in">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-[var(--brand)] text-white text-[11px] font-bold">
+              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-[var(--text-primary)] text-[var(--bg-surface)] text-[11px] font-bold">
                 {selectedContacts.size}
               </span>
               <span className="text-sm font-medium text-[var(--text-primary)]">
@@ -421,15 +421,15 @@ export function ContactsListPage() {
         ) : contacts.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-[var(--brand-subtle)] mb-5">
-              <Users className="h-8 w-8 text-[var(--brand)]" strokeWidth={1.5} />
+            <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-[var(--bg-elevated)] mb-5">
+              <Users className="h-8 w-8 text-[var(--text-primary)]" strokeWidth={1.5} />
             </div>
             <h3 className="text-heading-sm text-[var(--text-primary)] mb-2">No contacts yet</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-sm text-center">
               Get started by adding your first contact manually or importing a CSV file with your existing data.
             </p>
             <div className="flex items-center gap-3">
-              <button onClick={() => setShowCreateModal(true)} className="btn-brand rounded-lg">
+              <button onClick={() => setShowCreateModal(true)} className="btn-primary rounded-lg">
                 <Plus className="h-4 w-4" />
                 Add Contact
               </button>
@@ -478,7 +478,7 @@ export function ContactsListPage() {
                         "group transition-colors duration-150",
                         index < contacts.length - 1 && "border-b border-[var(--border-subtle)]",
                         selectedContacts.has(contact.id)
-                          ? "bg-[var(--brand-subtle)]"
+                          ? "bg-[var(--bg-elevated)]"
                           : "hover:bg-[var(--bg-hover)]"
                       )}
                     >
@@ -495,13 +495,13 @@ export function ContactsListPage() {
                           onClick={() => navigate(`/contacts/${contact.id}`)}
                           className="flex items-center gap-3 group/name"
                         >
-                          <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-sm">
-                            <span className="text-[12px] font-semibold text-white leading-none">
+                          <div className="flex-shrink-0 h-9 w-9 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center shadow-sm">
+                            <span className="text-[12px] font-semibold text-[var(--text-primary)] leading-none">
                               {initials}
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <span className="text-sm font-medium text-[var(--text-primary)] group-hover/name:text-[var(--brand)] transition-colors">
+                            <span className="text-sm font-medium text-[var(--text-primary)] group-hover/name:text-[var(--text-primary)] transition-colors">
                               {fullName || '---'}
                             </span>
                             {contact.job_title && (
@@ -679,7 +679,7 @@ export function ContactsListPage() {
                 <button type="button" onClick={closeCreateModal} className="btn-secondary rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" disabled={createMutation.isPending} className="btn-brand rounded-lg">
+                <button type="submit" disabled={createMutation.isPending} className="btn-primary rounded-lg">
                   {createMutation.isPending ? 'Saving...' : editId ? 'Update Contact' : 'Add Contact'}
                 </button>
               </div>
@@ -714,8 +714,8 @@ export function ContactsListPage() {
                   <span className={cn(
                     "inline-flex items-center justify-center h-6 w-6 rounded-full text-[11px] font-bold",
                     csvHeaders.length > 0
-                      ? "bg-[var(--success)] text-white"
-                      : "bg-gradient-to-br from-indigo-400 to-violet-500 text-white"
+                      ? "bg-[var(--success)] text-[var(--bg-surface)]"
+                      : "bg-[var(--text-primary)] text-[var(--bg-surface)]"
                   )}>
                     {csvHeaders.length > 0 ? '\u2713' : '1'}
                   </span>
@@ -731,7 +731,7 @@ export function ContactsListPage() {
                   <span className={cn(
                     "inline-flex items-center justify-center h-6 w-6 rounded-full text-[11px] font-bold",
                     csvHeaders.length > 0
-                      ? "bg-gradient-to-br from-indigo-400 to-violet-500 text-white"
+                      ? "bg-[var(--text-primary)] text-[var(--bg-surface)]"
                       : "bg-[var(--bg-elevated)] text-[var(--text-tertiary)]"
                   )}>
                     2
@@ -750,7 +750,7 @@ export function ContactsListPage() {
                 "relative rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
                 importFile
                   ? "border-2 border-[var(--success)] border-opacity-40 bg-[var(--success-bg)]"
-                  : "border-2 border-dashed border-[var(--border-default)] hover:border-[var(--brand)] hover:bg-[var(--brand-subtle)]"
+                  : "border-2 border-dashed border-[var(--border-default)] hover:border-[var(--border-default)] hover:bg-[var(--bg-elevated)]"
               )}>
                 {importFile ? (
                   <>
@@ -764,8 +764,8 @@ export function ContactsListPage() {
                   </>
                 ) : (
                   <>
-                    <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[var(--brand-subtle)] mb-3">
-                      <Upload className="h-6 w-6 text-[var(--brand)]" strokeWidth={1.5} />
+                    <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[var(--bg-elevated)] mb-3">
+                      <Upload className="h-6 w-6 text-[var(--text-primary)]" strokeWidth={1.5} />
                     </div>
                     <p className="text-sm font-medium text-[var(--text-primary)] mb-0.5">
                       Drop your CSV file here
@@ -797,7 +797,7 @@ export function ContactsListPage() {
                       </span>
                       <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)] flex-shrink-0" />
                       <select
-                        className="flex-1 h-8 px-2.5 text-[13px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand)] focus:shadow-[0_0_0_3px_var(--brand-subtle)] transition-all duration-200 cursor-pointer"
+                        className="flex-1 h-8 px-2.5 text-[13px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-default)] focus:shadow-[0_0_0_3px_var(--bg-elevated)] transition-all duration-200 cursor-pointer"
                         value={columnMapping[header] || ''}
                         onChange={(e) => setColumnMapping({ ...columnMapping, [header]: e.target.value })}
                       >
@@ -829,7 +829,7 @@ export function ContactsListPage() {
                 <button
                   disabled={!importFile || importMutation.isPending}
                   onClick={() => importFile && importMutation.mutate({ file: importFile, mapping: columnMapping })}
-                  className="btn-brand rounded-lg"
+                  className="btn-primary rounded-lg"
                 >
                   {importMutation.isPending ? (
                     <>
@@ -891,7 +891,7 @@ export function ContactsListPage() {
                 <button type="button" onClick={closeListModal} className="btn-secondary rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" disabled={createListMutation.isPending} className="btn-brand rounded-lg">
+                <button type="submit" disabled={createListMutation.isPending} className="btn-primary rounded-lg">
                   {createListMutation.isPending ? 'Saving...' : editingList ? 'Update List' : 'Create List'}
                 </button>
               </div>
@@ -928,7 +928,7 @@ export function ContactsListPage() {
                     disabled={addToListMutation.isPending}
                     className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[var(--bg-hover)] transition-all duration-200 disabled:opacity-50 group"
                   >
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--brand-subtle)] text-[var(--brand)] group-hover:bg-[var(--brand)] group-hover:text-white transition-all duration-200">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-primary)] group-hover:bg-[var(--text-primary)] group-hover:text-[var(--bg-surface)] transition-all duration-200">
                       <FolderOpen className="h-4 w-4" />
                     </div>
                     <span className="flex-1 text-left text-sm font-medium text-[var(--text-primary)]">
@@ -942,7 +942,7 @@ export function ContactsListPage() {
               </div>
               <button
                 onClick={() => { setShowAddToListModal(false); setShowListModal(true); }}
-                className="w-full flex items-center justify-center gap-2 mt-4 py-2.5 border-2 border-dashed border-[var(--border-default)] rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--brand)] hover:border-[var(--brand)] hover:bg-[var(--brand-subtle)] transition-all duration-200"
+                className="w-full flex items-center justify-center gap-2 mt-4 py-2.5 border-2 border-dashed border-[var(--border-default)] rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] hover:bg-[var(--bg-elevated)] transition-all duration-200"
               >
                 <Plus className="h-4 w-4" />
                 Create new list

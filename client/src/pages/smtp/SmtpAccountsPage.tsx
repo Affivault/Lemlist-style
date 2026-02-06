@@ -167,7 +167,7 @@ export function SmtpAccountsPage() {
             <HelpCircle className="h-4 w-4" />
             Setup Guide
           </Link>
-          <Button onClick={() => setShowModal(true)}>
+          <Button variant="primary" onClick={() => setShowModal(true)}>
             <Plus className="h-4 w-4" />
             Add Account
           </Button>
@@ -181,7 +181,7 @@ export function SmtpAccountsPage() {
             <h2 className="text-sm font-medium text-primary">Quick Connect</h2>
             <p className="text-sm text-secondary mt-0.5">Connect your Google email with one click</p>
           </div>
-          <span className="px-2 py-0.5 text-xs font-medium text-brand bg-brand/10 rounded">
+          <span className="px-2 py-0.5 text-xs font-medium text-primary bg-elevated rounded">
             Recommended
           </span>
         </div>
@@ -260,21 +260,19 @@ export function SmtpAccountsPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-md ${
-                    account.is_verified ? 'bg-brand/10' : 'bg-amber-500/10'
-                  }`}>
-                    <Mail className={`h-5 w-5 ${account.is_verified ? 'text-brand' : 'text-amber-500'}`} />
+                  <div className="flex items-center justify-center w-10 h-10 rounded-md bg-[var(--bg-elevated)]">
+                    <Mail className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-medium text-primary">{account.label}</h3>
                       {account.is_verified ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-brand bg-brand/10 rounded">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-primary bg-elevated rounded">
                           <CheckCircle2 className="h-3 w-3" />
                           Verified
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-amber-500 bg-amber-500/10 rounded">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium text-secondary bg-elevated rounded">
                           <XCircle className="h-3 w-3" />
                           Unverified
                         </span>
@@ -320,9 +318,9 @@ export function SmtpAccountsPage() {
                   <span>Daily usage</span>
                   <span>{Math.round((account.sends_today / account.daily_send_limit) * 100)}%</span>
                 </div>
-                <div className="h-1.5 bg-elevated rounded-full overflow-hidden">
+                <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-brand rounded-full transition-all"
+                    className="h-full bg-[var(--text-primary)] rounded-full transition-all"
                     style={{ width: `${Math.min((account.sends_today / account.daily_send_limit) * 100, 100)}%` }}
                   />
                 </div>
@@ -428,7 +426,7 @@ export function SmtpAccountsPage() {
             <Button variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+            <Button variant="primary" type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? 'Saving...' : editId ? 'Update Account' : 'Create Account'}
             </Button>
           </div>

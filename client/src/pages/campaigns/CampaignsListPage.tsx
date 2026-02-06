@@ -88,7 +88,7 @@ export function CampaignsListPage() {
           <h1 className="text-heading-lg text-[var(--text-primary)]">Campaigns</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your email outreach campaigns</p>
         </div>
-        <button onClick={() => navigate('/campaigns/new')} className="btn-brand rounded-lg px-5 py-2.5">
+        <button onClick={() => navigate('/campaigns/new')} className="btn-primary rounded-lg px-5 py-2.5">
           <Plus className="h-4 w-4" />
           New Campaign
         </button>
@@ -103,7 +103,7 @@ export function CampaignsListPage() {
             className={cn(
               'px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px',
               statusFilter === tab.value
-                ? 'border-[var(--brand)] text-[var(--text-primary)]'
+                ? 'border-[var(--text-primary)] text-[var(--text-primary)]'
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             )}
           >
@@ -132,7 +132,7 @@ export function CampaignsListPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--brand)] transition-colors">{campaign.name}</h3>
+                      <h3 className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-primary)] transition-colors">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
                     <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
@@ -142,7 +142,7 @@ export function CampaignsListPage() {
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                     {campaign.status === 'draft' && (
                       <>
-                        <button className="btn-brand rounded-lg px-3 py-1.5 text-xs" onClick={() => launchMutation.mutate(campaign.id)}>
+                        <button className="btn-primary rounded-lg px-3 py-1.5 text-xs" onClick={() => launchMutation.mutate(campaign.id)}>
                           Launch
                         </button>
                         <Button
@@ -160,7 +160,7 @@ export function CampaignsListPage() {
                       </Button>
                     )}
                     {campaign.status === 'paused' && (
-                      <button className="btn-brand rounded-lg px-3 py-1.5 text-xs" onClick={() => resumeMutation.mutate(campaign.id)}>
+                      <button className="btn-primary rounded-lg px-3 py-1.5 text-xs" onClick={() => resumeMutation.mutate(campaign.id)}>
                         Resume
                       </button>
                     )}
@@ -182,26 +182,26 @@ export function CampaignsListPage() {
                 {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
                   <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex gap-6 text-sm text-[var(--text-secondary)]">
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--brand-subtle)] flex items-center justify-center">
-                        <Send className="h-3 w-3 text-[var(--brand)]" />
+                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
+                        <Send className="h-3 w-3 text-[var(--text-secondary)]" />
                       </div>
                       <span className="font-medium text-[var(--text-primary)]">{campaign.sent_count}</span> sent
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--info-bg)] flex items-center justify-center">
-                        <Mail className="h-3 w-3 text-[var(--info)]" />
+                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
+                        <Mail className="h-3 w-3 text-[var(--text-secondary)]" />
                       </div>
                       <span className="font-medium text-[var(--text-primary)]">{campaign.opened_count}</span> opened
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--success-bg)] flex items-center justify-center">
-                        <MousePointerClick className="h-3 w-3 text-[var(--success)]" />
+                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
+                        <MousePointerClick className="h-3 w-3 text-[var(--text-secondary)]" />
                       </div>
                       <span className="font-medium text-[var(--text-primary)]">{campaign.clicked_count}</span> clicked
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-violet-500/10 flex items-center justify-center">
-                        <MessageSquare className="h-3 w-3 text-violet-500" />
+                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
+                        <MessageSquare className="h-3 w-3 text-[var(--text-secondary)]" />
                       </div>
                       <span className="font-medium text-[var(--text-primary)]">{campaign.replied_count}</span> replied
                     </span>
