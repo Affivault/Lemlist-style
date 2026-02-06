@@ -165,7 +165,7 @@ export function DeveloperPage() {
             <p className="text-sm text-[var(--text-secondary)]">Receive real-time notifications when events happen.</p>
             <button
               onClick={() => setShowCreateWebhook(true)}
-              className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:bg-[var(--accent-hover)] transition-colors"
+              className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:opacity-90 transition-opacity"
             >
               <Plus className="h-4 w-4" />
               Add Webhook
@@ -181,11 +181,11 @@ export function DeveloperPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-[var(--text-tertiary)] mb-1 block">Endpoint URL</label>
-                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]" />
+                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--text-primary)]" />
                 </div>
                 <div>
                   <label className="text-xs text-[var(--text-tertiary)] mb-1 block">Label</label>
-                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]" />
+                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--text-primary)]" />
                 </div>
               </div>
               <div>
@@ -215,7 +215,7 @@ export function DeveloperPage() {
               <button
                 onClick={() => createEndpointMutation.mutate()}
                 disabled={!webhookUrl || webhookEvents.length === 0 || createEndpointMutation.isPending}
-                className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-colors"
+                className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-opacity"
               >
                 <Plus className="h-4 w-4" />
                 Create Webhook
@@ -240,7 +240,7 @@ export function DeveloperPage() {
               {endpoints.map((ep) => (
                 <div key={ep.id} className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4">
                   <div className="flex items-center gap-3">
-                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-[var(--success)]' : 'bg-[var(--text-tertiary)]')} />
+                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-[var(--text-primary)]' : 'bg-[var(--text-tertiary)]')} />
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-[var(--text-primary)]">{ep.label}</h4>
                       <p className="text-xs text-[var(--text-tertiary)] truncate font-mono">{ep.url}</p>
@@ -252,7 +252,7 @@ export function DeveloperPage() {
                     <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Logs
                     </button>
-                    <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded hover:bg-[var(--error-bg)] text-[var(--text-secondary)] hover:text-[var(--error)]">
+                    <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -262,7 +262,7 @@ export function DeveloperPage() {
                         <p className="text-xs text-[var(--text-tertiary)] text-center py-2">No deliveries yet</p>
                       ) : deliveries.map((d) => (
                         <div key={d.id} className="flex items-center gap-3 text-xs">
-                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-[var(--success)] shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-[var(--error)] shrink-0" />}
+                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-[var(--text-primary)] shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-[var(--text-tertiary)] shrink-0" />}
                           <span className="text-[var(--text-secondary)] font-mono">{d.event_type}</span>
                           <span className="text-[var(--text-tertiary)]">{d.status_code || 'ERR'}</span>
                           <span className="text-[var(--text-tertiary)] ml-auto">{formatDateTime(d.created_at)}</span>
@@ -284,7 +284,7 @@ export function DeveloperPage() {
             <p className="text-sm text-[var(--text-secondary)]">Manage API keys for headless access to SkySend.</p>
             <button
               onClick={() => setShowCreateKey(true)}
-              className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:bg-[var(--accent-hover)] transition-colors"
+              className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:opacity-90 transition-opacity"
             >
               <Plus className="h-4 w-4" />
               Create Key
@@ -292,10 +292,10 @@ export function DeveloperPage() {
           </div>
 
           {newRawKey && (
-            <div className="rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/30 p-4 space-y-2">
+            <div className="rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-default)] p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[var(--success)]" />
-                <span className="text-sm font-medium text-[var(--success)]">API key created. Copy it now - it will not be shown again.</span>
+                <CheckCircle2 className="h-4 w-4 text-[var(--text-primary)]" />
+                <span className="text-sm font-medium text-[var(--text-primary)]">API key created. Copy it now - it will not be shown again.</span>
               </div>
               <div className="flex items-center gap-2">
                 <code className={cn('flex-1 rounded bg-[var(--bg-elevated)] px-3 py-2 text-sm font-mono', showKey ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]')}>
@@ -325,12 +325,12 @@ export function DeveloperPage() {
               </div>
               <div>
                 <label className="text-xs text-[var(--text-tertiary)] mb-1 block">Key Name</label>
-                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]" />
+                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--text-primary)]" />
               </div>
               <button
                 onClick={() => createKeyMutation.mutate()}
                 disabled={!keyName || createKeyMutation.isPending}
-                className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-colors"
+                className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-opacity"
               >
                 <Key className="h-4 w-4" />
                 Generate Key
@@ -354,15 +354,15 @@ export function DeveloperPage() {
             <div className="space-y-3">
               {apiKeys.map((key) => (
                 <div key={key.id} className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4 flex items-center gap-4">
-                  <div className={cn('flex h-9 w-9 items-center justify-center rounded', key.is_active ? 'bg-[var(--bg-elevated)]' : 'bg-[var(--error-bg)]')}>
-                    <Key className={cn('h-4 w-4', key.is_active ? 'text-[var(--text-primary)]' : 'text-[var(--error)]')} />
+                  <div className={cn('flex h-9 w-9 items-center justify-center rounded', key.is_active ? 'bg-[var(--bg-elevated)]' : 'bg-[var(--bg-elevated)]')}>
+                    <Key className={cn('h-4 w-4', key.is_active ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]')} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-medium text-[var(--text-primary)]">{key.name}</h4>
                     <p className="text-xs text-[var(--text-tertiary)] font-mono">{key.key_prefix}••••••••</p>
                   </div>
                   <div className="text-right">
-                    <span className={cn('text-xs rounded-full px-2 py-0.5', key.is_active ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'bg-[var(--error-bg)] text-[var(--error)]')}>
+                    <span className={cn('text-xs rounded-full px-2 py-0.5', key.is_active ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)]')}>
                       {key.is_active ? 'Active' : 'Revoked'}
                     </span>
                     {key.last_used_at && (
@@ -372,14 +372,14 @@ export function DeveloperPage() {
                   {key.is_active && (
                     <button
                       onClick={() => revokeKeyMutation.mutate(key.id)}
-                      className="p-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--warning-bg)] hover:text-[var(--warning)] text-xs flex items-center gap-1"
+                      className="p-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs flex items-center gap-1"
                     >
                       <Shield className="h-3 w-3" /> Revoke
                     </button>
                   )}
                   <button
                     onClick={() => deleteKeyMutation.mutate(key.id)}
-                    className="p-1.5 rounded hover:bg-[var(--error-bg)] text-[var(--text-secondary)] hover:text-[var(--error)]"
+                    className="p-1.5 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

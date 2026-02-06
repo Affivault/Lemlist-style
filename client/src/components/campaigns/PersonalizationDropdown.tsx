@@ -72,7 +72,7 @@ export function PersonalizationDropdown({ onInsert, variant = 'button' }: Person
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition-all duration-200"
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-hover)] hover:border-[var(--border-default)] transition-all duration-200"
         >
           <Sparkles className="h-4 w-4" />
           Personalize
@@ -82,7 +82,7 @@ export function PersonalizationDropdown({ onInsert, variant = 'button' }: Person
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+          className="p-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
           title="Insert personalization"
         >
           <Sparkles className="h-4 w-4" />
@@ -90,15 +90,15 @@ export function PersonalizationDropdown({ onInsert, variant = 'button' }: Person
       )}
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-xl shadow-gray-200/50 z-50 animate-fade-in overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xl z-50 animate-fade-in overflow-hidden">
           {/* Search */}
-          <div className="p-3 border-b border-gray-100">
+          <div className="p-3 border-b border-[var(--border-subtle)]">
             <input
               type="text"
               placeholder="Search variables..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-9 px-3 text-sm rounded-lg border border-gray-200 bg-gray-50 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full h-9 px-3 text-sm rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] focus:border-[var(--border-default)] focus:bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--text-primary)]/10 transition-all"
               autoFocus
             />
           </div>
@@ -107,7 +107,7 @@ export function PersonalizationDropdown({ onInsert, variant = 'button' }: Person
           <div className="max-h-64 overflow-y-auto py-2">
             {categories.map((category) => (
               <div key={category}>
-                <p className="px-4 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <p className="px-4 py-1.5 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
                   {category}
                 </p>
                 {filteredTags
@@ -117,16 +117,16 @@ export function PersonalizationDropdown({ onInsert, variant = 'button' }: Person
                       key={tag.value}
                       type="button"
                       onClick={() => handleInsert(tag)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--bg-hover)] transition-colors text-left"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
                         <tag.icon className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{tag.label}</p>
-                        <p className="text-xs text-gray-400 truncate">{tag.description}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{tag.label}</p>
+                        <p className="text-xs text-[var(--text-tertiary)] truncate">{tag.description}</p>
                       </div>
-                      <code className="text-xs text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">
+                      <code className="text-xs text-[var(--text-secondary)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded font-mono">
                         {tag.value}
                       </code>
                     </button>
@@ -135,7 +135,7 @@ export function PersonalizationDropdown({ onInsert, variant = 'button' }: Person
             ))}
 
             {filteredTags.length === 0 && (
-              <p className="px-4 py-6 text-sm text-gray-400 text-center">No variables found</p>
+              <p className="px-4 py-6 text-sm text-[var(--text-tertiary)] text-center">No variables found</p>
             )}
           </div>
         </div>

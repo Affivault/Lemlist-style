@@ -25,37 +25,33 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Brand */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12"
-        style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #7E22CE 100%)' }}
-      >
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 bg-[var(--text-primary)]">
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-white/20" />
-          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-white/20" />
-          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-white/10" />
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-[var(--bg-app)]/10" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-[var(--bg-app)]/10" />
+          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-[var(--bg-app)]/10" />
         </div>
 
         <div className="relative z-10">
           {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)', backdropFilter: 'blur(10px)' }}
-            >
-              <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-[var(--bg-app)]/15">
+              <svg className="h-5 w-5 text-[var(--bg-app)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">SkySend</span>
+            <span className="text-xl font-bold text-[var(--bg-app)] tracking-tight">SkySend</span>
           </Link>
 
           {/* Tagline */}
           <div className="mt-16">
-            <h1 className="text-4xl font-bold text-white leading-tight">
+            <h1 className="text-4xl font-bold text-[var(--bg-app)] leading-tight">
               Outreach that<br />
               actually converts.
             </h1>
-            <p className="mt-4 text-lg text-indigo-100/80 max-w-md">
+            <p className="mt-4 text-lg text-[var(--bg-app)]/60 max-w-md">
               Join thousands of sales teams using SkySend to automate personalized email campaigns at scale.
             </p>
           </div>
@@ -63,21 +59,21 @@ export function LoginPage() {
           {/* Feature bullets */}
           <div className="mt-12 space-y-6">
             <div className="flex items-start gap-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
-                <svg className="h-4 w-4 text-indigo-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-app)]/10">
+                <svg className="h-4 w-4 text-[var(--bg-app)]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-white">Multi-channel sequences</p>
-                <p className="mt-1 text-sm text-indigo-200/70">Email, LinkedIn, and calls in one automated workflow</p>
+                <p className="font-semibold text-[var(--bg-app)]">Multi-channel sequences</p>
+                <p className="mt-1 text-sm text-[var(--bg-app)]/60">Email, LinkedIn, and calls in one automated workflow</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
-                <svg className="h-4 w-4 text-indigo-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-app)]/10">
+                <svg className="h-4 w-4 text-[var(--bg-app)]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -85,22 +81,22 @@ export function LoginPage() {
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-white">AI personalization</p>
-                <p className="mt-1 text-sm text-indigo-200/70">Every message feels hand-written with smart variables</p>
+                <p className="font-semibold text-[var(--bg-app)]">AI personalization</p>
+                <p className="mt-1 text-sm text-[var(--bg-app)]/60">Every message feels hand-written with smart variables</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
-                <svg className="h-4 w-4 text-indigo-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-app)]/10">
+                <svg className="h-4 w-4 text-[var(--bg-app)]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="20" x2="18" y2="10" />
                   <line x1="12" y1="20" x2="12" y2="4" />
                   <line x1="6" y1="20" x2="6" y2="14" />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-white">Real-time analytics</p>
-                <p className="mt-1 text-sm text-indigo-200/70">Track opens, clicks, and replies with detailed insights</p>
+                <p className="font-semibold text-[var(--bg-app)]">Real-time analytics</p>
+                <p className="mt-1 text-sm text-[var(--bg-app)]/60">Track opens, clicks, and replies with detailed insights</p>
               </div>
             </div>
           </div>
@@ -108,17 +104,17 @@ export function LoginPage() {
 
         {/* Testimonial */}
         <div className="relative z-10 mt-auto pt-12">
-          <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-6 border border-white/10">
-            <p className="text-white/90 text-sm leading-relaxed italic">
+          <div className="rounded-2xl bg-[var(--bg-app)]/10 backdrop-blur-sm p-6 border border-[var(--bg-app)]/10">
+            <p className="text-[var(--bg-app)]/90 text-sm leading-relaxed italic">
               "SkySend transformed our outbound strategy. We went from 2% to 18% reply rates in just two weeks. The automation saves our team 20+ hours per week."
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold text-sm">
+              <div className="h-9 w-9 rounded-full bg-[var(--bg-app)]/20 flex items-center justify-center text-[var(--bg-app)] font-semibold text-sm">
                 SR
               </div>
               <div>
-                <p className="text-sm font-medium text-white">Sarah Rodriguez</p>
-                <p className="text-xs text-indigo-200/70">VP of Sales, TechCorp</p>
+                <p className="text-sm font-medium text-[var(--bg-app)]">Sarah Rodriguez</p>
+                <p className="text-xs text-[var(--bg-app)]/60">VP of Sales, TechCorp</p>
               </div>
             </div>
           </div>
@@ -131,10 +127,8 @@ export function LoginPage() {
           {/* Mobile Logo */}
           <div className="mb-8 lg:hidden">
             <Link to="/" className="inline-flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #7C3AED 100%)' }}
-              >
-                <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-[var(--text-primary)]">
+                <svg className="h-4 w-4 text-[var(--bg-app)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
@@ -206,7 +200,7 @@ export function LoginPage() {
                   <label htmlFor="password" className="block text-sm font-medium text-[var(--text-primary)]">
                     Password
                   </label>
-                  <a href="#" className="text-xs font-medium text-[var(--brand)] hover:text-[var(--brand-hover)] transition-colors">
+                  <a href="#" className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors">
                     Forgot password?
                   </a>
                 </div>
@@ -224,7 +218,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-brand justify-center py-2.5 rounded-xl"
+                className="w-full btn-primary justify-center py-2.5 rounded-xl"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
                 {!loading && <ArrowRight className="h-4 w-4" />}
@@ -235,7 +229,7 @@ export function LoginPage() {
           {/* Signup link */}
           <p className="mt-8 text-center text-sm text-[var(--text-secondary)]">
             Don't have an account?{' '}
-            <Link to="/signup" className="font-semibold text-[var(--brand)] hover:text-[var(--brand-hover)] transition-colors">
+            <Link to="/signup" className="font-semibold text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors">
               Create a free account
             </Link>
           </p>
