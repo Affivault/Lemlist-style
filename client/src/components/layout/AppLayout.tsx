@@ -8,9 +8,9 @@ export function AppLayout() {
     <ThemeProvider>
       <div className="min-h-screen bg-[var(--bg-app)]">
         <Sidebar />
-        <div className="pl-60">
+        <div className="pl-[260px]">
           <Header />
-          <main className="px-8 py-6">
+          <main className="px-8 py-8">
             <Outlet />
           </main>
         </div>

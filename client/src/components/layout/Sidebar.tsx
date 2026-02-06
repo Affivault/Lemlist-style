@@ -10,8 +10,8 @@ import {
   Layers,
   Webhook,
   Send,
-  ChevronRight,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
@@ -48,13 +48,13 @@ function NavItem({
     <NavLink
       to={item.href}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+        'flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200',
         isActive
-          ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'
+          ? 'bg-[var(--brand-subtle)] text-[var(--brand)] shadow-sm'
           : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
       )}
     >
-      <Icon className="h-4 w-4" strokeWidth={1.5} />
+      <Icon className={cn('h-[18px] w-[18px]', isActive ? 'text-[var(--brand)]' : '')} strokeWidth={1.5} />
       <span>{item.name}</span>
     </NavLink>
   );
@@ -73,7 +73,7 @@ function NavSection({
     <div className="mb-6">
       {title && (
         <div className="px-3 mb-2">
-          <span className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
+          <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-widest">
             {title}
           </span>
         </div>
@@ -92,33 +92,49 @@ function NavSection({
 }
 
 export function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user, signOut: logout } = useAuth();
   const workspaceName = user?.email?.split('@')[0] || 'Workspace';
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-[var(--bg-surface)] border-r border-[var(--border-subtle)]">
+    <aside className="fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col bg-[var(--bg-surface)] border-r border-[var(--border-subtle)]">
       {/* Logo */}
-      <div className="flex items-center h-14 px-4 border-b border-[var(--border-subtle)]">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded bg-[var(--text-primary)] flex items-center justify-center">
-            <span className="text-[var(--bg-app)] text-sm font-bold">S</span>
+      <div className="flex items-center h-16 px-5 border-b border-[var(--border-subtle)]">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+            <Send className="h-4 w-4 text-white" strokeWidth={2} />
           </div>
-          <span className="text-sm font-semibold text-[var(--text-primary)]">SkySend</span>
+          <span className="text-base font-semibold text-[var(--text-primary)] tracking-tight">SkySend</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 overflow-y-auto">
+      <nav className="flex-1 px-3 py-5 overflow-y-auto">
         <NavSection items={mainNav} />
         <NavSection title="Tools" items={toolsNav} />
-        <NavSection title="Settings" items={settingsNav} />
+        <NavSection title="Configure" items={settingsNav} />
       </nav>
 
+      {/* Upgrade card */}
+      <div className="px-3 pb-3">
+        <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-purple-500/10 border border-[var(--brand)]/10 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-[var(--brand)]" />
+            <span className="text-xs font-semibold text-[var(--text-primary)]">Upgrade to Pro</span>
+          </div>
+          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mb-3">
+            Unlock SARA AI, advanced analytics, and unlimited contacts.
+          </p>
+          <button className="w-full text-xs font-medium py-1.5 rounded-lg bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] transition-colors">
+            Upgrade
+          </button>
+        </div>
+      </div>
+
       {/* User section */}
-      <div className="border-t border-[var(--border-subtle)] p-2">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[var(--bg-hover)] transition-colors cursor-pointer group">
-          <div className="h-8 w-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center">
-            <span className="text-xs font-medium text-[var(--text-primary)]">
+      <div className="border-t border-[var(--border-subtle)] p-3">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors cursor-pointer group">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-sm">
+            <span className="text-xs font-semibold text-white">
               {workspaceName[0].toUpperCase()}
             </span>
           </div>
@@ -126,7 +142,7 @@ export function Sidebar() {
             <div className="text-sm font-medium text-[var(--text-primary)] truncate">
               {workspaceName}
             </div>
-            <div className="text-xs text-[var(--text-tertiary)] truncate">
+            <div className="text-[11px] text-[var(--text-tertiary)] truncate">
               {user?.email}
             </div>
           </div>
@@ -135,7 +151,7 @@ export function Sidebar() {
               e.stopPropagation();
               logout();
             }}
-            className="p-1.5 rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] opacity-0 group-hover:opacity-100 transition-all"
+            className="p-1.5 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] opacity-0 group-hover:opacity-100 transition-all"
           >
             <LogOut className="h-4 w-4" />
           </button>

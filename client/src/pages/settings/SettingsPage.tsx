@@ -64,14 +64,14 @@ export function SettingsPage() {
 
   return (
     <div className="max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Settings</h1>
-        <p className="text-sm text-secondary mt-1">Manage your account</p>
+      <div className="mb-8">
+        <h1 className="text-heading-lg text-[var(--text-primary)]">Settings</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your account and preferences</p>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex gap-8">
         {/* Sidebar */}
-        <div className="w-48 flex-shrink-0">
+        <div className="w-52 flex-shrink-0">
           <nav className="space-y-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -80,25 +80,25 @@ export function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left transition-colors ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-left transition-all duration-200 ${
                     isActive
-                      ? 'bg-brand/10 text-brand font-medium'
-                      : 'text-secondary hover:bg-hover hover:text-primary'
+                      ? 'bg-[var(--brand-subtle)] text-[var(--brand)]'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? 'text-brand' : 'text-tertiary'}`} />
+                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-[var(--brand)]' : 'text-[var(--text-tertiary)]'}`} strokeWidth={1.5} />
                   {tab.label}
                 </button>
               );
             })}
           </nav>
 
-          <div className="mt-6 pt-6 border-t border-subtle">
+          <div className="mt-6 pt-6 border-t border-[var(--border-subtle)]">
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left text-red-400 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-left text-[var(--error)] hover:bg-[var(--error-bg)] transition-all duration-200"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.5} />
               Sign out
             </button>
           </div>
@@ -106,79 +106,79 @@ export function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1">
-          <div className="rounded-lg border border-subtle bg-surface p-6">
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 shadow-card">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <h2 className="font-medium text-primary">Profile Information</h2>
-                  <p className="text-sm text-secondary mt-1">Update your personal details</p>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Profile Information</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">Update your personal details</p>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 rounded-md bg-elevated">
-                  <div className="w-14 h-14 rounded-full bg-brand/20 flex items-center justify-center text-brand text-lg font-semibold">
+                <div className="flex items-center gap-4 p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white text-lg font-semibold shadow-md">
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-primary">Profile Photo</p>
-                    <p className="text-xs text-tertiary">JPG, PNG or GIF. Max 2MB</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">Profile Photo</p>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-0.5">JPG, PNG or GIF. Max 2MB</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-1.5">First Name</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">First Name</label>
                     <input
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="John"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="input-field"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-1.5">Last Name</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Last Name</label>
                     <input
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Doe"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="input-field"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-1.5">Company</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Company</label>
                     <input
                       type="text"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="Acme Inc."
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="input-field"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-1.5">Job Title</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Job Title</label>
                     <input
                       type="text"
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
                       placeholder="Sales Manager"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="input-field"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-secondary mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Email</label>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 flex items-center gap-2 rounded-md border border-subtle bg-elevated px-3 py-2">
-                      <Mail className="h-4 w-4 text-tertiary" />
-                      <span className="text-sm text-secondary">{user?.email || 'Not set'}</span>
+                    <div className="flex-1 flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3.5 py-2.5">
+                      <Mail className="h-4 w-4 text-[var(--text-tertiary)]" />
+                      <span className="text-sm text-[var(--text-secondary)]">{user?.email || 'Not set'}</span>
                     </div>
-                    <span className="flex items-center gap-1 text-xs text-brand">
+                    <span className="flex items-center gap-1.5 text-xs text-[var(--success)] bg-[var(--success-bg)] px-3 py-1.5 rounded-full font-medium">
                       <CheckCircle className="h-3.5 w-3.5" />
                       Verified
                     </span>
@@ -186,14 +186,14 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-secondary mb-1.5">
-                    <Globe className="inline h-3.5 w-3.5 mr-1 text-tertiary" />
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                    <Globe className="inline h-3.5 w-3.5 mr-1.5 text-[var(--text-tertiary)]" />
                     Timezone
                   </label>
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                    className="input-field"
                   >
                     <option value="America/New_York">Eastern Time (ET)</option>
                     <option value="America/Chicago">Central Time (CT)</option>
@@ -208,37 +208,37 @@ export function SettingsPage() {
 
             {/* Account Tab */}
             {activeTab === 'account' && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <h2 className="font-medium text-primary">Account Security</h2>
-                  <p className="text-sm text-secondary mt-1">Manage your password and security</p>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Account Security</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your password and security settings</p>
                 </div>
 
-                <div className="p-4 rounded-md bg-elevated space-y-3">
+                <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-surface">
-                      <Key className="h-4 w-4 text-brand" />
+                    <div className="h-10 w-10 rounded-xl bg-[var(--brand-subtle)] flex items-center justify-center">
+                      <Key className="h-5 w-5 text-[var(--brand)]" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-primary">Password</p>
-                      <p className="text-xs text-tertiary">Last changed 30 days ago</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">Password</p>
+                      <p className="text-xs text-[var(--text-tertiary)]">Last changed 30 days ago</p>
                     </div>
                   </div>
                   <Button variant="secondary" size="sm">Change Password</Button>
                 </div>
 
-                <div className="p-4 rounded-md bg-elevated space-y-3">
+                <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-surface">
-                        <Shield className="h-4 w-4 text-brand" />
+                      <div className="h-10 w-10 rounded-xl bg-[var(--brand-subtle)] flex items-center justify-center">
+                        <Shield className="h-5 w-5 text-[var(--brand)]" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-primary">Two-Factor Authentication</p>
-                        <p className="text-xs text-tertiary">Add extra security</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">Two-Factor Authentication</p>
+                        <p className="text-xs text-[var(--text-tertiary)]">Add an extra layer of security</p>
                       </div>
                     </div>
-                    <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
+                    <span className="flex items-center gap-1.5 text-xs text-[var(--warning)] bg-[var(--warning-bg)] px-3 py-1.5 rounded-full font-medium">
                       <AlertCircle className="h-3 w-3" />
                       Not enabled
                     </span>
@@ -246,9 +246,9 @@ export function SettingsPage() {
                   <Button variant="secondary" size="sm">Enable 2FA</Button>
                 </div>
 
-                <div className="pt-5 border-t border-subtle">
-                  <h3 className="text-sm font-medium text-primary mb-3">Connected Accounts</h3>
-                  <div className="flex items-center justify-between p-3 rounded-md bg-elevated">
+                <div className="pt-6 border-t border-[var(--border-subtle)]">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Connected Accounts</h3>
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
                     <div className="flex items-center gap-3">
                       <svg className="h-5 w-5" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -256,17 +256,17 @@ export function SettingsPage() {
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                       </svg>
-                      <span className="text-sm font-medium text-primary">Google</span>
+                      <span className="text-sm font-medium text-[var(--text-primary)]">Google</span>
                     </div>
                     <Button variant="secondary" size="sm">Connect</Button>
                   </div>
                 </div>
 
-                <div className="pt-5 border-t border-subtle">
-                  <h3 className="text-sm font-medium text-red-400 mb-3">Danger Zone</h3>
-                  <div className="p-4 border border-red-500/20 rounded-md bg-red-500/5">
-                    <p className="text-sm text-secondary mb-3">
-                      Once you delete your account, there is no going back.
+                <div className="pt-6 border-t border-[var(--border-subtle)]">
+                  <h3 className="text-sm font-semibold text-[var(--error)] mb-4">Danger Zone</h3>
+                  <div className="p-5 border border-[var(--error)]/20 rounded-xl bg-[var(--error-bg)]">
+                    <p className="text-sm text-[var(--text-secondary)] mb-4">
+                      Once you delete your account, there is no going back. All your data will be permanently removed.
                     </p>
                     <Button variant="danger" size="sm">Delete Account</Button>
                   </div>
@@ -276,10 +276,10 @@ export function SettingsPage() {
 
             {/* Notifications Tab */}
             {activeTab === 'notifications' && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <h2 className="font-medium text-primary">Notifications</h2>
-                  <p className="text-sm text-secondary mt-1">Choose what notifications you receive</p>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Notifications</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">Choose what notifications you receive</p>
                 </div>
 
                 <div className="space-y-3">
@@ -313,23 +313,23 @@ export function SettingsPage() {
 
             {/* Preferences Tab */}
             {activeTab === 'preferences' && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <h2 className="font-medium text-primary">Preferences</h2>
-                  <p className="text-sm text-secondary mt-1">Customize your experience</p>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Preferences</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">Customize your experience</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-secondary mb-2">Theme</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">Theme</label>
                   <div className="flex gap-2">
                     {(['light', 'dark', 'system'] as const).map((t) => (
                       <button
                         key={t}
                         onClick={() => setTheme(t)}
-                        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
                           theme === t
-                            ? 'bg-brand text-primary'
-                            : 'bg-elevated text-secondary hover:text-primary border border-subtle'
+                            ? 'bg-[var(--brand)] text-white shadow-md shadow-[var(--brand)]/20'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                         }`}
                       >
                         <span className="capitalize">{t}</span>
@@ -339,7 +339,7 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-secondary mb-1.5">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Default Email Signature
                   </label>
                   <textarea
@@ -347,9 +347,9 @@ export function SettingsPage() {
                     onChange={(e) => setDefaultSignature(e.target.value)}
                     placeholder="Best regards,&#10;John Doe"
                     rows={4}
-                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 resize-none"
+                    className="input-field resize-none"
                   />
-                  <p className="mt-1.5 text-xs text-tertiary">
+                  <p className="mt-2 text-xs text-[var(--text-tertiary)]">
                     Use {'{{signature}}'} in emails to insert this
                   </p>
                 </div>
@@ -357,15 +357,15 @@ export function SettingsPage() {
             )}
 
             {/* Save button */}
-            <div className="mt-6 pt-5 border-t border-subtle flex justify-end">
-              <Button onClick={handleSave} disabled={saving}>
+            <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex justify-end">
+              <button onClick={handleSave} disabled={saving} className="btn-brand rounded-lg px-6 py-2.5">
                 {saving ? 'Saving...' : (
                   <>
                     <Save className="h-4 w-4" />
                     Save Changes
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -386,20 +386,20 @@ function ToggleSetting({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-md bg-elevated">
+    <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
       <div>
-        <p className="text-sm font-medium text-primary">{label}</p>
-        <p className="text-xs text-tertiary">{description}</p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">{label}</p>
+        <p className="text-xs text-[var(--text-tertiary)] mt-0.5">{description}</p>
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors ${
-          checked ? 'bg-brand' : 'bg-elevated border border-subtle'
+        className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+          checked ? 'bg-[var(--brand)]' : 'bg-[var(--border-default)]'
         }`}
       >
         <span
-          className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-            checked ? 'translate-x-4' : 'translate-x-0'
+          className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+            checked ? 'translate-x-5' : 'translate-x-0'
           }`}
         />
       </button>

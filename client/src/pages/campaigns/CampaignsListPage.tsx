@@ -82,15 +82,16 @@ export function CampaignsListPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-[var(--text-primary)]">Campaigns</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-0.5">Manage your email outreach campaigns</p>
+          <h1 className="text-heading-lg text-[var(--text-primary)]">Campaigns</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your email outreach campaigns</p>
         </div>
-        <Button onClick={() => navigate('/campaigns/new')}>
+        <button onClick={() => navigate('/campaigns/new')} className="btn-brand rounded-lg px-5 py-2.5">
           <Plus className="h-4 w-4" />
           New Campaign
-        </Button>
+        </button>
       </div>
 
       {/* Status filter tabs */}
@@ -100,9 +101,9 @@ export function CampaignsListPage() {
             key={tab.value}
             onClick={() => { setStatusFilter(tab.value); setPage(1); }}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
+              'px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px',
               statusFilter === tab.value
-                ? 'border-[var(--text-primary)] text-[var(--text-primary)]'
+                ? 'border-[var(--brand)] text-[var(--text-primary)]'
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             )}
           >
@@ -121,29 +122,29 @@ export function CampaignsListPage() {
         />
       ) : (
         <>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {campaigns.map((campaign: CampaignWithStats) => (
               <div
                 key={campaign.id}
-                className="cursor-pointer rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition-colors hover:bg-[var(--bg-hover)]"
+                className="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition-all duration-200 hover:border-[var(--border-default)] hover:shadow-card group"
                 onClick={() => navigate(`/campaigns/${campaign.id}`)}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-medium text-[var(--text-primary)]">{campaign.name}</h3>
+                      <h3 className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--brand)] transition-colors">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
-                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
                       {campaign.steps_count} steps · {campaign.contacts_count} contacts · Created {formatDate(campaign.created_at)}
                     </p>
                   </div>
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                     {campaign.status === 'draft' && (
                       <>
-                        <Button size="sm" onClick={() => launchMutation.mutate(campaign.id)}>
+                        <button className="btn-brand rounded-lg px-3 py-1.5 text-xs" onClick={() => launchMutation.mutate(campaign.id)}>
                           Launch
-                        </Button>
+                        </button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -159,9 +160,9 @@ export function CampaignsListPage() {
                       </Button>
                     )}
                     {campaign.status === 'paused' && (
-                      <Button size="sm" onClick={() => resumeMutation.mutate(campaign.id)}>
+                      <button className="btn-brand rounded-lg px-3 py-1.5 text-xs" onClick={() => resumeMutation.mutate(campaign.id)}>
                         Resume
-                      </Button>
+                      </button>
                     )}
                     {(campaign.status === 'draft' || campaign.status === 'completed' || campaign.status === 'cancelled') && (
                       <Button
@@ -179,11 +180,31 @@ export function CampaignsListPage() {
 
                 {/* Stats row */}
                 {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
-                  <div className="mt-4 flex gap-6 text-sm text-[var(--text-secondary)]">
-                    <span className="flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.sent_count} sent</span>
-                    <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.opened_count} opened</span>
-                    <span className="flex items-center gap-1.5"><MousePointerClick className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.clicked_count} clicked</span>
-                    <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.replied_count} replied</span>
+                  <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex gap-6 text-sm text-[var(--text-secondary)]">
+                    <span className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-md bg-[var(--brand-subtle)] flex items-center justify-center">
+                        <Send className="h-3 w-3 text-[var(--brand)]" />
+                      </div>
+                      <span className="font-medium text-[var(--text-primary)]">{campaign.sent_count}</span> sent
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-md bg-[var(--info-bg)] flex items-center justify-center">
+                        <Mail className="h-3 w-3 text-[var(--info)]" />
+                      </div>
+                      <span className="font-medium text-[var(--text-primary)]">{campaign.opened_count}</span> opened
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-md bg-[var(--success-bg)] flex items-center justify-center">
+                        <MousePointerClick className="h-3 w-3 text-[var(--success)]" />
+                      </div>
+                      <span className="font-medium text-[var(--text-primary)]">{campaign.clicked_count}</span> clicked
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-md bg-violet-500/10 flex items-center justify-center">
+                        <MessageSquare className="h-3 w-3 text-violet-500" />
+                      </div>
+                      <span className="font-medium text-[var(--text-primary)]">{campaign.replied_count}</span> replied
+                    </span>
                   </div>
                 )}
               </div>
