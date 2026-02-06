@@ -6,8 +6,8 @@ import { Spinner } from '../../components/ui/Spinner';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { StatusBadge } from '../../components/shared/StatusBadge';
-import { formatDate } from '../../lib/utils';
-import { Zap, Plus, Send, Mail, MousePointerClick, MessageSquare } from 'lucide-react';
+import { formatDate, cn } from '../../lib/utils';
+import { Megaphone, Plus, Send, Mail, MousePointerClick, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { CampaignWithStats } from '@lemlist/shared';
 import { DEFAULT_PAGE_SIZE } from '../../lib/constants';
@@ -83,7 +83,10 @@ export function CampaignsListPage() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-primary">Campaigns</h1>
+        <div>
+          <h1 className="text-xl font-semibold text-[var(--text-primary)]">Campaigns</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">Manage your email outreach campaigns</p>
+        </div>
         <Button onClick={() => navigate('/campaigns/new')}>
           <Plus className="h-4 w-4" />
           New Campaign
@@ -91,16 +94,17 @@ export function CampaignsListPage() {
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-1 border-b border-subtle">
+      <div className="flex gap-1 border-b border-[var(--border-subtle)]">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => { setStatusFilter(tab.value); setPage(1); }}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={cn(
+              'px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               statusFilter === tab.value
-                ? 'border-brand text-primary'
-                : 'border-transparent text-secondary hover:text-primary'
-            }`}
+                ? 'border-[var(--text-primary)] text-[var(--text-primary)]'
+                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            )}
           >
             {tab.label}
           </button>
@@ -109,7 +113,7 @@ export function CampaignsListPage() {
 
       {campaigns.length === 0 ? (
         <EmptyState
-          icon={Zap}
+          icon={Megaphone}
           title="No campaigns"
           description="Create your first email campaign to start reaching out."
           actionLabel="New Campaign"
@@ -117,20 +121,20 @@ export function CampaignsListPage() {
         />
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {campaigns.map((campaign: CampaignWithStats) => (
               <div
                 key={campaign.id}
-                className="cursor-pointer rounded-lg border border-subtle bg-surface p-5 transition-colors hover:bg-hover"
+                className="cursor-pointer rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition-colors hover:bg-[var(--bg-hover)]"
                 onClick={() => navigate(`/campaigns/${campaign.id}`)}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-medium text-primary">{campaign.name}</h3>
+                      <h3 className="font-medium text-[var(--text-primary)]">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
-                    <p className="mt-1 text-sm text-secondary">
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
                       {campaign.steps_count} steps · {campaign.contacts_count} contacts · Created {formatDate(campaign.created_at)}
                     </p>
                   </div>
@@ -175,11 +179,11 @@ export function CampaignsListPage() {
 
                 {/* Stats row */}
                 {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
-                  <div className="mt-4 flex gap-6 text-sm text-secondary">
-                    <span className="flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-tertiary" /> {campaign.sent_count} sent</span>
-                    <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-tertiary" /> {campaign.opened_count} opened</span>
-                    <span className="flex items-center gap-1.5"><MousePointerClick className="h-3.5 w-3.5 text-tertiary" /> {campaign.clicked_count} clicked</span>
-                    <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-tertiary" /> {campaign.replied_count} replied</span>
+                  <div className="mt-4 flex gap-6 text-sm text-[var(--text-secondary)]">
+                    <span className="flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.sent_count} sent</span>
+                    <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.opened_count} opened</span>
+                    <span className="flex items-center gap-1.5"><MousePointerClick className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.clicked_count} clicked</span>
+                    <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-[var(--text-tertiary)]" /> {campaign.replied_count} replied</span>
                   </div>
                 )}
               </div>
@@ -187,14 +191,16 @@ export function CampaignsListPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 pt-4">
-              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                Previous
-              </Button>
-              <span className="text-sm text-secondary">Page {page} of {totalPages}</span>
-              <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                Next
-              </Button>
+            <div className="flex items-center justify-between pt-4">
+              <p className="text-sm text-[var(--text-secondary)]">Page {page} of {totalPages}</p>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  Previous
+                </Button>
+                <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </>

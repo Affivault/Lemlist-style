@@ -2,22 +2,22 @@ import { cn } from '../../lib/utils';
 import type { CampaignStatus, ContactCampaignStatus } from '@lemlist/shared';
 
 const campaignColors: Record<string, string> = {
-  draft: 'bg-white/5 text-secondary',
-  scheduled: 'bg-blue-500/10 text-blue-400',
-  running: 'bg-emerald-500/10 text-emerald-400',
-  paused: 'bg-amber-500/10 text-amber-400',
-  completed: 'bg-violet-500/10 text-violet-400',
-  cancelled: 'bg-red-500/10 text-red-400',
+  draft: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
+  scheduled: 'bg-[var(--info-bg)] text-[var(--info)]',
+  running: 'bg-[var(--success-bg)] text-[var(--success)]',
+  paused: 'bg-[var(--warning-bg)] text-[var(--warning)]',
+  completed: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
+  cancelled: 'bg-[var(--error-bg)] text-[var(--error)]',
 };
 
 const contactColors: Record<string, string> = {
-  pending: 'bg-white/5 text-secondary',
-  active: 'bg-emerald-500/10 text-emerald-400',
-  completed: 'bg-violet-500/10 text-violet-400',
-  replied: 'bg-blue-500/10 text-blue-400',
-  bounced: 'bg-red-500/10 text-red-400',
-  unsubscribed: 'bg-amber-500/10 text-amber-400',
-  error: 'bg-red-500/10 text-red-400',
+  pending: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
+  active: 'bg-[var(--success-bg)] text-[var(--success)]',
+  completed: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
+  replied: 'bg-[var(--info-bg)] text-[var(--info)]',
+  bounced: 'bg-[var(--error-bg)] text-[var(--error)]',
+  unsubscribed: 'bg-[var(--warning-bg)] text-[var(--warning)]',
+  error: 'bg-[var(--error-bg)] text-[var(--error)]',
 };
 
 interface StatusBadgeProps {
@@ -27,12 +27,12 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, type = 'campaign' }: StatusBadgeProps) {
   const colorMap = type === 'campaign' ? campaignColors : contactColors;
-  const colors = colorMap[status] || 'bg-white/5 text-secondary';
+  const colors = colorMap[status] || 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]';
 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded px-2 py-0.5 text-xs font-medium',
         colors
       )}
     >
