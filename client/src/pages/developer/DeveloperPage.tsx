@@ -132,16 +132,16 @@ export function DeveloperPage() {
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-primary">Developer</h1>
-        <p className="text-sm text-secondary mt-1">Webhooks, API keys, and integrations</p>
+        <h1 className="text-xl font-semibold text-[var(--text-primary)]">Developer</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-0.5">Webhooks, API keys, and integrations</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-subtle">
+      <div className="flex gap-1 border-b border-[var(--border-subtle)]">
         <button
           onClick={() => setTab('webhooks')}
-          className={cn('flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'webhooks' ? 'border-brand text-primary' : 'border-transparent text-secondary hover:text-primary'
+          className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
+            tab === 'webhooks' ? 'border-[var(--text-primary)] text-[var(--text-primary)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           )}
         >
           <Webhook className="h-4 w-4" />
@@ -149,8 +149,8 @@ export function DeveloperPage() {
         </button>
         <button
           onClick={() => setTab('api-keys')}
-          className={cn('flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'api-keys' ? 'border-brand text-primary' : 'border-transparent text-secondary hover:text-primary'
+          className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
+            tab === 'api-keys' ? 'border-[var(--text-primary)] text-[var(--text-primary)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           )}
         >
           <Key className="h-4 w-4" />
@@ -162,10 +162,10 @@ export function DeveloperPage() {
       {tab === 'webhooks' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-secondary">Receive real-time notifications when events happen.</p>
+            <p className="text-sm text-[var(--text-secondary)]">Receive real-time notifications when events happen.</p>
             <button
               onClick={() => setShowCreateWebhook(true)}
-              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary hover:bg-brand-400 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:bg-[var(--accent-hover)] transition-colors"
             >
               <Plus className="h-4 w-4" />
               Add Webhook
@@ -173,27 +173,27 @@ export function DeveloperPage() {
           </div>
 
           {showCreateWebhook && (
-            <div className="rounded-lg bg-surface border border-brand/20 p-5 space-y-4">
+            <div className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-primary">New Webhook Endpoint</h3>
-                <button onClick={() => setShowCreateWebhook(false)} className="text-secondary hover:text-primary"><X className="h-4 w-4" /></button>
+                <h3 className="text-sm font-medium text-[var(--text-primary)]">New Webhook Endpoint</h3>
+                <button onClick={() => setShowCreateWebhook(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X className="h-4 w-4" /></button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-tertiary mb-1 block">Endpoint URL</label>
-                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-brand" />
+                  <label className="text-xs text-[var(--text-tertiary)] mb-1 block">Endpoint URL</label>
+                  <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-server.com/webhook" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]" />
                 </div>
                 <div>
-                  <label className="text-xs text-tertiary mb-1 block">Label</label>
-                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-brand" />
+                  <label className="text-xs text-[var(--text-tertiary)] mb-1 block">Label</label>
+                  <input type="text" value={webhookLabel} onChange={(e) => setWebhookLabel(e.target.value)} placeholder="My CRM Integration" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]" />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-tertiary mb-2 block">Subscribe to events</label>
+                <label className="text-xs text-[var(--text-tertiary)] mb-2 block">Subscribe to events</label>
                 <div className="space-y-3">
                   {Object.entries(EVENT_CATEGORIES).map(([category, events]) => (
                     <div key={category}>
-                      <p className="text-xs font-medium text-secondary mb-1">{category}</p>
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">{category}</p>
                       <div className="flex flex-wrap gap-2">
                         {events.map((event) => (
                           <button
@@ -201,7 +201,7 @@ export function DeveloperPage() {
                             onClick={() => toggleEvent(event)}
                             className={cn(
                               'rounded border px-2.5 py-1 text-xs transition-all',
-                              webhookEvents.includes(event) ? 'bg-brand/10 border-brand/30 text-brand' : 'bg-elevated border-subtle text-secondary hover:text-primary'
+                              webhookEvents.includes(event) ? 'bg-[var(--bg-hover)] border-[var(--border-strong)] text-[var(--text-primary)]' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                             )}
                           >
                             {event}
@@ -215,7 +215,7 @@ export function DeveloperPage() {
               <button
                 onClick={() => createEndpointMutation.mutate()}
                 disabled={!webhookUrl || webhookEvents.length === 0 || createEndpointMutation.isPending}
-                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create Webhook
@@ -225,47 +225,47 @@ export function DeveloperPage() {
 
           {loadingEndpoints ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]" />
             </div>
           ) : !endpoints || endpoints.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
-                <Webhook className="h-6 w-6 text-tertiary" />
+            <div className="flex flex-col items-center justify-center py-12 text-center border border-[var(--border-subtle)] rounded-lg">
+              <div className="w-12 h-12 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center mb-3">
+                <Webhook className="h-6 w-6 text-[var(--text-tertiary)]" />
               </div>
-              <h3 className="font-medium text-primary mb-1">No webhooks configured</h3>
-              <p className="text-sm text-secondary">Add a webhook to receive real-time event notifications.</p>
+              <h3 className="font-medium text-[var(--text-primary)] mb-1">No webhooks configured</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Add a webhook to receive real-time event notifications.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {endpoints.map((ep) => (
-                <div key={ep.id} className="rounded-lg bg-surface border border-subtle p-4">
+                <div key={ep.id} className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4">
                   <div className="flex items-center gap-3">
-                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-brand' : 'bg-tertiary')} />
+                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-[var(--success)]' : 'bg-[var(--text-tertiary)]')} />
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-primary">{ep.label}</h4>
-                      <p className="text-xs text-tertiary truncate font-mono">{ep.url}</p>
+                      <h4 className="text-sm font-medium text-[var(--text-primary)]">{ep.label}</h4>
+                      <p className="text-xs text-[var(--text-tertiary)] truncate font-mono">{ep.url}</p>
                     </div>
-                    <span className="text-xs text-tertiary">{ep.events.length} events</span>
-                    <button onClick={() => testEndpointMutation.mutate(ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-primary text-xs flex items-center gap-1">
+                    <span className="text-xs text-[var(--text-tertiary)]">{ep.events.length} events</span>
+                    <button onClick={() => testEndpointMutation.mutate(ep.id)} className="p-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs flex items-center gap-1">
                       <Zap className="h-3 w-3" /> Test
                     </button>
-                    <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:text-primary text-xs flex items-center gap-1">
+                    <button onClick={() => setShowDeliveries(showDeliveries === ep.id ? null : ep.id)} className="p-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Logs
                     </button>
-                    <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded hover:bg-red-500/10 text-secondary hover:text-red-400">
+                    <button onClick={() => deleteEndpointMutation.mutate(ep.id)} className="p-1.5 rounded hover:bg-[var(--error-bg)] text-[var(--text-secondary)] hover:text-[var(--error)]">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   {showDeliveries === ep.id && deliveries && (
-                    <div className="mt-3 border-t border-subtle pt-3 space-y-2 max-h-60 overflow-y-auto">
+                    <div className="mt-3 border-t border-[var(--border-subtle)] pt-3 space-y-2 max-h-60 overflow-y-auto">
                       {deliveries.length === 0 ? (
-                        <p className="text-xs text-tertiary text-center py-2">No deliveries yet</p>
+                        <p className="text-xs text-[var(--text-tertiary)] text-center py-2">No deliveries yet</p>
                       ) : deliveries.map((d) => (
                         <div key={d.id} className="flex items-center gap-3 text-xs">
-                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-brand shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-                          <span className="text-secondary font-mono">{d.event_type}</span>
-                          <span className="text-tertiary">{d.status_code || 'ERR'}</span>
-                          <span className="text-tertiary ml-auto">{formatDateTime(d.created_at)}</span>
+                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-[var(--success)] shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-[var(--error)] shrink-0" />}
+                          <span className="text-[var(--text-secondary)] font-mono">{d.event_type}</span>
+                          <span className="text-[var(--text-tertiary)]">{d.status_code || 'ERR'}</span>
+                          <span className="text-[var(--text-tertiary)] ml-auto">{formatDateTime(d.created_at)}</span>
                         </div>
                       ))}
                     </div>
@@ -281,10 +281,10 @@ export function DeveloperPage() {
       {tab === 'api-keys' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-secondary">Manage API keys for headless access to SkySend.</p>
+            <p className="text-sm text-[var(--text-secondary)]">Manage API keys for headless access to SkySend.</p>
             <button
               onClick={() => setShowCreateKey(true)}
-              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary hover:bg-brand-400 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:bg-[var(--accent-hover)] transition-colors"
             >
               <Plus className="h-4 w-4" />
               Create Key
@@ -292,45 +292,45 @@ export function DeveloperPage() {
           </div>
 
           {newRawKey && (
-            <div className="rounded-lg bg-brand/10 border border-brand/30 p-4 space-y-2">
+            <div className="rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/30 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-brand" />
-                <span className="text-sm font-medium text-brand">API key created. Copy it now - it will not be shown again.</span>
+                <CheckCircle2 className="h-4 w-4 text-[var(--success)]" />
+                <span className="text-sm font-medium text-[var(--success)]">API key created. Copy it now - it will not be shown again.</span>
               </div>
               <div className="flex items-center gap-2">
-                <code className={cn('flex-1 rounded bg-elevated px-3 py-2 text-sm font-mono', showKey ? 'text-primary' : 'text-tertiary')}>
+                <code className={cn('flex-1 rounded bg-[var(--bg-elevated)] px-3 py-2 text-sm font-mono', showKey ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]')}>
                   {showKey ? newRawKey : newRawKey.substring(0, 16) + '••••••••••••••••'}
                 </code>
-                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-primary">
+                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                   {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
                 <button
                   onClick={() => { navigator.clipboard.writeText(newRawKey); toast.success('Copied!'); }}
-                  className="p-2 rounded bg-elevated border border-subtle text-secondary hover:text-primary"
+                  className="p-2 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 >
                   <Copy className="h-4 w-4" />
                 </button>
               </div>
-              <button onClick={() => { setNewRawKey(null); setShowKey(false); }} className="text-xs text-tertiary hover:text-primary">
+              <button onClick={() => { setNewRawKey(null); setShowKey(false); }} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
                 Dismiss
               </button>
             </div>
           )}
 
           {showCreateKey && !newRawKey && (
-            <div className="rounded-lg bg-surface border border-brand/20 p-5 space-y-4">
+            <div className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-primary">New API Key</h3>
-                <button onClick={() => setShowCreateKey(false)} className="text-secondary hover:text-primary"><X className="h-4 w-4" /></button>
+                <h3 className="text-sm font-medium text-[var(--text-primary)]">New API Key</h3>
+                <button onClick={() => setShowCreateKey(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X className="h-4 w-4" /></button>
               </div>
               <div>
-                <label className="text-xs text-tertiary mb-1 block">Key Name</label>
-                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-brand" />
+                <label className="text-xs text-[var(--text-tertiary)] mb-1 block">Key Name</label>
+                <input type="text" value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="e.g. Production CRM" className="w-full rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)]" />
               </div>
               <button
                 onClick={() => createKeyMutation.mutate()}
                 disabled={!keyName || createKeyMutation.isPending}
-                className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-colors"
               >
                 <Key className="h-4 w-4" />
                 Generate Key
@@ -340,46 +340,46 @@ export function DeveloperPage() {
 
           {loadingKeys ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]" />
             </div>
           ) : !apiKeys || apiKeys.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
-                <Key className="h-6 w-6 text-tertiary" />
+            <div className="flex flex-col items-center justify-center py-12 text-center border border-[var(--border-subtle)] rounded-lg">
+              <div className="w-12 h-12 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center mb-3">
+                <Key className="h-6 w-6 text-[var(--text-tertiary)]" />
               </div>
-              <h3 className="font-medium text-primary mb-1">No API keys</h3>
-              <p className="text-sm text-secondary">Create an API key to access SkySend programmatically.</p>
+              <h3 className="font-medium text-[var(--text-primary)] mb-1">No API keys</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Create an API key to access SkySend programmatically.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {apiKeys.map((key) => (
-                <div key={key.id} className="rounded-lg bg-surface border border-subtle p-4 flex items-center gap-4">
-                  <div className={cn('flex h-9 w-9 items-center justify-center rounded', key.is_active ? 'bg-brand/10' : 'bg-red-500/10')}>
-                    <Key className={cn('h-4 w-4', key.is_active ? 'text-brand' : 'text-red-400')} />
+                <div key={key.id} className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4 flex items-center gap-4">
+                  <div className={cn('flex h-9 w-9 items-center justify-center rounded', key.is_active ? 'bg-[var(--bg-elevated)]' : 'bg-[var(--error-bg)]')}>
+                    <Key className={cn('h-4 w-4', key.is_active ? 'text-[var(--text-primary)]' : 'text-[var(--error)]')} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-primary">{key.name}</h4>
-                    <p className="text-xs text-tertiary font-mono">{key.key_prefix}••••••••</p>
+                    <h4 className="text-sm font-medium text-[var(--text-primary)]">{key.name}</h4>
+                    <p className="text-xs text-[var(--text-tertiary)] font-mono">{key.key_prefix}••••••••</p>
                   </div>
                   <div className="text-right">
-                    <span className={cn('text-xs rounded-full px-2 py-0.5', key.is_active ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-400')}>
+                    <span className={cn('text-xs rounded-full px-2 py-0.5', key.is_active ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'bg-[var(--error-bg)] text-[var(--error)]')}>
                       {key.is_active ? 'Active' : 'Revoked'}
                     </span>
                     {key.last_used_at && (
-                      <p className="text-[10px] text-tertiary mt-1">Last used {formatDateTime(key.last_used_at)}</p>
+                      <p className="text-[10px] text-[var(--text-tertiary)] mt-1">Last used {formatDateTime(key.last_used_at)}</p>
                     )}
                   </div>
                   {key.is_active && (
                     <button
                       onClick={() => revokeKeyMutation.mutate(key.id)}
-                      className="p-1.5 rounded bg-elevated border border-subtle text-secondary hover:bg-orange-500/10 hover:text-orange-400 text-xs flex items-center gap-1"
+                      className="p-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--warning-bg)] hover:text-[var(--warning)] text-xs flex items-center gap-1"
                     >
                       <Shield className="h-3 w-3" /> Revoke
                     </button>
                   )}
                   <button
                     onClick={() => deleteKeyMutation.mutate(key.id)}
-                    className="p-1.5 rounded hover:bg-red-500/10 text-secondary hover:text-red-400"
+                    className="p-1.5 rounded hover:bg-[var(--error-bg)] text-[var(--text-secondary)] hover:text-[var(--error)]"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

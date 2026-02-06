@@ -26,14 +26,14 @@ import toast from 'react-hot-toast';
 import type { InboxMessageWithContext } from '@lemlist/shared';
 
 const INTENT_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Bot }> = {
-  interested: { label: 'Interested', color: 'text-brand', bg: 'bg-brand/10 border-brand/20', icon: TrendingUp },
-  meeting: { label: 'Meeting', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', icon: Users },
-  objection: { label: 'Objection', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', icon: AlertTriangle },
-  not_now: { label: 'Not Now', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20', icon: Clock },
-  unsubscribe: { label: 'Unsubscribe', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', icon: XCircle },
-  out_of_office: { label: 'Out of Office', color: 'text-secondary', bg: 'bg-elevated border-subtle', icon: Clock },
-  bounce: { label: 'Bounce', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', icon: AlertTriangle },
-  other: { label: 'Other', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20', icon: MessageSquare },
+  interested: { label: 'Interested', color: 'text-[var(--success)]', bg: 'bg-[var(--success-bg)] border-[var(--success)]/20', icon: TrendingUp },
+  meeting: { label: 'Meeting', color: 'text-[var(--info)]', bg: 'bg-[var(--info-bg)] border-[var(--info)]/20', icon: Users },
+  objection: { label: 'Objection', color: 'text-[var(--warning)]', bg: 'bg-[var(--warning-bg)] border-[var(--warning)]/20', icon: AlertTriangle },
+  not_now: { label: 'Not Now', color: 'text-[var(--text-secondary)]', bg: 'bg-[var(--bg-elevated)] border-[var(--border-subtle)]', icon: Clock },
+  unsubscribe: { label: 'Unsubscribe', color: 'text-[var(--error)]', bg: 'bg-[var(--error-bg)] border-[var(--error)]/20', icon: XCircle },
+  out_of_office: { label: 'Out of Office', color: 'text-[var(--text-secondary)]', bg: 'bg-[var(--bg-elevated)] border-[var(--border-subtle)]', icon: Clock },
+  bounce: { label: 'Bounce', color: 'text-[var(--error)]', bg: 'bg-[var(--error-bg)] border-[var(--error)]/20', icon: AlertTriangle },
+  other: { label: 'Other', color: 'text-[var(--text-secondary)]', bg: 'bg-[var(--bg-elevated)] border-[var(--border-subtle)]', icon: MessageSquare },
 };
 
 const ACTION_LABELS: Record<string, { label: string; icon: typeof Bot }> = {
@@ -124,18 +124,18 @@ export function InboxPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-primary">Unified Inbox</h1>
-          <p className="text-sm text-secondary mt-1">
+          <h1 className="text-xl font-semibold text-[var(--text-primary)]">Unified Inbox</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             {saraStats?.pending_review ? `${saraStats.pending_review} replies need action` : 'All replies in one place'}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-md bg-surface border border-subtle p-0.5">
+          <div className="flex items-center rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-0.5">
             <button
               onClick={() => setViewMode('action_cards')}
               className={cn(
                 'rounded px-3 py-1.5 text-xs font-medium transition-all',
-                viewMode === 'action_cards' ? 'bg-brand text-primary' : 'text-secondary hover:text-primary'
+                viewMode === 'action_cards' ? 'bg-[var(--accent)] text-[var(--bg-app)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               )}
             >
               <Bot className="inline h-3.5 w-3.5 mr-1" />
@@ -145,7 +145,7 @@ export function InboxPage() {
               onClick={() => setViewMode('classic')}
               className={cn(
                 'rounded px-3 py-1.5 text-xs font-medium transition-all',
-                viewMode === 'classic' ? 'bg-brand text-primary' : 'text-secondary hover:text-primary'
+                viewMode === 'classic' ? 'bg-[var(--accent)] text-[var(--bg-app)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               )}
             >
               <Mail className="inline h-3.5 w-3.5 mr-1" />
@@ -154,7 +154,7 @@ export function InboxPage() {
           </div>
           <button
             onClick={() => markAllReadMutation.mutate()}
-            className="flex items-center gap-1.5 rounded-md bg-surface border border-subtle px-3 py-1.5 text-xs text-secondary hover:text-primary hover:bg-hover transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <CheckCheck className="h-3.5 w-3.5" />
             Mark all read
@@ -163,7 +163,7 @@ export function InboxPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-1 border-b border-subtle">
+      <div className="flex gap-1 border-b border-[var(--border-subtle)]">
         {([
           { value: 'all', label: 'All Messages' },
           { value: 'unread', label: 'Unread' },
@@ -173,13 +173,13 @@ export function InboxPage() {
             key={tab.value}
             onClick={() => setFilter(tab.value)}
             className={cn(
-              'px-4 py-2 text-sm font-medium border-b-2 transition-all -mb-px',
-              filter === tab.value ? 'border-brand text-primary' : 'border-transparent text-secondary hover:text-primary'
+              'px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px',
+              filter === tab.value ? 'border-[var(--text-primary)] text-[var(--text-primary)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             )}
           >
             {tab.label}
             {tab.count ? (
-              <span className="ml-2 rounded-full bg-brand/10 text-brand px-2 py-0.5 text-xs">{tab.count}</span>
+              <span className="ml-2 rounded-full bg-[var(--bg-elevated)] text-[var(--text-primary)] px-2 py-0.5 text-xs">{tab.count}</span>
             ) : null}
           </button>
         ))}
@@ -188,15 +188,15 @@ export function InboxPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]" />
         </div>
       ) : filteredMessages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-12 h-12 rounded-md bg-elevated flex items-center justify-center mb-3">
-            <Inbox className="h-6 w-6 text-tertiary" />
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-[var(--border-subtle)] rounded-lg">
+          <div className="w-12 h-12 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center mb-3">
+            <Inbox className="h-6 w-6 text-[var(--text-tertiary)]" />
           </div>
-          <h3 className="font-medium text-primary mb-1">No messages</h3>
-          <p className="text-sm text-secondary">
+          <h3 className="font-medium text-[var(--text-primary)] mb-1">No messages</h3>
+          <p className="text-sm text-[var(--text-secondary)]">
             {filter === 'needs_action' ? 'No replies need your attention right now.' : 'Replies from your campaigns will appear here.'}
           </p>
         </div>
@@ -216,7 +216,7 @@ export function InboxPage() {
                 key={msg.id}
                 className={cn(
                   'rounded-lg border overflow-hidden transition-colors',
-                  !msg.is_read ? 'bg-surface border-brand/20' : 'bg-surface border-subtle hover:border-default'
+                  !msg.is_read ? 'bg-[var(--bg-surface)] border-[var(--border-default)]' : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                 )}
               >
                 {/* Card Header */}
@@ -227,7 +227,7 @@ export function InboxPage() {
                     if (!msg.is_read) markReadMutation.mutate(msg.id);
                   }}
                 >
-                  {!msg.is_read && <div className="h-2 w-2 rounded-full bg-brand shrink-0" />}
+                  {!msg.is_read && <div className="h-2 w-2 rounded-full bg-[var(--text-primary)] shrink-0" />}
 
                   {intentConfig ? (
                     <div className={cn('flex items-center gap-1.5 rounded border px-2 py-1 text-xs shrink-0', intentConfig.bg)}>
@@ -235,7 +235,7 @@ export function InboxPage() {
                       <span className={intentConfig.color}>{intentConfig.label}</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 rounded border border-subtle bg-elevated px-2 py-1 text-xs text-secondary shrink-0">
+                    <div className="flex items-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1 text-xs text-[var(--text-secondary)] shrink-0">
                       <Mail className="h-3.5 w-3.5" />
                       Unclassified
                     </div>
@@ -243,38 +243,38 @@ export function InboxPage() {
 
                   {msg.sara_confidence && (
                     <div className="flex items-center gap-1">
-                      <Zap className="h-3 w-3 text-amber-400" />
-                      <span className="text-xs text-tertiary">{((msg.sara_confidence || 0) * 100).toFixed(0)}%</span>
+                      <Zap className="h-3 w-3 text-[var(--text-secondary)]" />
+                      <span className="text-xs text-[var(--text-tertiary)]">{((msg.sara_confidence || 0) * 100).toFixed(0)}%</span>
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={cn('text-sm truncate', !msg.is_read ? 'font-medium text-primary' : 'text-secondary')}>
+                      <span className={cn('text-sm truncate', !msg.is_read ? 'font-medium text-[var(--text-primary)]' : 'text-[var(--text-secondary)]')}>
                         {msg.contact_name || msg.from_email}
                       </span>
                       {msg.campaign_name && (
-                        <span className="text-[10px] text-tertiary bg-elevated rounded px-1.5 py-0.5">{msg.campaign_name}</span>
+                        <span className="text-[10px] text-[var(--text-tertiary)] bg-[var(--bg-elevated)] rounded px-1.5 py-0.5">{msg.campaign_name}</span>
                       )}
                     </div>
-                    <p className="text-xs text-tertiary truncate mt-0.5">{msg.subject || '(No subject)'}</p>
+                    <p className="text-xs text-[var(--text-tertiary)] truncate mt-0.5">{msg.subject || '(No subject)'}</p>
                   </div>
 
                   {actionConfig && msg.sara_status === 'pending_review' && (
-                    <span className="text-[10px] font-medium text-brand bg-brand/10 border border-brand/20 rounded-full px-2 py-0.5 shrink-0">
+                    <span className="text-[10px] font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)] border border-[var(--border-default)] rounded-full px-2 py-0.5 shrink-0">
                       {actionConfig.label}
                     </span>
                   )}
 
-                  <span className="text-xs text-tertiary shrink-0">{formatDateTime(msg.received_at)}</span>
-                  {isExpanded ? <ChevronUp className="h-4 w-4 text-secondary shrink-0" /> : <ChevronDown className="h-4 w-4 text-secondary shrink-0" />}
+                  <span className="text-xs text-[var(--text-tertiary)] shrink-0">{formatDateTime(msg.received_at)}</span>
+                  {isExpanded ? <ChevronUp className="h-4 w-4 text-[var(--text-secondary)] shrink-0" /> : <ChevronDown className="h-4 w-4 text-[var(--text-secondary)] shrink-0" />}
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-subtle p-4 space-y-4">
+                  <div className="border-t border-[var(--border-subtle)] p-4 space-y-4">
                     <div>
-                      <h4 className="text-xs font-medium uppercase tracking-wider text-tertiary mb-2">Reply</h4>
-                      <div className="rounded-md bg-elevated border border-subtle p-3 text-sm text-secondary whitespace-pre-wrap max-h-40 overflow-y-auto">
+                      <h4 className="text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] mb-2">Reply</h4>
+                      <div className="rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-3 text-sm text-[var(--text-secondary)] whitespace-pre-wrap max-h-40 overflow-y-auto">
                         {msg.body_text || msg.body_html || '(empty)'}
                       </div>
                     </div>
@@ -282,18 +282,18 @@ export function InboxPage() {
                     {hasSara && msg.sara_draft_reply && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <Bot className="h-4 w-4 text-brand" />
-                          <h4 className="text-xs font-medium uppercase tracking-wider text-tertiary">SARA Suggested Reply</h4>
+                          <Bot className="h-4 w-4 text-[var(--text-primary)]" />
+                          <h4 className="text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)]">SARA Suggested Reply</h4>
                         </div>
                         {isEditing ? (
                           <textarea
                             value={editedReply}
                             onChange={(e) => setEditedReply(e.target.value)}
                             rows={5}
-                            className="w-full rounded-md bg-elevated border border-brand/30 p-3 text-sm text-primary focus:outline-none focus:border-brand resize-none"
+                            className="w-full rounded-md bg-[var(--bg-elevated)] border border-[var(--border-default)] p-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none"
                           />
                         ) : (
-                          <div className="rounded-md bg-brand/5 border border-brand/20 p-3 text-sm text-secondary whitespace-pre-wrap">
+                          <div className="rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-3 text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
                             {msg.sara_draft_reply}
                           </div>
                         )}
@@ -304,7 +304,7 @@ export function InboxPage() {
                       <button
                         onClick={() => classifyMutation.mutate(msg.id)}
                         disabled={classifyMutation.isPending}
-                        className="flex items-center gap-2 rounded-md bg-brand/10 border border-brand/20 px-4 py-2 text-sm text-brand hover:bg-brand/20 transition-colors"
+                        className="flex items-center gap-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-default)] px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
                       >
                         <Bot className="h-4 w-4" />
                         Classify with SARA
@@ -321,7 +321,7 @@ export function InboxPage() {
                                 else approveMutation.mutate({ id: msg.id });
                               }}
                               disabled={approveMutation.isPending}
-                              className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-primary hover:bg-brand-400 transition-colors"
+                              className="flex items-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:bg-[var(--accent-hover)] transition-colors"
                             >
                               <Send className="h-4 w-4" />
                               {isEditing ? 'Send Edited Reply' : 'Approve & Send'}
@@ -329,14 +329,14 @@ export function InboxPage() {
                             {!isEditing && (
                               <button
                                 onClick={() => { setEditingId(msg.id); setEditedReply(msg.sara_draft_reply || ''); }}
-                                className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-hover"
+                                className="flex items-center gap-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
                               >
                                 <Edit3 className="h-4 w-4" />
                                 Edit
                               </button>
                             )}
                             {isEditing && (
-                              <button onClick={() => { setEditingId(null); setEditedReply(''); }} className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:text-primary">
+                              <button onClick={() => { setEditingId(null); setEditedReply(''); }} className="flex items-center gap-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                                 Cancel
                               </button>
                             )}
@@ -346,14 +346,14 @@ export function InboxPage() {
                           <button
                             onClick={() => approveMutation.mutate({ id: msg.id })}
                             disabled={approveMutation.isPending}
-                            className="flex items-center gap-2 rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-primary hover:bg-orange-400 transition-colors"
+                            className="flex items-center gap-2 rounded-md bg-[var(--warning)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-colors"
                           >
                             <XCircle className="h-4 w-4" />
                             {msg.sara_action === 'unsubscribe' ? 'Confirm Unsubscribe' : 'Confirm Stop'}
                           </button>
                         )}
                         {msg.sara_action === 'archive' && (
-                          <button onClick={() => approveMutation.mutate({ id: msg.id })} className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-4 py-2 text-sm text-secondary hover:text-primary">
+                          <button onClick={() => approveMutation.mutate({ id: msg.id })} className="flex items-center gap-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                             <CheckCircle2 className="h-4 w-4" />
                             Archive
                           </button>
@@ -361,7 +361,7 @@ export function InboxPage() {
                         <button
                           onClick={() => dismissMutation.mutate(msg.id)}
                           disabled={dismissMutation.isPending}
-                          className="flex items-center gap-2 rounded-md bg-elevated border border-subtle px-3 py-2 text-sm text-secondary hover:bg-red-500/10 hover:text-red-400 transition-colors ml-auto"
+                          className="flex items-center gap-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--error-bg)] hover:text-[var(--error)] transition-colors ml-auto"
                         >
                           <XCircle className="h-4 w-4" />
                           Dismiss
@@ -370,9 +370,9 @@ export function InboxPage() {
                     )}
 
                     {hasSara && msg.sara_status && msg.sara_status !== 'pending_review' && (
-                      <div className="text-xs text-tertiary flex items-center gap-1.5 pt-1">
+                      <div className="text-xs text-[var(--text-tertiary)] flex items-center gap-1.5 pt-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        Status: <span className="text-secondary capitalize">{msg.sara_status.replace('_', ' ')}</span>
+                        Status: <span className="text-[var(--text-secondary)] capitalize">{msg.sara_status.replace('_', ' ')}</span>
                       </div>
                     )}
                   </div>
@@ -383,7 +383,7 @@ export function InboxPage() {
         </div>
       ) : (
         <div className="flex gap-4" style={{ height: 'calc(100vh - 240px)' }}>
-          <div className="w-1/3 overflow-y-auto rounded-lg bg-surface border border-subtle">
+          <div className="w-1/3 overflow-y-auto rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
             {filteredMessages.map((msg: any) => (
               <button
                 key={msg.id}
@@ -392,20 +392,20 @@ export function InboxPage() {
                   if (!msg.is_read) markReadMutation.mutate(msg.id);
                 }}
                 className={cn(
-                  'w-full border-b border-subtle p-4 text-left transition-colors hover:bg-hover',
-                  selectedId === msg.id ? 'bg-brand/5' : '',
-                  !msg.is_read ? 'bg-elevated' : ''
+                  'w-full border-b border-[var(--border-subtle)] p-4 text-left transition-colors hover:bg-[var(--bg-hover)]',
+                  selectedId === msg.id ? 'bg-[var(--bg-elevated)]' : '',
+                  !msg.is_read ? 'bg-[var(--bg-elevated)]' : ''
                 )}
               >
                 <div className="flex items-center gap-2">
-                  {!msg.is_read ? <Mail className="h-4 w-4 shrink-0 text-brand" /> : <MailOpen className="h-4 w-4 shrink-0 text-tertiary" />}
-                  <span className={cn('truncate text-sm', !msg.is_read ? 'font-medium text-primary' : 'text-secondary')}>
+                  {!msg.is_read ? <Mail className="h-4 w-4 shrink-0 text-[var(--text-primary)]" /> : <MailOpen className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />}
+                  <span className={cn('truncate text-sm', !msg.is_read ? 'font-medium text-[var(--text-primary)]' : 'text-[var(--text-secondary)]')}>
                     {msg.contact_name || msg.from_email}
                   </span>
                 </div>
-                <p className="mt-1 truncate text-xs text-tertiary">{msg.subject || '(No subject)'}</p>
+                <p className="mt-1 truncate text-xs text-[var(--text-tertiary)]">{msg.subject || '(No subject)'}</p>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="text-[10px] text-tertiary">{formatDateTime(msg.received_at)}</span>
+                  <span className="text-[10px] text-[var(--text-tertiary)]">{formatDateTime(msg.received_at)}</span>
                   {msg.sara_intent && (
                     <span className={cn('text-[10px] rounded px-1.5 py-0.5 border', (INTENT_CONFIG[msg.sara_intent] || INTENT_CONFIG.other).bg, (INTENT_CONFIG[msg.sara_intent] || INTENT_CONFIG.other).color)}>
                       {(INTENT_CONFIG[msg.sara_intent] || INTENT_CONFIG.other).label}
@@ -416,25 +416,25 @@ export function InboxPage() {
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto rounded-lg bg-surface border border-subtle p-6">
+          <div className="flex-1 overflow-y-auto rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-6">
             {selectedMessage ? (
               <div>
-                <h2 className="font-medium text-primary">{selectedMessage.subject || '(No subject)'}</h2>
-                <div className="mt-2 flex items-center gap-4 text-sm text-secondary">
+                <h2 className="font-medium text-[var(--text-primary)]">{selectedMessage.subject || '(No subject)'}</h2>
+                <div className="mt-2 flex items-center gap-4 text-sm text-[var(--text-secondary)]">
                   <span>From: {selectedMessage.from_email}</span>
                   <span>{formatDateTime(selectedMessage.received_at)}</span>
                 </div>
-                <hr className="my-4 border-subtle" />
-                <div className="prose prose-invert max-w-none">
+                <hr className="my-4 border-[var(--border-subtle)]" />
+                <div className="prose max-w-none">
                   {selectedMessage.body_html ? (
                     <div dangerouslySetInnerHTML={{ __html: selectedMessage.body_html }} />
                   ) : (
-                    <pre className="whitespace-pre-wrap text-sm text-secondary">{selectedMessage.body_text || 'No content'}</pre>
+                    <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)]">{selectedMessage.body_text || 'No content'}</pre>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center text-tertiary">Select a message to read</div>
+              <div className="flex h-full items-center justify-center text-[var(--text-tertiary)]">Select a message to read</div>
             )}
           </div>
         </div>
