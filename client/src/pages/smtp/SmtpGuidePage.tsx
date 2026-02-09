@@ -101,7 +101,7 @@ export function SmtpGuidePage() {
   const [selectedProvider, setSelectedProvider] = useState(providers[0]);
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <Link

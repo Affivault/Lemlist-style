@@ -179,64 +179,200 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Dashboard Preview */}
+          {/* Dashboard Preview - Realistic platform mockup */}
           <div className="mt-20">
-            <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-1 shadow-xl">
-              <div className="aspect-[16/9] rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)] overflow-hidden">
-                <div className="h-10 border-b border-[var(--border-subtle)] flex items-center px-4 gap-2 bg-[var(--bg-surface)]">
+            <div className="rounded-2xl border border-[var(--border-default)] bg-[#0A0A0B] p-1.5 shadow-2xl">
+              <div className="rounded-xl bg-[#111114] overflow-hidden" style={{ aspectRatio: '16/9.5' }}>
+                {/* Browser chrome */}
+                <div className="h-9 border-b border-[#1C1C21] flex items-center px-3.5 gap-2">
                   <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[var(--border-strong)]" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-[var(--border-strong)]" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-[var(--border-strong)]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#3A3A42]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#3A3A42]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#3A3A42]" />
                   </div>
                   <div className="flex-1 flex justify-center">
-                    <div className="h-6 w-64 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
-                      <span className="text-[10px] text-[var(--text-tertiary)]">app.skysend.io/dashboard</span>
+                    <div className="h-5.5 w-56 rounded-md bg-[#16161A] flex items-center justify-center px-3">
+                      <span className="text-[10px] text-[#6B6B76] font-medium tracking-wide">app.skysend.io/dashboard</span>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 flex gap-5">
-                  <div className="w-44 space-y-1 flex-shrink-0">
-                    <div className="flex items-center gap-2 px-3 py-1.5 mb-3">
-                      <div className="w-5 h-5 rounded-md bg-[var(--text-primary)]" />
-                      <div className="h-3 w-16 rounded bg-[var(--text-primary)]/20" />
-                    </div>
-                    {['Dashboard', 'Campaigns', 'Contacts', 'Analytics', 'Inbox'].map((item, i) => (
-                      <div
-                        key={item}
-                        className={`h-8 rounded-lg flex items-center px-3 gap-2 ${i === 0 ? 'bg-[var(--bg-elevated)]' : ''}`}
-                      >
-                        <div className={`w-3.5 h-3.5 rounded ${i === 0 ? 'bg-[var(--text-primary)]/30' : 'bg-[var(--border-default)]'}`} />
-                        <span className={`text-[11px] ${i === 0 ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)]'}`}>{item}</span>
+
+                <div className="flex h-[calc(100%-36px)]">
+                  {/* Sidebar mock */}
+                  <div className="w-[180px] border-r border-[#1C1C21] bg-[#0F0F12] flex flex-col flex-shrink-0">
+                    {/* Logo */}
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1C1C21]">
+                      <div className="w-5 h-5 rounded-md bg-[#FAFAFB] flex items-center justify-center">
+                        <span className="text-[8px] font-black text-[#0A0A0B]">S</span>
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="h-5 w-28 bg-[var(--text-primary)]/15 rounded" />
-                      <div className="h-7 w-28 bg-[var(--text-primary)] rounded-md" />
+                      <span className="text-[11px] font-extrabold text-[#FAFAFB] tracking-tight">SkySend</span>
                     </div>
-                    <div className="grid grid-cols-4 gap-3">
+
+                    {/* Nav items */}
+                    <div className="px-2 py-3 space-y-0.5 flex-1">
                       {[
-                        { label: 'Campaigns', val: '24' },
-                        { label: 'Contacts', val: '8,431' },
-                        { label: 'Sent', val: '42,156' },
-                        { label: 'Replies', val: '1,284' },
-                      ].map((stat) => (
-                        <div key={stat.label} className="p-3 bg-[var(--bg-surface)] rounded-lg border border-[var(--border-subtle)]">
-                          <div className="text-[10px] text-[var(--text-tertiary)]">{stat.label}</div>
-                          <div className="text-base font-semibold text-[var(--text-primary)] mt-0.5">{stat.val}</div>
+                        { name: 'Dashboard', active: true },
+                        { name: 'Campaigns', active: false },
+                        { name: 'Contacts', active: false },
+                        { name: 'Inbox', active: false },
+                        { name: 'Analytics', active: false },
+                      ].map((item) => (
+                        <div
+                          key={item.name}
+                          className={`h-7 rounded-md flex items-center px-2.5 gap-2 ${
+                            item.active ? 'bg-[#1C1C21]' : ''
+                          }`}
+                        >
+                          <div className={`w-3 h-3 rounded-sm ${item.active ? 'bg-[#FAFAFB]/30' : 'bg-[#3A3A42]'}`} />
+                          <span className={`text-[10px] font-medium ${item.active ? 'text-[#FAFAFB]' : 'text-[#6B6B76]'}`}>
+                            {item.name}
+                          </span>
                         </div>
                       ))}
+
+                      <div className="pt-3 mt-3 border-t border-[#1C1C21]">
+                        <div className="px-2.5 mb-1.5">
+                          <span className="text-[8px] font-medium text-[#3A3A42] uppercase tracking-widest">Tools</span>
+                        </div>
+                        {['SARA AI', 'Webhooks'].map((item) => (
+                          <div key={item} className="h-7 rounded-md flex items-center px-2.5 gap-2">
+                            <div className="w-3 h-3 rounded-sm bg-[#3A3A42]" />
+                            <span className="text-[10px] font-medium text-[#6B6B76]">{item}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="h-36 bg-[var(--bg-surface)] rounded-lg border border-[var(--border-subtle)] p-3 flex items-end gap-1.5 overflow-hidden">
-                      {[35, 45, 30, 50, 65, 55, 70, 60, 75, 80, 65, 85, 70, 90, 75, 95, 80, 72, 88, 78].map((h, i) => (
-                        <div
-                          key={i}
-                          className="flex-1 rounded-sm bg-[var(--text-primary)]"
-                          style={{ height: `${h}%`, opacity: 0.15 + (h / 100) * 0.4 }}
-                        />
-                      ))}
+
+                    {/* User */}
+                    <div className="border-t border-[#1C1C21] p-2">
+                      <div className="flex items-center gap-2 px-2 py-1.5 rounded-md">
+                        <div className="w-5 h-5 rounded-full bg-[#1C1C21] border border-[#24242A] flex items-center justify-center">
+                          <span className="text-[7px] font-bold text-[#9B9BA5]">J</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[9px] font-medium text-[#FAFAFB] truncate">john.doe</div>
+                          <div className="text-[8px] text-[#6B6B76] truncate">john@company.com</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main content area */}
+                  <div className="flex-1 flex flex-col min-w-0">
+                    {/* Header bar */}
+                    <div className="h-10 border-b border-[#1C1C21] flex items-center justify-between px-5 bg-[#0F0F12]">
+                      <div className="flex items-center h-6 w-48 rounded-md border border-[#1C1C21] bg-[#111114] px-2.5">
+                        <div className="w-3 h-3 rounded-sm bg-[#3A3A42] mr-2" />
+                        <span className="text-[9px] text-[#6B6B76]">Search...</span>
+                        <span className="ml-auto text-[7px] text-[#3A3A42] bg-[#16161A] rounded px-1 py-0.5 font-medium">⌘K</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-[#16161A]">
+                          <div className="w-3 h-3 rounded-sm bg-[#3A3A42]" />
+                        </div>
+                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-[#16161A]">
+                          <div className="w-3 h-3 rounded-sm bg-[#3A3A42]" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dashboard content */}
+                    <div className="flex-1 p-5 overflow-hidden">
+                      {/* Page header */}
+                      <div className="flex items-center justify-between mb-5">
+                        <div>
+                          <div className="text-[9px] text-[#6B6B76] mb-0.5">Good morning</div>
+                          <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">Dashboard</div>
+                        </div>
+                        <div className="h-7 px-3 bg-[#FAFAFB] rounded-md flex items-center gap-1.5">
+                          <span className="text-[10px] font-medium text-[#0A0A0B]">New Campaign</span>
+                        </div>
+                      </div>
+
+                      {/* Stats row */}
+                      <div className="grid grid-cols-4 gap-3 mb-5">
+                        {[
+                          { label: 'Total Campaigns', val: '24', change: '+12%' },
+                          { label: 'Total Contacts', val: '8,431', change: '+8%' },
+                          { label: 'Emails Sent', val: '42,156', change: '+24%' },
+                          { label: 'Active Now', val: '6', change: '+2' },
+                        ].map((stat) => (
+                          <div key={stat.label} className="p-3 bg-[#0F0F12] rounded-lg border border-[#1C1C21]">
+                            <div className="flex items-start justify-between mb-1.5">
+                              <div className="w-3.5 h-3.5 rounded-sm bg-[#24242A]" />
+                              <span className="text-[8px] font-medium text-[#4ADE80]">{stat.change}</span>
+                            </div>
+                            <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">{stat.val}</div>
+                            <div className="text-[9px] text-[#6B6B76] mt-0.5">{stat.label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Content grid */}
+                      <div className="grid grid-cols-3 gap-4">
+                        {/* Recent campaigns */}
+                        <div className="col-span-2">
+                          <div className="flex items-center justify-between mb-2.5">
+                            <span className="text-[10px] font-semibold text-[#FAFAFB]">Recent Campaigns</span>
+                            <span className="text-[9px] text-[#6B6B76]">View all →</span>
+                          </div>
+                          <div className="border border-[#1C1C21] rounded-lg bg-[#0F0F12] overflow-hidden">
+                            {[
+                              { name: 'Q1 Enterprise Outreach', status: 'Active', statusColor: '#4ADE80' },
+                              { name: 'Product Launch Follow-up', status: 'Active', statusColor: '#4ADE80' },
+                              { name: 'Re-engagement Series', status: 'Paused', statusColor: '#FACC15' },
+                              { name: 'December Newsletter', status: 'Completed', statusColor: '#6B6B76' },
+                            ].map((campaign, i) => (
+                              <div
+                                key={campaign.name}
+                                className={`flex items-center justify-between px-3.5 py-2.5 ${
+                                  i < 3 ? 'border-b border-[#1C1C21]' : ''
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-3.5 h-3.5 rounded-sm bg-[#24242A]" />
+                                  <span className="text-[10px] font-medium text-[#FAFAFB]">{campaign.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="text-[8px] font-medium px-1.5 py-0.5 rounded-full"
+                                    style={{
+                                      color: campaign.statusColor,
+                                      backgroundColor: campaign.statusColor + '15',
+                                    }}
+                                  >
+                                    {campaign.status}
+                                  </span>
+                                  <div className="w-3 h-3 rounded-sm bg-[#24242A]" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Engagement sidebar */}
+                        <div>
+                          <span className="text-[10px] font-semibold text-[#FAFAFB] block mb-2.5">Engagement</span>
+                          <div className="space-y-2">
+                            {[
+                              { label: 'Open Rate', value: '68.2%', pct: 68 },
+                              { label: 'Click Rate', value: '12.4%', pct: 12 },
+                              { label: 'Reply Rate', value: '4.8%', pct: 5 },
+                            ].map((metric) => (
+                              <div key={metric.label} className="p-3 bg-[#0F0F12] rounded-lg border border-[#1C1C21]">
+                                <div className="text-[9px] text-[#6B6B76]">{metric.label}</div>
+                                <div className="text-[13px] font-semibold text-[#FAFAFB] tracking-tight mt-0.5 mb-2">{metric.value}</div>
+                                <div className="w-full h-1 rounded-full bg-[#1C1C21]">
+                                  <div
+                                    className="h-1 rounded-full bg-[#FAFAFB]"
+                                    style={{ width: `${metric.pct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

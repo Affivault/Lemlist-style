@@ -253,7 +253,7 @@ export function AnalyticsDashboardPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-6xl animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>

@@ -130,7 +130,7 @@ export function CampaignDetailPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6">
       <button
         onClick={() => navigate('/campaigns')}
         className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
