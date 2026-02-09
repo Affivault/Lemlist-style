@@ -63,7 +63,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <div className="mb-8">
         <h1 className="text-heading-lg text-[var(--text-primary)]">Settings</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your account and preferences</p>

@@ -165,7 +165,7 @@ export function DashboardPage() {
   const recentCampaigns = campaigns?.data || [];
 
   return (
-    <div className="max-w-6xl space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>

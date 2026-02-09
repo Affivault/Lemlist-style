@@ -129,7 +129,7 @@ export function DeveloperPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-[var(--text-primary)]">Developer</h1>
