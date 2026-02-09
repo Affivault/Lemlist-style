@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 import {
@@ -14,6 +15,9 @@ import {
   LogOut,
   CheckCircle,
   AlertCircle,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 
 type Tab = 'profile' | 'account' | 'notifications' | 'preferences';
@@ -33,6 +37,7 @@ const tabs: TabConfig[] = [
 
 export function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { mode: themeMode, setMode: setThemeMode } = useTheme();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [saving, setSaving] = useState(false);
 
@@ -47,7 +52,6 @@ export function SettingsPage() {
   const [replyNotifications, setReplyNotifications] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('dark');
   const [defaultSignature, setDefaultSignature] = useState('');
 
   const handleSave = async () => {
@@ -322,17 +326,22 @@ export function SettingsPage() {
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">Theme</label>
                   <div className="flex gap-2">
-                    {(['light', 'dark', 'system'] as const).map((t) => (
+                    {([
+                      { value: 'light' as const, label: 'Light', icon: Sun },
+                      { value: 'dark' as const, label: 'Dark', icon: Moon },
+                      { value: 'system' as const, label: 'System', icon: Monitor },
+                    ]).map(({ value, label, icon: Icon }) => (
                       <button
-                        key={t}
-                        onClick={() => setTheme(t)}
-                        className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 border ${
-                          theme === t
+                        key={value}
+                        onClick={() => setThemeMode(value)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 border ${
+                          themeMode === value
                             ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--text-primary)]'
                             : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                         }`}
                       >
-                        <span className="capitalize">{t}</span>
+                        <Icon className="h-4 w-4" strokeWidth={1.5} />
+                        {label}
                       </button>
                     ))}
                   </div>

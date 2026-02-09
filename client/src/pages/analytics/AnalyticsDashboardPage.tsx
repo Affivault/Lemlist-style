@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../../api/analytics.api';
 import { campaignsApi } from '../../api/campaigns.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
+import { useTheme } from '../../context/ThemeContext';
 import {
   BarChart,
   Bar,
@@ -32,8 +33,9 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-/* Monochrome palette for charts — works in both light and dark themes */
-const COLORS = ['#0A0A0B', '#6B6B76', '#9B9BA5', '#CDCDD6'];
+/* Monochrome palette for charts — separate light and dark palettes */
+const LIGHT_COLORS = ['#0A0A0B', '#6B6B76', '#9B9BA5', '#CDCDD6'];
+const DARK_COLORS = ['#FAFAFB', '#9B9BA5', '#6B6B76', '#3A3A42'];
 
 const tooltipStyle = {
   backgroundColor: 'var(--bg-elevated)',
@@ -112,7 +114,7 @@ function StatCard({
   );
 }
 
-function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
+function EngagementRing({ data, colors }: { data: { name: string; value: number }[]; colors: string[] }) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   return (
     <div
@@ -135,7 +137,7 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
                 strokeWidth={0}
               >
                 {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Pie>
               <Tooltip
@@ -157,8 +159,8 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
                 <div
                   className="w-2.5 h-2.5 rounded-full"
                   style={{
-                    backgroundColor: COLORS[index % COLORS.length],
-                    boxShadow: `0 0 0 2px var(--bg-surface), 0 0 0 3.5px ${COLORS[index % COLORS.length]}30`,
+                    backgroundColor: colors[index % colors.length],
+                    boxShadow: `0 0 0 2px var(--bg-surface), 0 0 0 3.5px ${colors[index % colors.length]}30`,
                   }}
                 />
                 <span className="text-sm text-[var(--text-secondary)]">{item.name}</span>
@@ -180,6 +182,11 @@ function EngagementRing({ data }: { data: { name: string; value: number }[] }) {
 }
 
 export function AnalyticsDashboardPage() {
+  const { theme } = useTheme();
+  const COLORS = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
+  const primaryChartColor = theme === 'dark' ? '#FAFAFB' : '#0A0A0B';
+  const secondaryChartColor = theme === 'dark' ? '#9B9BA5' : '#6B6B76';
+
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
 
@@ -215,15 +222,15 @@ export function AnalyticsDashboardPage() {
 
   const campaigns = campaignsData?.data || [];
 
-  const chartData = campaignAnalytics
+  const chartData = useMemo(() => campaignAnalytics
     ? [
-        { name: 'Sent', value: campaignAnalytics.sent, fill: '#0A0A0B' },
-        { name: 'Opened', value: campaignAnalytics.opened, fill: '#6B6B76' },
-        { name: 'Clicked', value: campaignAnalytics.clicked, fill: '#9B9BA5' },
-        { name: 'Replied', value: campaignAnalytics.replied, fill: '#CDCDD6' },
-        { name: 'Bounced', value: campaignAnalytics.bounced, fill: '#E4E4E7' },
+        { name: 'Sent', value: campaignAnalytics.sent, fill: COLORS[0] },
+        { name: 'Opened', value: campaignAnalytics.opened, fill: COLORS[1] },
+        { name: 'Clicked', value: campaignAnalytics.clicked, fill: COLORS[2] },
+        { name: 'Replied', value: campaignAnalytics.replied, fill: COLORS[3] },
+        { name: 'Bounced', value: campaignAnalytics.bounced, fill: theme === 'dark' ? '#24242A' : '#E4E4E7' },
       ]
-    : [];
+    : [], [campaignAnalytics, COLORS, theme]);
 
   const trendData = [
     { day: 'Mon', sent: 45, opened: 32, clicked: 12 },
@@ -341,11 +348,11 @@ export function AnalyticsDashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[var(--text-primary)]" />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: primaryChartColor }} />
                 <span className="text-xs text-[var(--text-tertiary)]">Sent</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B6B76' }} />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: secondaryChartColor }} />
                 <span className="text-xs text-[var(--text-tertiary)]">Opened</span>
               </div>
             </div>
@@ -355,12 +362,12 @@ export function AnalyticsDashboardPage() {
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0A0A0B" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#0A0A0B" stopOpacity={0} />
+                    <stop offset="5%" stopColor={primaryChartColor} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={primaryChartColor} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6B6B76" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#6B6B76" stopOpacity={0} />
+                    <stop offset="5%" stopColor={secondaryChartColor} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={secondaryChartColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
@@ -386,22 +393,22 @@ export function AnalyticsDashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="sent"
-                  stroke="#0A0A0B"
+                  stroke={primaryChartColor}
                   strokeWidth={2.5}
                   fill="url(#colorSent)"
                   name="Sent"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#0A0A0B', stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: primaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
                 />
                 <Area
                   type="monotone"
                   dataKey="opened"
-                  stroke="#6B6B76"
+                  stroke={secondaryChartColor}
                   strokeWidth={2.5}
                   fill="url(#colorOpened)"
                   name="Opened"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#6B6B76', stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: secondaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -409,7 +416,7 @@ export function AnalyticsDashboardPage() {
         </div>
 
         {/* Engagement ring */}
-        {pieData.length > 0 && <EngagementRing data={pieData} />}
+        {pieData.length > 0 && <EngagementRing data={pieData} colors={COLORS} />}
       </div>
 
       {/* Campaign Deep Dive */}
