@@ -12,10 +12,10 @@ import {
   Bot,
   Star,
   TrendingUp,
-  Send,
   Lock,
   ChevronRight,
 } from 'lucide-react';
+import { SkySendLogoMark } from '../components/SkySendLogo';
 
 const features = [
   {
@@ -116,10 +116,8 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-[var(--text-primary)] flex items-center justify-center">
-                <Send className="h-4 w-4 text-[var(--bg-app)]" strokeWidth={2} />
-              </div>
-              <span className="text-lg font-semibold text-[var(--text-primary)] tracking-tight">SkySend</span>
+              <SkySendLogoMark className="h-7 w-7" />
+              <span className="text-lg font-extrabold text-[var(--text-primary)] tracking-tight">SkySend</span>
             </Link>
 
             <div className="hidden items-center gap-8 md:flex">
@@ -477,19 +475,19 @@ export function LandingPage() {
       {/* CTA */}
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--text-primary)] p-12 sm:p-20 text-center">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--bg-app)] tracking-tight mb-4">
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[#0A0A0B] p-12 sm:p-20 text-center">
+            <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
               Ready to transform your outreach?
             </h2>
-            <p className="text-lg text-[var(--bg-app)]/60 max-w-xl mx-auto mb-10">
+            <p className="text-lg text-white/60 max-w-xl mx-auto mb-10">
               Join thousands of revenue teams using SkySend to book more meetings and close more deals.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-[var(--bg-app)] text-[var(--text-primary)] font-medium px-8 py-3 rounded-lg text-base hover:opacity-90 transition-opacity">
+              <Link to="/signup" className="inline-flex items-center gap-2 bg-white text-[#0A0A0B] font-medium px-8 py-3 rounded-lg text-base hover:bg-white/90 transition-colors">
                 Get started free
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/login" className="inline-flex items-center gap-2 bg-transparent text-[var(--bg-app)]/80 font-medium px-8 py-3 rounded-lg text-base border border-[var(--bg-app)]/20 hover:bg-[var(--bg-app)]/10 transition-colors">
+              <Link to="/login" className="inline-flex items-center gap-2 bg-transparent text-white/80 font-medium px-8 py-3 rounded-lg text-base border border-white/20 hover:bg-white/10 transition-colors">
                 Sign in
               </Link>
             </div>
@@ -503,10 +501,8 @@ export function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="h-7 w-7 rounded-lg bg-[var(--text-primary)] flex items-center justify-center">
-                  <Send className="h-3.5 w-3.5 text-[var(--bg-app)]" strokeWidth={2} />
-                </div>
-                <span className="text-base font-semibold text-[var(--text-primary)] tracking-tight">SkySend</span>
+                <SkySendLogoMark className="h-6 w-6" />
+                <span className="text-base font-extrabold text-[var(--text-primary)] tracking-tight">SkySend</span>
               </div>
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 The intelligent email outreach platform for modern revenue teams.

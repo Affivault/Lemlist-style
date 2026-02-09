@@ -39,7 +39,7 @@ export function SignupPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Brand */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 bg-[var(--text-primary)]">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 bg-[#0A0A0B]">
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-[var(--bg-app)]/10" />
@@ -51,21 +51,21 @@ export function SignupPage() {
           {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-[var(--bg-app)]/15">
-              <svg className="h-5 w-5 text-[var(--bg-app)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-[var(--bg-app)] tracking-tight">SkySend</span>
+            <span className="text-xl font-bold text-white tracking-tight">SkySend</span>
           </Link>
 
           {/* Tagline */}
           <div className="mt-16">
-            <h1 className="text-4xl font-bold text-[var(--bg-app)] leading-tight">
+            <h1 className="text-4xl font-bold text-white leading-tight">
               Start closing deals<br />
               on autopilot.
             </h1>
-            <p className="mt-4 text-lg text-[var(--bg-app)]/60 max-w-md">
+            <p className="mt-4 text-lg text-white/60 max-w-md">
               Set up your first campaign in minutes and watch the replies roll in. No credit card required.
             </p>
           </div>
@@ -74,41 +74,41 @@ export function SignupPage() {
           <div className="mt-12 space-y-6">
             <div className="flex items-start gap-4">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-app)]/10">
-                <svg className="h-4 w-4 text-[var(--bg-app)]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-[var(--bg-app)]">5-minute setup</p>
-                <p className="mt-1 text-sm text-[var(--bg-app)]/60">Connect your email, import contacts, and launch</p>
+                <p className="font-semibold text-white">5-minute setup</p>
+                <p className="mt-1 text-sm text-white/60">Connect your email, import contacts, and launch</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-app)]/10">
-                <svg className="h-4 w-4 text-[var(--bg-app)]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-[var(--bg-app)]">Enterprise-grade security</p>
-                <p className="mt-1 text-sm text-[var(--bg-app)]/60">SOC 2 compliant with end-to-end encryption</p>
+                <p className="font-semibold text-white">Enterprise-grade security</p>
+                <p className="mt-1 text-sm text-white/60">SOC 2 compliant with end-to-end encryption</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-app)]/10">
-                <svg className="h-4 w-4 text-[var(--bg-app)]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2L2 7l10 5 10-5-10-5z" />
                   <path d="M2 17l10 5 10-5" />
                   <path d="M2 12l10 5 10-5" />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-[var(--bg-app)]">Unlimited integrations</p>
-                <p className="mt-1 text-sm text-[var(--bg-app)]/60">Connect with HubSpot, Salesforce, Pipedrive, and more</p>
+                <p className="font-semibold text-white">Unlimited integrations</p>
+                <p className="mt-1 text-sm text-white/60">Connect with HubSpot, Salesforce, Pipedrive, and more</p>
               </div>
             </div>
           </div>
@@ -117,16 +117,16 @@ export function SignupPage() {
         {/* Testimonial */}
         <div className="relative z-10 mt-auto pt-12">
           <div className="rounded-2xl bg-[var(--bg-app)]/10 backdrop-blur-sm p-6 border border-[var(--bg-app)]/10">
-            <p className="text-[var(--bg-app)]/90 text-sm leading-relaxed italic">
+            <p className="text-white/90 text-sm leading-relaxed italic">
               "We onboarded our entire SDR team in a single afternoon. The templates and AI suggestions made it incredibly easy to get started."
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-[var(--bg-app)]/20 flex items-center justify-center text-[var(--bg-app)] font-semibold text-sm">
+              <div className="h-9 w-9 rounded-full bg-[var(--bg-app)]/20 flex items-center justify-center text-white font-semibold text-sm">
                 MK
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--bg-app)]">Marcus Kim</p>
-                <p className="text-xs text-[var(--bg-app)]/60">Head of Growth, ScaleUp.io</p>
+                <p className="text-sm font-medium text-white">Marcus Kim</p>
+                <p className="text-xs text-white/60">Head of Growth, ScaleUp.io</p>
               </div>
             </div>
           </div>
@@ -139,8 +139,8 @@ export function SignupPage() {
           {/* Mobile Logo */}
           <div className="mb-8 lg:hidden">
             <Link to="/" className="inline-flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-[var(--text-primary)]">
-                <svg className="h-4 w-4 text-[var(--bg-app)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-[#0A0A0B]">
+                <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
