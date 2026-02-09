@@ -17,7 +17,7 @@ import {
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
-import { SkySendLogoMark } from '../SkySendLogo';
+import { SkySendLogo, SkySendLogoMark } from '../SkySendLogo';
 
 const mainNav = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -122,11 +122,10 @@ export function Sidebar() {
         collapsed ? 'justify-center px-2' : 'justify-between px-4'
       )}>
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <SkySendLogoMark className="h-7 w-7 flex-shrink-0" />
-          {!collapsed && (
-            <span className="text-[15px] font-extrabold text-[var(--text-primary)] tracking-tight">
-              SkySend
-            </span>
+          {collapsed ? (
+            <SkySendLogoMark className="h-7 w-7 flex-shrink-0" />
+          ) : (
+            <span className="text-[17px]"><SkySendLogo /></span>
           )}
         </div>
         {!collapsed && (

@@ -15,7 +15,7 @@ import {
   Lock,
   ChevronRight,
 } from 'lucide-react';
-import { SkySendLogoMark } from '../components/SkySendLogo';
+import { SkySendLogo } from '../components/SkySendLogo';
 
 const features = [
   {
@@ -115,9 +115,8 @@ export function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex h-16 items-center justify-between">
-            <Link to="/" className="flex items-center gap-2.5">
-              <SkySendLogoMark className="h-7 w-7" />
-              <span className="text-lg font-extrabold text-[var(--text-primary)] tracking-tight">SkySend</span>
+            <Link to="/" className="flex items-center">
+              <span className="text-xl"><SkySendLogo /></span>
             </Link>
 
             <div className="hidden items-center gap-8 md:flex">
@@ -180,42 +179,41 @@ export function LandingPage() {
           </div>
 
           {/* Dashboard Preview - Realistic platform mockup */}
-          <div className="mt-20">
-            <div className="rounded-2xl border border-[var(--border-default)] bg-[#0A0A0B] p-1.5 shadow-2xl">
-              <div className="rounded-xl bg-[#111114] overflow-hidden" style={{ aspectRatio: '16/9.5' }}>
+          <div className="mt-20 opacity-0 animate-fade-up-delay-3">
+            <div className="rounded-2xl border border-[var(--border-default)] bg-[#0A0A0B] p-1.5 shadow-[0_32px_80px_-12px_rgba(0,0,0,0.6)]">
+              <div className="rounded-xl bg-[#111114] overflow-hidden" style={{ aspectRatio: '16/9.2' }}>
                 {/* Browser chrome */}
-                <div className="h-9 border-b border-[#1C1C21] flex items-center px-3.5 gap-2">
+                <div className="h-10 border-b border-[#1C1C21] flex items-center px-4 gap-2 bg-[#0D0D10]">
                   <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#3A3A42]" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#3A3A42]" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#3A3A42]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
                   </div>
                   <div className="flex-1 flex justify-center">
-                    <div className="h-5.5 w-56 rounded-md bg-[#16161A] flex items-center justify-center px-3">
+                    <div className="h-6 w-64 rounded-lg bg-[#16161A] border border-[#1C1C21] flex items-center justify-center px-3 gap-1.5">
+                      <svg className="w-2.5 h-2.5 text-[#3A3A42]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                       <span className="text-[10px] text-[#6B6B76] font-medium tracking-wide">app.skysend.io/dashboard</span>
                     </div>
                   </div>
+                  <div className="w-16" />
                 </div>
 
-                <div className="flex h-[calc(100%-36px)]">
+                <div className="flex h-[calc(100%-40px)]">
                   {/* Sidebar mock */}
-                  <div className="w-[180px] border-r border-[#1C1C21] bg-[#0F0F12] flex flex-col flex-shrink-0">
+                  <div className="w-[185px] border-r border-[#1C1C21] bg-[#0C0C0F] flex flex-col flex-shrink-0">
                     {/* Logo */}
-                    <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1C1C21]">
-                      <div className="w-5 h-5 rounded-md bg-[#FAFAFB] flex items-center justify-center">
-                        <span className="text-[8px] font-black text-[#0A0A0B]">S</span>
-                      </div>
-                      <span className="text-[11px] font-extrabold text-[#FAFAFB] tracking-tight">SkySend</span>
+                    <div className="flex items-center px-4 h-10 border-b border-[#1C1C21]">
+                      <span className="text-[12px] font-medium text-[#FAFAFB] tracking-[-0.03em]">skysend</span>
                     </div>
 
                     {/* Nav items */}
                     <div className="px-2 py-3 space-y-0.5 flex-1">
                       {[
-                        { name: 'Dashboard', active: true },
-                        { name: 'Campaigns', active: false },
-                        { name: 'Contacts', active: false },
-                        { name: 'Inbox', active: false },
-                        { name: 'Analytics', active: false },
+                        { name: 'Dashboard', active: true, icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1' },
+                        { name: 'Campaigns', active: false, icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7' },
+                        { name: 'Contacts', active: false, icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+                        { name: 'Inbox', active: false, icon: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4' },
+                        { name: 'Analytics', active: false, icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
                       ].map((item) => (
                         <div
                           key={item.name}
@@ -223,7 +221,9 @@ export function LandingPage() {
                             item.active ? 'bg-[#1C1C21]' : ''
                           }`}
                         >
-                          <div className={`w-3 h-3 rounded-sm ${item.active ? 'bg-[#FAFAFB]/30' : 'bg-[#3A3A42]'}`} />
+                          <svg className={`w-3.5 h-3.5 ${item.active ? 'text-[#FAFAFB]' : 'text-[#4A4A54]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d={item.icon} />
+                          </svg>
                           <span className={`text-[10px] font-medium ${item.active ? 'text-[#FAFAFB]' : 'text-[#6B6B76]'}`}>
                             {item.name}
                           </span>
@@ -234,10 +234,32 @@ export function LandingPage() {
                         <div className="px-2.5 mb-1.5">
                           <span className="text-[8px] font-medium text-[#3A3A42] uppercase tracking-widest">Tools</span>
                         </div>
-                        {['SARA AI', 'Webhooks'].map((item) => (
-                          <div key={item} className="h-7 rounded-md flex items-center px-2.5 gap-2">
-                            <div className="w-3 h-3 rounded-sm bg-[#3A3A42]" />
-                            <span className="text-[10px] font-medium text-[#6B6B76]">{item}</span>
+                        {[
+                          { name: 'SARA AI', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                          { name: 'Webhooks', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101' },
+                        ].map((item) => (
+                          <div key={item.name} className="h-7 rounded-md flex items-center px-2.5 gap-2">
+                            <svg className="w-3.5 h-3.5 text-[#4A4A54]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d={item.icon} />
+                            </svg>
+                            <span className="text-[10px] font-medium text-[#6B6B76]">{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-3 mt-3 border-t border-[#1C1C21]">
+                        <div className="px-2.5 mb-1.5">
+                          <span className="text-[8px] font-medium text-[#3A3A42] uppercase tracking-widest">Configure</span>
+                        </div>
+                        {[
+                          { name: 'SMTP', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                          { name: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+                        ].map((item) => (
+                          <div key={item.name} className="h-7 rounded-md flex items-center px-2.5 gap-2">
+                            <svg className="w-3.5 h-3.5 text-[#4A4A54]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d={item.icon} />
+                            </svg>
+                            <span className="text-[10px] font-medium text-[#6B6B76]">{item.name}</span>
                           </div>
                         ))}
                       </div>
@@ -245,13 +267,13 @@ export function LandingPage() {
 
                     {/* User */}
                     <div className="border-t border-[#1C1C21] p-2">
-                      <div className="flex items-center gap-2 px-2 py-1.5 rounded-md">
-                        <div className="w-5 h-5 rounded-full bg-[#1C1C21] border border-[#24242A] flex items-center justify-center">
-                          <span className="text-[7px] font-bold text-[#9B9BA5]">J</span>
+                      <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#16161A] transition-colors">
+                        <div className="w-6 h-6 rounded-full bg-[#1C1C21] border border-[#24242A] flex items-center justify-center">
+                          <span className="text-[8px] font-semibold text-[#9B9BA5]">JD</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-[9px] font-medium text-[#FAFAFB] truncate">john.doe</div>
-                          <div className="text-[8px] text-[#6B6B76] truncate">john@company.com</div>
+                          <div className="text-[7px] text-[#6B6B76] truncate">john@company.com</div>
                         </div>
                       </div>
                     </div>
@@ -260,111 +282,156 @@ export function LandingPage() {
                   {/* Main content area */}
                   <div className="flex-1 flex flex-col min-w-0">
                     {/* Header bar */}
-                    <div className="h-10 border-b border-[#1C1C21] flex items-center justify-between px-5 bg-[#0F0F12]">
-                      <div className="flex items-center h-6 w-48 rounded-md border border-[#1C1C21] bg-[#111114] px-2.5">
-                        <div className="w-3 h-3 rounded-sm bg-[#3A3A42] mr-2" />
-                        <span className="text-[9px] text-[#6B6B76]">Search...</span>
-                        <span className="ml-auto text-[7px] text-[#3A3A42] bg-[#16161A] rounded px-1 py-0.5 font-medium">⌘K</span>
+                    <div className="h-10 border-b border-[#1C1C21] flex items-center justify-between px-5 bg-[#0D0D10]">
+                      <div className="flex items-center h-7 w-52 rounded-lg border border-[#1C1C21] bg-[#111114] px-2.5 gap-2">
+                        <svg className="w-3 h-3 text-[#4A4A54]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <span className="text-[9px] text-[#4A4A54]">Search anything...</span>
+                        <span className="ml-auto text-[7px] text-[#3A3A42] bg-[#16161A] border border-[#1C1C21] rounded px-1.5 py-0.5 font-mono">⌘K</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-[#16161A]">
-                          <div className="w-3 h-3 rounded-sm bg-[#3A3A42]" />
+                      <div className="flex items-center gap-1.5">
+                        <div className="relative w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#16161A] transition-colors">
+                          <svg className="w-3.5 h-3.5 text-[#6B6B76]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                          <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FAFAFB]" />
                         </div>
-                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-[#16161A]">
-                          <div className="w-3 h-3 rounded-sm bg-[#3A3A42]" />
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#16161A] transition-colors">
+                          <svg className="w-3.5 h-3.5 text-[#6B6B76]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </div>
+                        <div className="w-px h-5 bg-[#1C1C21] mx-1" />
+                        <div className="flex items-center gap-2 pl-1">
+                          <div className="w-6 h-6 rounded-full bg-[#1C1C21] border border-[#24242A] flex items-center justify-center">
+                            <span className="text-[7px] font-semibold text-[#9B9BA5]">JD</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Dashboard content */}
-                    <div className="flex-1 p-5 overflow-hidden">
+                    <div className="flex-1 p-5 overflow-hidden bg-[#111114]">
                       {/* Page header */}
                       <div className="flex items-center justify-between mb-5">
                         <div>
-                          <div className="text-[9px] text-[#6B6B76] mb-0.5">Good morning</div>
+                          <div className="text-[9px] text-[#6B6B76] mb-0.5">Good morning, John</div>
                           <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">Dashboard</div>
                         </div>
-                        <div className="h-7 px-3 bg-[#FAFAFB] rounded-md flex items-center gap-1.5">
-                          <span className="text-[10px] font-medium text-[#0A0A0B]">New Campaign</span>
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 px-3 bg-[#16161A] border border-[#1C1C21] rounded-lg flex items-center gap-1.5">
+                            <svg className="w-3 h-3 text-[#6B6B76]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span className="text-[9px] font-medium text-[#9B9BA5]">Export</span>
+                          </div>
+                          <div className="h-7 px-3 bg-[#FAFAFB] rounded-lg flex items-center gap-1.5">
+                            <svg className="w-3 h-3 text-[#0A0A0B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4v16m8-8H4"/></svg>
+                            <span className="text-[10px] font-medium text-[#0A0A0B]">New Campaign</span>
+                          </div>
                         </div>
                       </div>
 
                       {/* Stats row */}
                       <div className="grid grid-cols-4 gap-3 mb-5">
                         {[
-                          { label: 'Total Campaigns', val: '24', change: '+12%' },
-                          { label: 'Total Contacts', val: '8,431', change: '+8%' },
-                          { label: 'Emails Sent', val: '42,156', change: '+24%' },
-                          { label: 'Active Now', val: '6', change: '+2' },
+                          { label: 'Total Campaigns', val: '24', change: '+12%', trend: [30,35,28,42,38,45,52,48,55,62] },
+                          { label: 'Total Contacts', val: '8,431', change: '+8%', trend: [40,42,45,43,48,52,55,58,56,60] },
+                          { label: 'Emails Sent', val: '42,156', change: '+24%', trend: [20,25,22,35,40,38,50,55,60,68] },
+                          { label: 'Reply Rate', val: '4.8%', change: '+0.6%', trend: [32,35,30,38,42,40,45,48,46,50] },
                         ].map((stat) => (
-                          <div key={stat.label} className="p-3 bg-[#0F0F12] rounded-lg border border-[#1C1C21]">
+                          <div key={stat.label} className="p-3 bg-[#0C0C0F] rounded-lg border border-[#1C1C21]">
                             <div className="flex items-start justify-between mb-1.5">
-                              <div className="w-3.5 h-3.5 rounded-sm bg-[#24242A]" />
+                              <div className="w-3.5 h-3.5 rounded bg-[#1C1C21]" />
                               <span className="text-[8px] font-medium text-[#4ADE80]">{stat.change}</span>
                             </div>
                             <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">{stat.val}</div>
-                            <div className="text-[9px] text-[#6B6B76] mt-0.5">{stat.label}</div>
+                            <div className="text-[8px] text-[#6B6B76] mt-0.5 mb-2">{stat.label}</div>
+                            {/* Mini sparkline */}
+                            <svg className="w-full h-4" viewBox="0 0 100 40" preserveAspectRatio="none">
+                              <polyline
+                                fill="none"
+                                stroke="#3A3A42"
+                                strokeWidth="2"
+                                points={stat.trend.map((v, i) => `${i * 11.1},${40 - v * 0.6}`).join(' ')}
+                              />
+                              <polyline
+                                fill="none"
+                                stroke="#FAFAFB"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                points={stat.trend.slice(-4).map((v, i) => `${(i + 6) * 11.1},${40 - v * 0.6}`).join(' ')}
+                              />
+                            </svg>
                           </div>
                         ))}
                       </div>
 
                       {/* Content grid */}
-                      <div className="grid grid-cols-3 gap-4">
-                        {/* Recent campaigns */}
-                        <div className="col-span-2">
+                      <div className="grid grid-cols-5 gap-4">
+                        {/* Recent campaigns - wider */}
+                        <div className="col-span-3">
                           <div className="flex items-center justify-between mb-2.5">
                             <span className="text-[10px] font-semibold text-[#FAFAFB]">Recent Campaigns</span>
-                            <span className="text-[9px] text-[#6B6B76]">View all →</span>
+                            <span className="text-[9px] text-[#6B6B76] hover:text-[#9B9BA5] cursor-pointer transition-colors">View all →</span>
                           </div>
-                          <div className="border border-[#1C1C21] rounded-lg bg-[#0F0F12] overflow-hidden">
+                          <div className="border border-[#1C1C21] rounded-lg bg-[#0C0C0F] overflow-hidden">
+                            {/* Table header */}
+                            <div className="flex items-center px-3.5 py-2 border-b border-[#1C1C21] bg-[#0A0A0D]">
+                              <span className="text-[8px] font-medium text-[#4A4A54] uppercase tracking-wider flex-1">Campaign</span>
+                              <span className="text-[8px] font-medium text-[#4A4A54] uppercase tracking-wider w-16 text-center">Status</span>
+                              <span className="text-[8px] font-medium text-[#4A4A54] uppercase tracking-wider w-14 text-right">Sent</span>
+                              <span className="text-[8px] font-medium text-[#4A4A54] uppercase tracking-wider w-14 text-right">Opens</span>
+                              <span className="text-[8px] font-medium text-[#4A4A54] uppercase tracking-wider w-14 text-right">Replies</span>
+                            </div>
                             {[
-                              { name: 'Q1 Enterprise Outreach', status: 'Active', statusColor: '#4ADE80' },
-                              { name: 'Product Launch Follow-up', status: 'Active', statusColor: '#4ADE80' },
-                              { name: 'Re-engagement Series', status: 'Paused', statusColor: '#FACC15' },
-                              { name: 'December Newsletter', status: 'Completed', statusColor: '#6B6B76' },
+                              { name: 'Q1 Enterprise Outreach', status: 'Active', statusColor: '#4ADE80', sent: '2,847', opens: '68%', replies: '4.8%' },
+                              { name: 'Product Launch Follow-up', status: 'Active', statusColor: '#4ADE80', sent: '1,203', opens: '72%', replies: '6.2%' },
+                              { name: 'Re-engagement Series', status: 'Paused', statusColor: '#FACC15', sent: '856', opens: '45%', replies: '2.1%' },
+                              { name: 'December Newsletter', status: 'Done', statusColor: '#6B6B76', sent: '5,420', opens: '61%', replies: '3.4%' },
                             ].map((campaign, i) => (
                               <div
                                 key={campaign.name}
-                                className={`flex items-center justify-between px-3.5 py-2.5 ${
+                                className={`flex items-center px-3.5 py-2.5 hover:bg-[#111114] transition-colors ${
                                   i < 3 ? 'border-b border-[#1C1C21]' : ''
                                 }`}
                               >
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-3.5 h-3.5 rounded-sm bg-[#24242A]" />
-                                  <span className="text-[10px] font-medium text-[#FAFAFB]">{campaign.name}</span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: campaign.statusColor }} />
+                                  <span className="text-[10px] font-medium text-[#FAFAFB] truncate">{campaign.name}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="w-16 flex justify-center">
                                   <span
-                                    className="text-[8px] font-medium px-1.5 py-0.5 rounded-full"
+                                    className="text-[8px] font-medium px-1.5 py-0.5 rounded"
                                     style={{
                                       color: campaign.statusColor,
-                                      backgroundColor: campaign.statusColor + '15',
+                                      backgroundColor: campaign.statusColor + '12',
                                     }}
                                   >
                                     {campaign.status}
                                   </span>
-                                  <div className="w-3 h-3 rounded-sm bg-[#24242A]" />
                                 </div>
+                                <span className="text-[9px] text-[#9B9BA5] w-14 text-right font-mono">{campaign.sent}</span>
+                                <span className="text-[9px] text-[#9B9BA5] w-14 text-right font-mono">{campaign.opens}</span>
+                                <span className="text-[9px] text-[#9B9BA5] w-14 text-right font-mono">{campaign.replies}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
                         {/* Engagement sidebar */}
-                        <div>
-                          <span className="text-[10px] font-semibold text-[#FAFAFB] block mb-2.5">Engagement</span>
+                        <div className="col-span-2">
+                          <span className="text-[10px] font-semibold text-[#FAFAFB] block mb-2.5">Engagement Overview</span>
                           <div className="space-y-2">
                             {[
-                              { label: 'Open Rate', value: '68.2%', pct: 68 },
-                              { label: 'Click Rate', value: '12.4%', pct: 12 },
-                              { label: 'Reply Rate', value: '4.8%', pct: 5 },
+                              { label: 'Open Rate', value: '68.2%', pct: 68, prev: '64.1%' },
+                              { label: 'Click Rate', value: '12.4%', pct: 24, prev: '10.8%' },
+                              { label: 'Reply Rate', value: '4.8%', pct: 10, prev: '4.2%' },
+                              { label: 'Bounce Rate', value: '1.2%', pct: 2, prev: '1.5%' },
                             ].map((metric) => (
-                              <div key={metric.label} className="p-3 bg-[#0F0F12] rounded-lg border border-[#1C1C21]">
-                                <div className="text-[9px] text-[#6B6B76]">{metric.label}</div>
-                                <div className="text-[13px] font-semibold text-[#FAFAFB] tracking-tight mt-0.5 mb-2">{metric.value}</div>
+                              <div key={metric.label} className="p-2.5 bg-[#0C0C0F] rounded-lg border border-[#1C1C21]">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-[8px] text-[#6B6B76]">{metric.label}</div>
+                                  <div className="text-[7px] text-[#4A4A54]">prev: {metric.prev}</div>
+                                </div>
+                                <div className="text-[13px] font-semibold text-[#FAFAFB] tracking-tight mt-0.5 mb-1.5">{metric.value}</div>
                                 <div className="w-full h-1 rounded-full bg-[#1C1C21]">
                                   <div
-                                    className="h-1 rounded-full bg-[#FAFAFB]"
+                                    className="h-1 rounded-full bg-[#FAFAFB] transition-all duration-1000"
                                     style={{ width: `${metric.pct}%` }}
                                   />
                                 </div>
@@ -636,9 +703,8 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2.5 mb-4">
-                <SkySendLogoMark className="h-6 w-6" />
-                <span className="text-base font-extrabold text-[var(--text-primary)] tracking-tight">SkySend</span>
+              <div className="flex items-center mb-4">
+                <span className="text-lg"><SkySendLogo /></span>
               </div>
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 The intelligent email outreach platform for modern revenue teams.

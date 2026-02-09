@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { ArrowRight } from 'lucide-react';
+import { SkySendLogo } from '../../components/SkySendLogo';
 
 export function LoginPage() {
   const { signIn, signInWithOAuth } = useAuth();
@@ -28,21 +29,15 @@ export function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 bg-[#0A0A0B]">
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-[var(--bg-app)]/10" />
-          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-[var(--bg-app)]/10" />
-          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-[var(--bg-app)]/10" />
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-white/10" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-white/10" />
+          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-white/10" />
         </div>
 
         <div className="relative z-10">
           {/* Logo */}
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-white/15">
-              <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-white tracking-tight">SkySend</span>
+          <Link to="/" className="inline-flex items-center">
+            <span className="text-2xl"><SkySendLogo inverted /></span>
           </Link>
 
           {/* Tagline */}
@@ -104,12 +99,12 @@ export function LoginPage() {
 
         {/* Testimonial */}
         <div className="relative z-10 mt-auto pt-12">
-          <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-6 border border-[var(--bg-app)]/10">
+          <div className="rounded-2xl bg-white/[0.06] backdrop-blur-sm p-6 border border-white/[0.08]">
             <p className="text-white/90 text-sm leading-relaxed italic">
               "SkySend transformed our outbound strategy. We went from 2% to 18% reply rates in just two weeks. The automation saves our team 20+ hours per week."
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold text-sm">
+              <div className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white font-semibold text-sm">
                 SR
               </div>
               <div>
@@ -126,14 +121,8 @@ export function LoginPage() {
         <div className="w-full max-w-[420px]">
           {/* Mobile Logo */}
           <div className="mb-8 lg:hidden">
-            <Link to="/" className="inline-flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-[#0A0A0B]">
-                <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </div>
-              <span className="text-lg font-bold text-[var(--text-primary)] tracking-tight">SkySend</span>
+            <Link to="/" className="inline-flex items-center">
+              <span className="text-xl"><SkySendLogo /></span>
             </Link>
           </div>
 
