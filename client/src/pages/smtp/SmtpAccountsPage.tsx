@@ -78,7 +78,13 @@ export function SmtpAccountsPage() {
       toast.success(editId ? 'Account updated' : 'Account created');
       closeModal();
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to save'),
+    onError: (err: any) => {
+      const msg = err.response?.data?.error
+        || err.message
+        || 'Failed to save';
+      toast.error(msg);
+      console.error('SMTP save error:', err.response?.status, err.response?.data, err.message);
+    },
   });
 
   const deleteMutation = useMutation({
