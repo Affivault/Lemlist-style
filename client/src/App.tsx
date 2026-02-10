@@ -56,11 +56,29 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function LandingOrDashboard() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <LandingPage />;
+}
+
 export default function App() {
   return (
     <Routes>
-      {/* Public landing page */}
-      <Route path="/" element={<LandingPage />} />
+      {/* Public landing page - redirect to dashboard if logged in */}
+      <Route path="/" element={<LandingOrDashboard />} />
 
       {/* Auth routes */}
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
