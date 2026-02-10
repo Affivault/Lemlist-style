@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { env } from './config/env.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { routes } from './routes/index.js';
 import { assetController } from './controllers/asset.controller.js';
@@ -14,27 +13,8 @@ const app = express();
 // Middleware
 app.use(helmet());
 
-// CORS — allow CLIENT_URL and Vercel preview deployments
-const allowedOrigins = [
-  env.CLIENT_URL,
-  env.CLIENT_URL.replace(/\/$/, ''), // without trailing slash
-];
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (health checks, server-to-server)
-    if (!origin) return callback(null, true);
-    // Check exact match or Vercel preview URLs for the same project
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.vercel.app')
-    ) {
-      return callback(null, true);
-    }
-    console.warn('CORS blocked origin:', origin);
-    callback(null, false);
-  },
-  credentials: true,
-}));
+// CORS — reflect any origin (all routes require JWT auth so this is safe)
+app.use(cors({ origin: true, credentials: true }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
