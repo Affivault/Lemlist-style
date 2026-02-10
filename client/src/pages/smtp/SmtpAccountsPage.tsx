@@ -20,11 +20,11 @@ import {
   HelpCircle,
   ArrowRight,
   Settings,
+  ExternalLink,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { SmtpAccount, CreateSmtpAccountInput } from '@lemlist/shared';
 import { SMTP_PRESETS } from '@lemlist/shared';
-import { useAuth } from '../../context/AuthContext';
 
 const emptyForm: CreateSmtpAccountInput = {
   label: '',
@@ -37,26 +37,32 @@ const emptyForm: CreateSmtpAccountInput = {
   daily_send_limit: 200,
 };
 
+const GMAIL_FORM: CreateSmtpAccountInput = {
+  label: 'Gmail',
+  email_address: '',
+  smtp_host: 'smtp.gmail.com',
+  smtp_port: 587,
+  smtp_secure: false,
+  smtp_user: '',
+  smtp_pass: '',
+  imap_host: 'imap.gmail.com',
+  imap_port: 993,
+  imap_secure: true,
+  daily_send_limit: 200,
+};
+
 export function SmtpAccountsPage() {
   const queryClient = useQueryClient();
-  const { signInWithOAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
+  const [showGmailGuide, setShowGmailGuide] = useState(false);
   const [form, setForm] = useState<CreateSmtpAccountInput>({ ...emptyForm });
   const [editId, setEditId] = useState<string | null>(null);
-  const [connectingGoogle, setConnectingGoogle] = useState(false);
 
-  const handleQuickConnect = async () => {
-    setConnectingGoogle(true);
-    try {
-      const { error } = await signInWithOAuth('google');
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Connecting to Google...');
-      }
-    } finally {
-      setConnectingGoogle(false);
-    }
+  const handleQuickConnect = () => {
+    setForm({ ...GMAIL_FORM });
+    setEditId(null);
+    setShowGmailGuide(true);
+    setShowModal(true);
   };
 
   const { data: accounts, isLoading } = useQuery({
@@ -97,12 +103,14 @@ export function SmtpAccountsPage() {
 
   const closeModal = () => {
     setShowModal(false);
+    setShowGmailGuide(false);
     setEditId(null);
     setForm({ ...emptyForm });
   };
 
   const openEdit = (account: SmtpAccount) => {
     setEditId(account.id);
+    setShowGmailGuide(false);
     setForm({
       label: account.label,
       email_address: account.email_address,
@@ -136,7 +144,12 @@ export function SmtpAccountsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate(form);
+    // Auto-fill smtp_user from email_address if empty
+    const submitForm = {
+      ...form,
+      smtp_user: form.smtp_user || form.email_address,
+    };
+    createMutation.mutate(submitForm);
   };
 
   const updateField = (field: string, value: any) => {
@@ -167,7 +180,7 @@ export function SmtpAccountsPage() {
             <HelpCircle className="h-4 w-4" />
             Setup Guide
           </Link>
-          <Button variant="primary" onClick={() => setShowModal(true)}>
+          <Button variant="primary" onClick={() => { setShowGmailGuide(false); setShowModal(true); }}>
             <Plus className="h-4 w-4" />
             Add Account
           </Button>
@@ -179,7 +192,7 @@ export function SmtpAccountsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-medium text-primary">Quick Connect</h2>
-            <p className="text-sm text-secondary mt-0.5">Connect your Google email with one click</p>
+            <p className="text-sm text-secondary mt-0.5">Connect your Gmail in under 2 minutes</p>
           </div>
           <span className="px-2 py-0.5 text-xs font-medium text-primary bg-elevated rounded">
             Recommended
@@ -188,7 +201,6 @@ export function SmtpAccountsPage() {
 
         <button
           onClick={handleQuickConnect}
-          disabled={connectingGoogle}
           className="group w-full flex items-center gap-4 p-4 rounded-md border border-default hover:bg-hover transition-colors"
         >
           <div className="flex items-center justify-center w-10 h-10 rounded-md bg-surface border border-subtle">
@@ -201,13 +213,9 @@ export function SmtpAccountsPage() {
           </div>
           <div className="flex-1 text-left">
             <p className="text-sm font-medium text-primary">Connect Gmail</p>
-            <p className="text-sm text-secondary">Use Google Workspace or Gmail</p>
+            <p className="text-sm text-secondary">Use Google Workspace or Gmail with App Password</p>
           </div>
-          {connectingGoogle ? (
-            <Spinner size="sm" />
-          ) : (
-            <ArrowRight className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors" />
-          )}
+          <ArrowRight className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors" />
         </button>
       </div>
 
@@ -331,8 +339,47 @@ export function SmtpAccountsPage() {
       )}
 
       {/* Modal */}
-      <Modal isOpen={showModal} onClose={closeModal} title={editId ? 'Edit SMTP Account' : 'Add SMTP Account'} size="lg">
+      <Modal isOpen={showModal} onClose={closeModal} title={editId ? 'Edit SMTP Account' : showGmailGuide ? 'Connect Gmail' : 'Add SMTP Account'} size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Gmail Guide Banner */}
+          {showGmailGuide && !editId && (
+            <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <svg className="h-5 w-5 mt-0.5 shrink-0" viewBox="0 0 24 24">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-[var(--text-primary)]">Gmail App Password Setup</p>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">
+                    SMTP settings are pre-filled. You just need to:
+                  </p>
+                  <ol className="text-sm text-[var(--text-secondary)] mt-2 space-y-1.5 list-decimal list-inside">
+                    <li>Enter your Gmail address below</li>
+                    <li>
+                      <a
+                        href="https://myaccount.google.com/apppasswords"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--text-primary)] underline underline-offset-2 inline-flex items-center gap-1"
+                      >
+                        Generate a Google App Password
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                      {' '}(select "Mail" as the app)
+                    </li>
+                    <li>Paste the 16-character app password below</li>
+                  </ol>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-2">
+                    Requires 2-Step Verification enabled on your Google account.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Label"
@@ -345,89 +392,167 @@ export function SmtpAccountsPage() {
               label="Email Address"
               type="email"
               value={form.email_address}
-              onChange={(e) => updateField('email_address', e.target.value)}
-              placeholder="you@example.com"
+              onChange={(e) => {
+                updateField('email_address', e.target.value);
+                // Auto-fill smtp_user when in gmail guide mode
+                if (showGmailGuide) {
+                  updateField('smtp_user', e.target.value);
+                }
+              }}
+              placeholder="you@gmail.com"
               required
             />
           </div>
 
-          <Select
-            label="Provider Preset"
-            options={[
-              { value: '', label: 'Custom Configuration' },
-              ...SMTP_PRESETS.map((p) => ({ value: p.name, label: p.name })),
-            ]}
-            onChange={(e) => applyPreset(e.target.value)}
-          />
+          {/* Only show password field prominently in Gmail guide mode */}
+          {showGmailGuide && !editId && (
+            <Input
+              label="App Password"
+              type="password"
+              value={form.smtp_pass}
+              onChange={(e) => updateField('smtp_pass', e.target.value)}
+              placeholder="Paste your 16-character app password"
+              required
+            />
+          )}
 
-          <div className="border-t border-subtle pt-4">
-            <h4 className="text-sm font-medium text-primary mb-3">SMTP Settings</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                label="Host"
-                value={form.smtp_host}
-                onChange={(e) => updateField('smtp_host', e.target.value)}
-                placeholder="smtp.example.com"
-                required
-              />
-              <Input
-                label="Port"
-                type="number"
-                value={String(form.smtp_port)}
-                onChange={(e) => updateField('smtp_port', parseInt(e.target.value))}
-                required
-              />
-              <Input
-                label="Username"
-                value={form.smtp_user}
-                onChange={(e) => updateField('smtp_user', e.target.value)}
-                placeholder="Email or username"
-                required
-              />
-            </div>
-            <div className="mt-4">
-              <Input
-                label="Password"
-                type="password"
-                value={form.smtp_pass}
-                onChange={(e) => updateField('smtp_pass', e.target.value)}
-                placeholder={editId ? 'Leave blank to keep current' : 'Enter password or app key'}
-                required={!editId}
-              />
-            </div>
-          </div>
+          {/* Provider preset - hide in gmail guide mode */}
+          {!showGmailGuide && (
+            <Select
+              label="Provider Preset"
+              options={[
+                { value: '', label: 'Custom Configuration' },
+                ...SMTP_PRESETS.map((p) => ({ value: p.name, label: p.name })),
+              ]}
+              onChange={(e) => applyPreset(e.target.value)}
+            />
+          )}
 
-          <div className="border-t border-subtle pt-4">
-            <h4 className="text-sm font-medium text-primary mb-3">IMAP Settings (optional)</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                label="IMAP Host"
-                value={form.imap_host || ''}
-                onChange={(e) => updateField('imap_host', e.target.value)}
-                placeholder="imap.example.com"
-              />
-              <Input
-                label="IMAP Port"
-                type="number"
-                value={String(form.imap_port || '')}
-                onChange={(e) => updateField('imap_port', parseInt(e.target.value) || undefined)}
-                placeholder="993"
-              />
-              <Input
-                label="Daily Send Limit"
-                type="number"
-                value={String(form.daily_send_limit || 200)}
-                onChange={(e) => updateField('daily_send_limit', parseInt(e.target.value))}
-              />
-            </div>
-          </div>
+          {/* SMTP Settings - collapsed by default in gmail mode */}
+          {showGmailGuide && !editId ? (
+            <details className="border-t border-subtle pt-3">
+              <summary className="text-sm font-medium text-secondary cursor-pointer hover:text-primary transition-colors">
+                Advanced SMTP settings (pre-filled for Gmail)
+              </summary>
+              <div className="mt-3 space-y-3">
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="Host"
+                    value={form.smtp_host}
+                    onChange={(e) => updateField('smtp_host', e.target.value)}
+                    placeholder="smtp.gmail.com"
+                    required
+                  />
+                  <Input
+                    label="Port"
+                    type="number"
+                    value={String(form.smtp_port)}
+                    onChange={(e) => updateField('smtp_port', parseInt(e.target.value))}
+                    required
+                  />
+                  <Input
+                    label="Username"
+                    value={form.smtp_user}
+                    onChange={(e) => updateField('smtp_user', e.target.value)}
+                    placeholder="you@gmail.com"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="IMAP Host"
+                    value={form.imap_host || ''}
+                    onChange={(e) => updateField('imap_host', e.target.value)}
+                    placeholder="imap.gmail.com"
+                  />
+                  <Input
+                    label="IMAP Port"
+                    type="number"
+                    value={String(form.imap_port || '')}
+                    onChange={(e) => updateField('imap_port', parseInt(e.target.value) || undefined)}
+                    placeholder="993"
+                  />
+                  <Input
+                    label="Daily Send Limit"
+                    type="number"
+                    value={String(form.daily_send_limit || 200)}
+                    onChange={(e) => updateField('daily_send_limit', parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+            </details>
+          ) : (
+            <>
+              <div className="border-t border-subtle pt-4">
+                <h4 className="text-sm font-medium text-primary mb-3">SMTP Settings</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="Host"
+                    value={form.smtp_host}
+                    onChange={(e) => updateField('smtp_host', e.target.value)}
+                    placeholder="smtp.example.com"
+                    required
+                  />
+                  <Input
+                    label="Port"
+                    type="number"
+                    value={String(form.smtp_port)}
+                    onChange={(e) => updateField('smtp_port', parseInt(e.target.value))}
+                    required
+                  />
+                  <Input
+                    label="Username"
+                    value={form.smtp_user}
+                    onChange={(e) => updateField('smtp_user', e.target.value)}
+                    placeholder="Email or username"
+                    required
+                  />
+                </div>
+                <div className="mt-4">
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={form.smtp_pass}
+                    onChange={(e) => updateField('smtp_pass', e.target.value)}
+                    placeholder={editId ? 'Leave blank to keep current' : 'Enter password or app key'}
+                    required={!editId}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-subtle pt-4">
+                <h4 className="text-sm font-medium text-primary mb-3">IMAP Settings (optional)</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="IMAP Host"
+                    value={form.imap_host || ''}
+                    onChange={(e) => updateField('imap_host', e.target.value)}
+                    placeholder="imap.example.com"
+                  />
+                  <Input
+                    label="IMAP Port"
+                    type="number"
+                    value={String(form.imap_port || '')}
+                    onChange={(e) => updateField('imap_port', parseInt(e.target.value) || undefined)}
+                    placeholder="993"
+                  />
+                  <Input
+                    label="Daily Send Limit"
+                    type="number"
+                    value={String(form.daily_send_limit || 200)}
+                    onChange={(e) => updateField('daily_send_limit', parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-subtle">
             <Button variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </Button>
             <Button variant="primary" type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Saving...' : editId ? 'Update Account' : 'Create Account'}
+              {createMutation.isPending ? 'Connecting...' : editId ? 'Update Account' : showGmailGuide ? 'Connect Gmail' : 'Create Account'}
             </Button>
           </div>
         </form>
