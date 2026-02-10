@@ -317,7 +317,7 @@ drop trigger if exists campaigns_updated_at on campaigns;
 create trigger campaigns_updated_at before update on campaigns
   for each row execute function update_updated_at();
 
-drop trigger if exists campaign_steps_updated_at on campaigns;
+drop trigger if exists campaign_steps_updated_at on campaign_steps;
 create trigger campaign_steps_updated_at before update on campaign_steps
   for each row execute function update_updated_at();
 
