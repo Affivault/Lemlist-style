@@ -605,5 +605,15 @@ alter table smtp_accounts add column if not exists last_inbox_sync_at timestampt
 
 
 -- =============================================
+-- MIGRATION 006: Campaign sending controls
+-- =============================================
+alter table campaigns add column if not exists daily_limit integer not null default 0;
+alter table campaigns add column if not exists delay_between_emails integer not null default 60;
+alter table campaigns add column if not exists stop_on_reply boolean not null default true;
+alter table campaigns add column if not exists track_opens boolean not null default true;
+alter table campaigns add column if not exists track_clicks boolean not null default true;
+
+
+-- =============================================
 -- DONE
 -- =============================================

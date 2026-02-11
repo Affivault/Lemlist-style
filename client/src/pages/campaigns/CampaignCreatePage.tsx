@@ -27,6 +27,11 @@ import {
   Building2,
   ChevronRight,
   SkipForward,
+  Gauge,
+  Shield,
+  Eye,
+  MousePointerClick,
+  MessageSquare,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type {
@@ -58,6 +63,11 @@ export function CampaignCreatePage() {
     send_window_start: '09:00',
     send_window_end: '17:00',
     send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    daily_limit: 50,
+    delay_between_emails: 60,
+    stop_on_reply: true,
+    track_opens: true,
+    track_clicks: true,
   });
 
   const [steps, setSteps] = useState<FlowStep[]>([]);
@@ -102,6 +112,11 @@ export function CampaignCreatePage() {
         send_window_start: existingCampaign.send_window_start || '09:00',
         send_window_end: existingCampaign.send_window_end || '17:00',
         send_days: existingCampaign.send_days,
+        daily_limit: existingCampaign.daily_limit ?? 50,
+        delay_between_emails: existingCampaign.delay_between_emails ?? 60,
+        stop_on_reply: existingCampaign.stop_on_reply ?? true,
+        track_opens: existingCampaign.track_opens ?? true,
+        track_clicks: existingCampaign.track_clicks ?? true,
       });
       if (existingCampaign.steps) {
         setSteps(
@@ -333,6 +348,91 @@ export function CampaignCreatePage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Sending Controls */}
+            <div className="border-t border-subtle pt-4">
+              <h3 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
+                <Gauge className="h-4 w-4 text-secondary" />
+                Sending Controls
+              </h3>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1.5">Daily Limit</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={campaignForm.daily_limit ?? 50}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, daily_limit: parseInt(e.target.value) || 0 })}
+                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                  />
+                  <p className="text-xs text-tertiary mt-1">Max emails per day. 0 = unlimited.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1.5">Delay Between Emails</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={campaignForm.delay_between_emails ?? 60}
+                      onChange={(e) => setCampaignForm({ ...campaignForm, delay_between_emails: parseInt(e.target.value) || 0 })}
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                    />
+                    <span className="text-sm text-secondary whitespace-nowrap">seconds</span>
+                  </div>
+                  <p className="text-xs text-tertiary mt-1">Gap between each email send.</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.stop_on_reply !== false}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, stop_on_reply: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-secondary" />
+                      Stop on reply
+                    </p>
+                    <p className="text-xs text-tertiary">Stop sending to a contact once they reply</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.track_opens !== false}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, track_opens: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <Eye className="h-3.5 w-3.5 text-secondary" />
+                      Track opens
+                    </p>
+                    <p className="text-xs text-tertiary">Inject a tracking pixel to detect email opens</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.track_clicks !== false}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, track_clicks: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <MousePointerClick className="h-3.5 w-3.5 text-secondary" />
+                      Track clicks
+                    </p>
+                    <p className="text-xs text-tertiary">Rewrite links to track click-throughs</p>
+                  </div>
+                </label>
               </div>
             </div>
           </div>

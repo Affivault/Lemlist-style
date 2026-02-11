@@ -270,6 +270,27 @@ export function CampaignDetailPage() {
                 <dt className="text-tertiary">Total Contacts</dt>
                 <dd className="font-medium text-primary">{campaign.total_contacts}</dd>
               </div>
+              <div>
+                <dt className="text-tertiary">Daily Limit</dt>
+                <dd className="font-medium text-primary">{campaign.daily_limit || 'Unlimited'}</dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Delay Between Emails</dt>
+                <dd className="font-medium text-primary">{campaign.delay_between_emails ?? 60}s</dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Stop on Reply</dt>
+                <dd className="font-medium text-primary">{campaign.stop_on_reply !== false ? 'Yes' : 'No'}</dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Tracking</dt>
+                <dd className="font-medium text-primary">
+                  {[
+                    campaign.track_opens !== false && 'Opens',
+                    campaign.track_clicks !== false && 'Clicks',
+                  ].filter(Boolean).join(', ') || 'None'}
+                </dd>
+              </div>
             </dl>
           </div>
         </div>

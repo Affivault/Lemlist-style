@@ -72,10 +72,10 @@ export function startEmailWorker() {
       console.log(`Processing email job ${job.id} to ${to}`);
 
       try {
-        // 1. Get campaign owner for SSE
+        // 1. Get campaign with settings
         const { data: campaign } = await supabaseAdmin
           .from('campaigns')
-          .select('user_id, smtp_account_id')
+          .select('user_id, smtp_account_id, delay_between_emails, track_opens, track_clicks')
           .eq('id', campaignId)
           .single();
 
@@ -123,11 +123,15 @@ export function startEmailWorker() {
           socketTimeout: 30000,
         });
 
-        // 5. Prepare email with tracking
+        // 5. Prepare email with tracking (respect campaign settings)
         const trackingId = generateTrackingId(campaignContactId, stepId);
         let finalHtml = bodyHtml;
-        finalHtml = wrapLinks(finalHtml, trackingId);
-        finalHtml = injectTrackingPixel(finalHtml, trackingId);
+        if (campaign.track_clicks !== false) {
+          finalHtml = wrapLinks(finalHtml, trackingId);
+        }
+        if (campaign.track_opens !== false) {
+          finalHtml = injectTrackingPixel(finalHtml, trackingId);
+        }
 
         // Generate a unique Message-ID for reply threading
         const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
@@ -203,12 +207,14 @@ export function startEmailWorker() {
           const hasMoreSteps = allSteps?.some((s: any) => s.step_order === nextStepOrder);
 
           if (hasMoreSteps) {
+            // Use delay_between_emails (seconds) to throttle sends. Default 60s.
+            const delaySecs = campaign.delay_between_emails ?? 60;
+            const nextSendAt = new Date(Date.now() + delaySecs * 1000);
             await supabaseAdmin
               .from('campaign_contacts')
               .update({
                 current_step_order: nextStepOrder,
-                next_send_at: new Date().toISOString(),
-                last_step_at: new Date().toISOString(),
+                next_send_at: nextSendAt.toISOString(),
               })
               .eq('id', campaignContactId);
           } else {
@@ -217,7 +223,6 @@ export function startEmailWorker() {
               .update({
                 status: 'completed',
                 completed_at: new Date().toISOString(),
-                last_step_at: new Date().toISOString(),
               })
               .eq('id', campaignContactId);
 
@@ -251,11 +256,11 @@ export function startEmailWorker() {
             },
           });
 
-        // If bounced, mark contact and update SSE stats
+        // If bounced, mark contact and DON'T retry (return instead of throw)
         if (isBounce) {
           await supabaseAdmin
             .from('campaign_contacts')
-            .update({ status: 'bounced' })
+            .update({ status: 'bounced', next_send_at: null })
             .eq('id', campaignContactId);
 
           await supabaseAdmin
@@ -264,18 +269,28 @@ export function startEmailWorker() {
             .eq('id', contactId);
 
           // Try to get SMTP account for bounce recording
-          const { data: campaign } = await supabaseAdmin
+          const { data: cam } = await supabaseAdmin
             .from('campaigns')
             .select('smtp_account_id')
             .eq('id', campaignId)
             .single();
 
-          if (campaign?.smtp_account_id) {
-            await sse.recordBounce(campaign.smtp_account_id).catch(() => {});
+          if (cam?.smtp_account_id) {
+            await sse.recordBounce(cam.smtp_account_id).catch(() => {});
           }
+
+          // Do NOT throw — bounced emails should not be retried
+          console.log(`Email to ${to} bounced — not retrying`);
+          return;
         }
 
-        throw err; // Let BullMQ handle retries for non-bounce errors
+        // Non-bounce errors: also nullify next_send_at to prevent sequence worker re-queuing
+        await supabaseAdmin
+          .from('campaign_contacts')
+          .update({ next_send_at: null })
+          .eq('id', campaignContactId);
+
+        throw err; // Let BullMQ handle retries for transient errors only
       }
     },
     {

@@ -14,6 +14,37 @@ import { classifyReply } from './sara.service.js';
  */
 
 // ============================================
+// Send Window & Schedule Helpers
+// ============================================
+
+/**
+ * Check if current time is within the campaign's send window and active days.
+ */
+function isWithinSendWindow(campaign: any): boolean {
+  const tz = campaign.timezone || 'UTC';
+  let now: Date;
+  try {
+    now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+  } catch {
+    now = new Date();
+  }
+
+  // Check active days
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const todayName = dayNames[now.getDay()];
+  const sendDays: string[] = campaign.send_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  if (!sendDays.includes(todayName)) return false;
+
+  // Check time window
+  const windowStart = campaign.send_window_start || '00:00';
+  const windowEnd = campaign.send_window_end || '23:59';
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  if (currentTime < windowStart || currentTime > windowEnd) return false;
+
+  return true;
+}
+
+// ============================================
 // Step Processing
 // ============================================
 
@@ -25,13 +56,43 @@ export async function processNextStep(campaignContactId: string): Promise<void> 
   // Fetch campaign contact with current state
   const { data: cc } = await supabaseAdmin
     .from('campaign_contacts')
-    .select('*, campaigns(id, user_id, dcs_threshold, status), contacts(id, email, first_name, last_name, company, dcs_score)')
+    .select('*, campaigns(id, user_id, dcs_threshold, status, send_window_start, send_window_end, send_days, timezone, daily_limit, delay_between_emails, stop_on_reply, track_opens, track_clicks), contacts(id, email, first_name, last_name, company, dcs_score)')
     .eq('id', campaignContactId)
     .single();
 
   if (!cc || !cc.campaigns || !cc.contacts) return;
   if (cc.status !== 'active') return;
   if (cc.campaigns.status !== 'running') return;
+
+  // Check send window (skip if outside active hours/days)
+  if (!isWithinSendWindow(cc.campaigns)) return;
+
+  // Check daily limit
+  const dailyLimit = cc.campaigns.daily_limit || 0;
+  if (dailyLimit > 0) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: sentToday } = await supabaseAdmin
+      .from('campaign_activities')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', cc.campaign_id)
+      .eq('activity_type', 'sent')
+      .gte('occurred_at', todayStart.toISOString());
+    if (sentToday && sentToday >= dailyLimit) return;
+  }
+
+  // Check stop_on_reply — if contact already replied, mark completed
+  if (cc.campaigns.stop_on_reply !== false) {
+    const { count: replyCount } = await supabaseAdmin
+      .from('campaign_activities')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_contact_id', cc.id)
+      .eq('activity_type', 'replied');
+    if (replyCount && replyCount > 0) {
+      await markCompleted(campaignContactId);
+      return;
+    }
+  }
 
   // Fetch all steps for this campaign, ordered
   const { data: steps } = await supabaseAdmin
@@ -119,13 +180,32 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
     }
   }
 
+  // Check if email was already queued/sent for this exact step to prevent duplicates
+  const { count: alreadySent } = await supabaseAdmin
+    .from('campaign_activities')
+    .select('*', { count: 'exact', head: true })
+    .eq('campaign_contact_id', cc.id)
+    .eq('step_id', step.id)
+    .eq('activity_type', 'sent');
+  if (alreadySent && alreadySent > 0) {
+    // Already sent for this step — advance to next
+    const { data: steps } = await supabaseAdmin
+      .from('campaign_steps')
+      .select('*')
+      .eq('campaign_id', cc.campaign_id)
+      .order('step_order');
+    await advanceToNextStep(cc.id, step.step_order, steps || []);
+    return;
+  }
+
   // Interpolate merge tags in subject and body
   const subject = interpolateMergeTags(step.subject || '', cc.contacts);
   const bodyHtml = interpolateMergeTags(step.body_html || '', cc.contacts);
   const bodyText = bodyHtml.replace(/<[^>]*>/g, '');
 
-  // Queue the email job
-  await emailQueue.add(`email-${cc.id}-step-${step.id}`, {
+  // Queue the email job with jobId to prevent duplicate BullMQ jobs
+  const jobId = `email-${cc.id}-step-${step.id}`;
+  await emailQueue.add(jobId, {
     campaignId: cc.campaign_id,
     campaignContactId: cc.id,
     contactId: cc.contact_id,
@@ -135,14 +215,16 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
     bodyHtml,
     bodyText,
     smtpAccountId: '', // SSE will select the best sender
-  });
+  }, { jobId });
 
-  // Update campaign contact to track current step
+  // CRITICAL: Set next_send_at = null so the sequence worker does NOT
+  // re-pick this contact while the email is being processed by BullMQ.
+  // The email worker will set next_send_at when it advances to the next step.
   await supabaseAdmin
     .from('campaign_contacts')
     .update({
       current_step_order: step.step_order,
-      last_step_at: new Date().toISOString(),
+      next_send_at: null,
     })
     .eq('id', cc.id);
 
