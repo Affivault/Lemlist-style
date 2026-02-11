@@ -2,6 +2,7 @@ import { supabaseAdmin } from '../config/supabase.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
 import { fireEvent } from './webhook.service.js';
+import { processDueSteps } from './sequence.service.js';
 
 interface ListParams {
   page?: number;
@@ -139,6 +140,13 @@ export const campaignsService = {
       .eq('status', 'pending');
 
     fireEvent(userId, 'campaign.launched', { campaign: data }).catch(() => {});
+
+    // Immediately start processing — don't wait for the 30-second sequence worker tick
+    console.log(`[Campaign] Launched campaign ${id} — triggering immediate processing`);
+    processDueSteps().catch((err) => {
+      console.error('[Campaign] Immediate processing error:', err.message);
+    });
+
     return data;
   },
 
