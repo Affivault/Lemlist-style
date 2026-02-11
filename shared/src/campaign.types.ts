@@ -17,6 +17,8 @@ export interface Campaign {
   dcs_threshold: number;
   daily_limit: number;
   delay_between_emails: number;
+  delay_between_emails_min: number;
+  delay_between_emails_max: number;
   stop_on_reply: boolean;
   track_opens: boolean;
   track_clicks: boolean;
@@ -83,6 +85,8 @@ export interface CreateCampaignInput {
   dcs_threshold?: number;
   daily_limit?: number;
   delay_between_emails?: number;
+  delay_between_emails_min?: number;
+  delay_between_emails_max?: number;
   stop_on_reply?: boolean;
   track_opens?: boolean;
   track_clicks?: boolean;

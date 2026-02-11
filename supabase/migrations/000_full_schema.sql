@@ -626,6 +626,8 @@ alter table campaign_steps add column if not exists subject_b text;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_unsubscribed boolean NOT NULL DEFAULT false;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_bounced boolean NOT NULL DEFAULT false;
 ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS include_unsubscribe boolean NOT NULL DEFAULT false;
+ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS delay_between_emails_min integer NOT NULL DEFAULT 50;
+ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS delay_between_emails_max integer NOT NULL DEFAULT 200;
 
 
 -- =============================================

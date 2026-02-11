@@ -44,6 +44,53 @@ function isWithinSendWindow(campaign: any): boolean {
   return true;
 }
 
+/**
+ * Calculate when the next valid send window opens (in real UTC time).
+ * Looks up to 7 days ahead to find the next active day + window start.
+ */
+function getNextSendWindowStart(campaign: any): Date {
+  const tz = campaign.timezone || 'UTC';
+  let localNow: Date;
+  try {
+    localNow = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+  } catch {
+    localNow = new Date();
+  }
+
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const sendDays: string[] = campaign.send_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  const windowStart = campaign.send_window_start || '00:00';
+  const [startH, startM] = windowStart.split(':').map(Number);
+  const currentTime = `${String(localNow.getHours()).padStart(2, '0')}:${String(localNow.getMinutes()).padStart(2, '0')}`;
+
+  // If today is an active day and we're before the window start, schedule for today
+  const todayName = dayNames[localNow.getDay()];
+  if (sendDays.includes(todayName) && currentTime < windowStart) {
+    const target = new Date(localNow);
+    target.setHours(startH, startM, 0, 0);
+    // Convert back to real time: offset = localNow - real now
+    const realNow = new Date();
+    const offsetMs = localNow.getTime() - realNow.getTime();
+    return new Date(target.getTime() - offsetMs);
+  }
+
+  // Otherwise find the next active day
+  for (let daysAhead = 1; daysAhead <= 7; daysAhead++) {
+    const future = new Date(localNow);
+    future.setDate(future.getDate() + daysAhead);
+    const futureDayName = dayNames[future.getDay()];
+    if (sendDays.includes(futureDayName)) {
+      future.setHours(startH, startM, 0, 0);
+      const realNow = new Date();
+      const offsetMs = localNow.getTime() - realNow.getTime();
+      return new Date(future.getTime() - offsetMs);
+    }
+  }
+
+  // Fallback: 24 hours from now
+  return new Date(Date.now() + 24 * 60 * 60_000);
+}
+
 // ============================================
 // Step Processing
 // ============================================
@@ -98,13 +145,13 @@ async function _processNextStepInner(campaignContactId: string): Promise<void> {
 
   // Check send window (skip if outside active hours/days)
   if (!isWithinSendWindow(cc.campaigns)) {
-    // Reschedule 5 minutes ahead so we don't re-check every 30 seconds
-    const fiveMin = new Date(Date.now() + 5 * 60_000);
+    // Reschedule to the start of the next valid send window
+    const nextWindow = getNextSendWindowStart(cc.campaigns);
     await supabaseAdmin
       .from('campaign_contacts')
-      .update({ next_send_at: fiveMin.toISOString() })
+      .update({ next_send_at: nextWindow.toISOString() })
       .eq('id', campaignContactId);
-    console.log(`[Sequence] Contact ${campaignContactId} skipped — outside send window, rescheduled to ${fiveMin.toISOString()}`);
+    console.log(`[Sequence] Contact ${campaignContactId} outside send window — rescheduled to ${nextWindow.toISOString()}`);
     return;
   }
 

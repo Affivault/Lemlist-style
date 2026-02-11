@@ -71,7 +71,8 @@ export function CampaignCreatePage() {
     send_window_end: '23:59',
     send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
     daily_limit: 50,
-    delay_between_emails: 60,
+    delay_between_emails_min: 50,
+    delay_between_emails_max: 200,
     stop_on_reply: true,
     track_opens: true,
     track_clicks: true,
@@ -125,7 +126,8 @@ export function CampaignCreatePage() {
         send_window_end: existingCampaign.send_window_end || '17:00',
         send_days: existingCampaign.send_days,
         daily_limit: existingCampaign.daily_limit ?? 50,
-        delay_between_emails: existingCampaign.delay_between_emails ?? 60,
+        delay_between_emails_min: existingCampaign.delay_between_emails_min ?? existingCampaign.delay_between_emails ?? 50,
+        delay_between_emails_max: existingCampaign.delay_between_emails_max ?? existingCampaign.delay_between_emails ?? 200,
         stop_on_reply: existingCampaign.stop_on_reply ?? true,
         track_opens: existingCampaign.track_opens ?? true,
         track_clicks: existingCampaign.track_clicks ?? true,
@@ -420,13 +422,21 @@ export function CampaignCreatePage() {
                     <input
                       type="number"
                       min="0"
-                      value={campaignForm.delay_between_emails ?? 60}
-                      onChange={(e) => setCampaignForm({ ...campaignForm, delay_between_emails: parseInt(e.target.value) || 0 })}
+                      value={campaignForm.delay_between_emails_min ?? 50}
+                      onChange={(e) => setCampaignForm({ ...campaignForm, delay_between_emails_min: parseInt(e.target.value) || 0 })}
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                    />
+                    <span className="text-sm text-secondary whitespace-nowrap">to</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={campaignForm.delay_between_emails_max ?? 200}
+                      onChange={(e) => setCampaignForm({ ...campaignForm, delay_between_emails_max: parseInt(e.target.value) || 0 })}
                       className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
                     />
                     <span className="text-sm text-secondary whitespace-nowrap">seconds</span>
                   </div>
-                  <p className="text-xs text-tertiary mt-1">Gap between each email send.</p>
+                  <p className="text-xs text-tertiary mt-1">Random delay between each email send (e.g. 50-200s).</p>
                 </div>
               </div>
 
@@ -629,17 +639,12 @@ export function CampaignCreatePage() {
                           type="button"
                           disabled={sendingTest || !testEmailTo || !steps[editingStep].subject}
                           onClick={async () => {
-                            if (!id) {
-                              toast.error('Save the campaign first to send a test');
-                              return;
-                            }
                             setSendingTest(true);
                             try {
-                              const result = await campaignsApi.sendTest(id, {
+                              const result = await smtpApi.sendTestEmail(campaignForm.smtp_account_id!, {
                                 to: testEmailTo,
                                 subject: steps[editingStep].subject || 'Test',
                                 body_html: steps[editingStep].body_html || '',
-                                smtp_account_id: campaignForm.smtp_account_id!,
                               });
                               if (result.success) toast.success(result.message || 'Test sent!');
                               else toast.error(result.error || 'Failed');
@@ -845,7 +850,7 @@ export function CampaignCreatePage() {
                   </div>
                   <div>
                     <dt className="text-tertiary">Delay Between Sends</dt>
-                    <dd className="font-medium text-primary">{campaignForm.delay_between_emails}s</dd>
+                    <dd className="font-medium text-primary">{campaignForm.delay_between_emails_min ?? 50}s – {campaignForm.delay_between_emails_max ?? 200}s</dd>
                   </div>
                   <div>
                     <dt className="text-tertiary">Stop on Reply</dt>

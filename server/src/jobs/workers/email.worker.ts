@@ -244,9 +244,12 @@ export function startEmailWorker() {
           const hasMoreSteps = allSteps?.some((s: any) => s.step_order === nextStepOrder);
 
           if (hasMoreSteps) {
-            // Use delay_between_emails (seconds) to throttle sends. Default 60s.
-            const delaySecs = campaign.delay_between_emails ?? 60;
+            // Use random delay between min-max seconds. Falls back to legacy single value.
+            const delayMin = campaign.delay_between_emails_min ?? campaign.delay_between_emails ?? 60;
+            const delayMax = campaign.delay_between_emails_max ?? campaign.delay_between_emails ?? 60;
+            const delaySecs = delayMin + Math.floor(Math.random() * (delayMax - delayMin + 1));
             const nextSendAt = new Date(Date.now() + delaySecs * 1000);
+            console.log(`[Email] Next step in ${delaySecs}s (range: ${delayMin}-${delayMax}s)`);
             await supabaseAdmin
               .from('campaign_contacts')
               .update({
