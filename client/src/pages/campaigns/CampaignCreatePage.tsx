@@ -67,9 +67,9 @@ export function CampaignCreatePage() {
   const [campaignForm, setCampaignForm] = useState<CreateCampaignInput>({
     name: '',
     timezone: 'UTC',
-    send_window_start: '09:00',
-    send_window_end: '17:00',
-    send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    send_window_start: '00:00',
+    send_window_end: '23:59',
+    send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
     daily_limit: 50,
     delay_between_emails: 60,
     stop_on_reply: true,

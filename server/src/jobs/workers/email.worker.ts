@@ -72,10 +72,10 @@ export function startEmailWorker() {
       console.log(`Processing email job ${job.id} to ${to}`);
 
       try {
-        // 1. Get campaign with settings
+        // 1. Get campaign with settings (use * to avoid failures when new columns aren't migrated)
         const { data: campaign } = await supabaseAdmin
           .from('campaigns')
-          .select('user_id, smtp_account_id, delay_between_emails, track_opens, track_clicks, include_unsubscribe')
+          .select('*')
           .eq('id', campaignId)
           .single();
 
@@ -93,7 +93,7 @@ export function startEmailWorker() {
           smtpAccount = sseResult.account;
           console.log(`SSE selected: ${sseResult.reason}`);
         } else if (campaign.smtp_account_id) {
-          // Fallback to campaign's default SMTP account
+          // Fallback to campaign's default SMTP account (no is_verified check)
           const { data: fallback } = await supabaseAdmin
             .from('smtp_accounts')
             .select('*')
@@ -101,6 +101,21 @@ export function startEmailWorker() {
             .single();
           smtpAccount = fallback;
           console.log(`Using campaign default SMTP: ${smtpAccount?.label || smtpAccount?.id}`);
+        }
+
+        // Last resort: try any active SMTP account for this user
+        if (!smtpAccount) {
+          const { data: anyAccount } = await supabaseAdmin
+            .from('smtp_accounts')
+            .select('*')
+            .eq('user_id', campaign.user_id)
+            .eq('is_active', true)
+            .limit(1)
+            .single();
+          if (anyAccount) {
+            smtpAccount = anyAccount;
+            console.log(`Last resort SMTP: ${smtpAccount.label || smtpAccount.id} (not verified)`);
+          }
         }
 
         if (!smtpAccount) {
@@ -129,7 +144,7 @@ export function startEmailWorker() {
 
         // Unsubscribe link — only if campaign has include_unsubscribe enabled
         const unsubUrl = `${env.TRACKING_BASE_URL}/api/track/unsubscribe/${trackingId}`;
-        if (campaign.include_unsubscribe) {
+        if (campaign.include_unsubscribe === true) {
           // Replace {{unsubscribe_link}} merge tag
           finalHtml = finalHtml.replace(/\{\{unsubscribe_link\}\}/gi, unsubUrl);
 

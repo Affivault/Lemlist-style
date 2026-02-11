@@ -69,12 +69,10 @@ export async function processNextStep(campaignContactId: string): Promise<void> 
 
 async function _processNextStepInner(campaignContactId: string): Promise<void> {
   // Fetch campaign contact with current state
-  // NOTE: We intentionally do NOT select is_bounced/is_unsubscribed in the join
-  // to avoid query failures if those columns don't exist yet (migration not run).
-  // We check them separately below.
+  // Use wildcard selects to avoid failures when new columns haven't been migrated yet
   const { data: cc, error: ccError } = await supabaseAdmin
     .from('campaign_contacts')
-    .select('*, campaigns(id, user_id, dcs_threshold, status, send_window_start, send_window_end, send_days, timezone, daily_limit, delay_between_emails, stop_on_reply, track_opens, track_clicks, include_unsubscribe), contacts(id, email, first_name, last_name, company, dcs_score)')
+    .select('*, campaigns(*), contacts(*)')
     .eq('id', campaignContactId)
     .single();
 
@@ -86,31 +84,29 @@ async function _processNextStepInner(campaignContactId: string): Promise<void> {
   if (cc.status !== 'active') return;
   if (cc.campaigns.status !== 'running') return;
 
-  // Check if contact is globally unsubscribed or bounced (separate query for safety)
-  try {
-    const { data: contactFlags } = await supabaseAdmin
-      .from('contacts')
-      .select('is_unsubscribed, is_bounced')
-      .eq('id', cc.contact_id)
-      .single();
-
-    if (contactFlags?.is_unsubscribed || contactFlags?.is_bounced) {
-      await supabaseAdmin
-        .from('campaign_contacts')
-        .update({
-          status: contactFlags.is_bounced ? 'bounced' : 'unsubscribed',
-          next_send_at: null,
-        })
-        .eq('id', campaignContactId);
-      return;
-    }
-  } catch {
-    // Columns may not exist yet — continue without filtering
-    console.warn(`Could not check unsubscribe/bounce flags for contact ${cc.contact_id} — columns may not exist`);
+  // Check if contact is globally unsubscribed or bounced
+  if (cc.contacts.is_unsubscribed || cc.contacts.is_bounced) {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        status: cc.contacts.is_bounced ? 'bounced' : 'unsubscribed',
+        next_send_at: null,
+      })
+      .eq('id', campaignContactId);
+    return;
   }
 
   // Check send window (skip if outside active hours/days)
-  if (!isWithinSendWindow(cc.campaigns)) return;
+  if (!isWithinSendWindow(cc.campaigns)) {
+    // Reschedule 5 minutes ahead so we don't re-check every 30 seconds
+    const fiveMin = new Date(Date.now() + 5 * 60_000);
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ next_send_at: fiveMin.toISOString() })
+      .eq('id', campaignContactId);
+    console.log(`[Sequence] Contact ${campaignContactId} skipped — outside send window, rescheduled to ${fiveMin.toISOString()}`);
+    return;
+  }
 
   // Check daily limit
   const dailyLimit = cc.campaigns.daily_limit || 0;
@@ -258,6 +254,7 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
 
   // Queue the email job with jobId to prevent duplicate BullMQ jobs
   const jobId = `email-${cc.id}-step-${step.id}`;
+  console.log(`[Sequence] Queuing email job ${jobId} to ${cc.contacts.email} (subject: "${subject}")`);
   await emailQueue.add(jobId, {
     campaignId: cc.campaign_id,
     campaignContactId: cc.id,
