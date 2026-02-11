@@ -15,6 +15,11 @@ export interface Campaign {
   send_days: string[];
   total_contacts: number;
   dcs_threshold: number;
+  daily_limit: number;
+  delay_between_emails: number;
+  stop_on_reply: boolean;
+  track_opens: boolean;
+  track_clicks: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +79,11 @@ export interface CreateCampaignInput {
   send_window_end?: string;
   send_days?: string[];
   dcs_threshold?: number;
+  daily_limit?: number;
+  delay_between_emails?: number;
+  stop_on_reply?: boolean;
+  track_opens?: boolean;
+  track_clicks?: boolean;
 }
 
 export interface CreateStepInput {
