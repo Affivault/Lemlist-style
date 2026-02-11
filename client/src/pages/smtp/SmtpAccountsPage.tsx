@@ -293,9 +293,16 @@ export function SmtpAccountsPage() {
                       )}
                     </div>
                     <p className="text-sm text-secondary">{account.email_address}</p>
-                    <p className="text-sm text-tertiary mt-1">
-                      {account.smtp_host}:{account.smtp_port} · {account.sends_today}/{account.daily_send_limit} today
-                    </p>
+                    <div className="flex items-center gap-2 text-sm text-tertiary mt-1">
+                      <span>{account.smtp_host}:{account.smtp_port}</span>
+                      <span>·</span>
+                      <span>{account.sends_today}/{account.warmup_mode ? account.warmup_daily_target : account.daily_send_limit} today</span>
+                      {account.warmup_mode && (
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-amber-500/10 text-amber-600">Warming up</span>
+                      )}
+                      <span>·</span>
+                      <span>Health: {account.health_score}%</span>
+                    </div>
                   </div>
                 </div>
 
@@ -327,18 +334,24 @@ export function SmtpAccountsPage() {
               </div>
 
               {/* Usage Bar */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-xs text-tertiary mb-1">
-                  <span>Daily usage</span>
-                  <span>{Math.round((account.sends_today / account.daily_send_limit) * 100)}%</span>
-                </div>
-                <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[var(--text-primary)] rounded-full transition-all"
-                    style={{ width: `${Math.min((account.sends_today / account.daily_send_limit) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
+              {(() => {
+                const limit = account.warmup_mode ? account.warmup_daily_target : account.daily_send_limit;
+                const pct = limit > 0 ? Math.round((account.sends_today / limit) * 100) : 0;
+                return (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-xs text-tertiary mb-1">
+                      <span>{account.warmup_mode ? 'Warmup progress' : 'Daily usage'}</span>
+                      <span>{pct}%</span>
+                    </div>
+                    <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${account.warmup_mode ? 'bg-amber-500' : 'bg-[var(--text-primary)]'}`}
+                        style={{ width: `${Math.min(pct, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>

@@ -30,6 +30,7 @@ export interface CampaignStep {
   step_order: number;
   step_type: StepType;
   subject: string | null;
+  subject_b: string | null;
   body_html: string | null;
   body_text: string | null;
   delay_days: number;
@@ -90,6 +91,7 @@ export interface CreateStepInput {
   step_type: StepType;
   step_order: number;
   subject?: string;
+  subject_b?: string;
   body_html?: string;
   body_text?: string;
   delay_days?: number;

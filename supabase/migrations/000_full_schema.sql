@@ -615,5 +615,11 @@ alter table campaigns add column if not exists track_clicks boolean not null def
 
 
 -- =============================================
+-- MIGRATION 007: A/B subject line testing
+-- =============================================
+alter table campaign_steps add column if not exists subject_b text;
+
+
+-- =============================================
 -- DONE
 -- =============================================
