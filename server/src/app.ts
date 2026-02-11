@@ -31,9 +31,27 @@ app.use('/api/track', trackingRoutes);
 // Routes (authenticated)
 app.use('/api/v1', routes);
 
-// Health check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check with diagnostics
+app.get('/health', async (_req, res) => {
+  const diagnostics: Record<string, string> = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: 'direct-send-v2',
+  };
+
+  // Check Redis
+  try {
+    const { redisConnection } = await import('./config/redis.js');
+    if (redisConnection.status === 'ready') {
+      diagnostics.redis = 'connected';
+    } else {
+      diagnostics.redis = `status: ${redisConnection.status}`;
+    }
+  } catch (err: any) {
+    diagnostics.redis = `error: ${err.message}`;
+  }
+
+  res.json(diagnostics);
 });
 
 // Error handler (must be last)

@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
-import { emailQueue } from '../jobs/queues.js';
 import { fireEvent } from './webhook.service.js';
 import { classifyReply } from './sara.service.js';
+import { sendCampaignEmail } from './email-sender.service.js';
 
 /**
  * Sequence Engine Service
@@ -289,7 +289,6 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
   // A/B subject: pick variant based on contact ID hash (deterministic 50/50 split)
   let rawSubject = step.subject || '';
   if (step.subject_b) {
-    // Use first char of contact ID to deterministically split
     const charCode = cc.contact_id.charCodeAt(0) || 0;
     rawSubject = charCode % 2 === 0 ? rawSubject : step.subject_b;
   }
@@ -299,31 +298,56 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
   const bodyHtml = interpolateMergeTags(step.body_html || '', cc.contacts);
   const bodyText = bodyHtml.replace(/<[^>]*>/g, '');
 
-  // Queue the email job with jobId to prevent duplicate BullMQ jobs
-  const jobId = `email-${cc.id}-step-${step.id}`;
-  console.log(`[Sequence] Queuing email job ${jobId} to ${cc.contacts.email} (subject: "${subject}")`);
-  await emailQueue.add(jobId, {
-    campaignId: cc.campaign_id,
-    campaignContactId: cc.id,
-    contactId: cc.contact_id,
-    stepId: step.id,
-    to: cc.contacts.email,
-    subject,
-    bodyHtml,
-    bodyText,
-    smtpAccountId: '', // SSE will select the best sender
-  }, { jobId });
-
-  // CRITICAL: Set next_send_at = null so the sequence worker does NOT
-  // re-pick this contact while the email is being processed by BullMQ.
-  // The email worker will set next_send_at when it advances to the next step.
+  // Nullify next_send_at BEFORE sending to prevent re-processing
   await supabaseAdmin
     .from('campaign_contacts')
-    .update({
-      current_step_order: step.step_order,
-      next_send_at: null,
-    })
+    .update({ current_step_order: step.step_order, next_send_at: null })
     .eq('id', cc.id);
+
+  // Send email DIRECTLY (no BullMQ queue — eliminates Redis dependency)
+  // sendCampaignEmail handles: SMTP selection, sending, activity recording, step advancement
+  console.log(`[Sequence] Sending email directly to ${cc.contacts.email} (subject: "${subject}")`);
+  try {
+    await sendCampaignEmail({
+      campaignId: cc.campaign_id,
+      campaignContactId: cc.id,
+      contactId: cc.contact_id,
+      stepId: step.id,
+      to: cc.contacts.email,
+      subject,
+      bodyHtml,
+      bodyText,
+    });
+  } catch (err: any) {
+    console.error(`[Sequence] Email send failed for ${cc.contacts.email}:`, err.message);
+
+    // Check for bounce
+    const isBounce = err.responseCode >= 500 || err.code === 'EENVELOPE';
+    if (isBounce) {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({ status: 'bounced', next_send_at: null })
+        .eq('id', cc.id);
+      await supabaseAdmin
+        .from('contacts')
+        .update({ is_bounced: true })
+        .eq('id', cc.contact_id);
+    }
+
+    // Record error activity
+    await supabaseAdmin
+      .from('campaign_activities')
+      .insert({
+        campaign_id: cc.campaign_id,
+        campaign_contact_id: cc.id,
+        contact_id: cc.contact_id,
+        step_id: step.id,
+        activity_type: isBounce ? 'bounced' : 'error',
+        metadata: { error: err.message, code: err.code || err.responseCode, to: cc.contacts.email },
+      });
+    // Don't rethrow — error is handled, contact won't be re-processed
+    return;
+  }
 
   fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
     campaign_id: cc.campaign_id,

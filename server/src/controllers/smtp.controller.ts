@@ -59,16 +59,33 @@ export const smtpController = {
         return res.status(400).json({ error: 'to and subject are required' });
       }
 
-      const { data: account } = await supabaseAdmin
+      console.log(`[TestEmail] Request: to=${to}, subject=${subject}, smtpId=${req.params.id}, userId=${req.userId}`);
+
+      const { data: account, error: fetchError } = await supabaseAdmin
         .from('smtp_accounts')
         .select('*')
         .eq('id', req.params.id)
         .eq('user_id', req.userId!)
         .single();
 
-      if (!account) return res.status(404).json({ error: 'SMTP account not found' });
+      if (fetchError) {
+        console.error('[TestEmail] DB fetch error:', fetchError.message);
+        return res.status(500).json({ error: `Database error: ${fetchError.message}` });
+      }
+      if (!account) {
+        return res.status(404).json({ error: 'SMTP account not found for this user' });
+      }
 
-      const password = decrypt(account.smtp_pass_encrypted);
+      console.log(`[TestEmail] Using SMTP: ${account.smtp_host}:${account.smtp_port} user=${account.smtp_user}`);
+
+      let password: string;
+      try {
+        password = decrypt(account.smtp_pass_encrypted);
+      } catch (decryptErr: any) {
+        console.error('[TestEmail] Decrypt error:', decryptErr.message);
+        return res.status(500).json({ error: `Failed to decrypt SMTP password: ${decryptErr.message}` });
+      }
+
       const transporter = nodemailer.createTransport({
         host: account.smtp_host,
         port: account.smtp_port,
@@ -77,6 +94,18 @@ export const smtpController = {
         connectionTimeout: 15000,
         socketTimeout: 30000,
       });
+
+      // Verify SMTP connection first
+      try {
+        await transporter.verify();
+        console.log('[TestEmail] SMTP connection verified');
+      } catch (verifyErr: any) {
+        console.error('[TestEmail] SMTP verify failed:', verifyErr.message);
+        return res.status(500).json({
+          success: false,
+          error: `SMTP connection failed: ${verifyErr.message}. Check your host, port, username, and password.`,
+        });
+      }
 
       const htmlBody = body_html || '<p>This is a test email from SkySend.</p>';
       await transporter.sendMail({
@@ -87,11 +116,17 @@ export const smtpController = {
         text: htmlBody.replace(/<[^>]*>/g, ''),
       });
 
-      console.log(`Test email sent to ${to} via ${account.label || account.smtp_host}`);
+      // Mark account as verified since we know the credentials work
+      await supabaseAdmin
+        .from('smtp_accounts')
+        .update({ is_verified: true })
+        .eq('id', account.id);
+
+      console.log(`[TestEmail] Sent to ${to} via ${account.label || account.smtp_host}`);
       res.json({ success: true, message: `Test email sent to ${to}` });
     } catch (err: any) {
-      console.error('Test email error:', err.message);
-      res.status(500).json({ success: false, error: err.message });
+      console.error('[TestEmail] Send error:', err.message);
+      res.status(500).json({ success: false, error: `Send failed: ${err.message}` });
     }
   },
 };
