@@ -20,6 +20,7 @@ export interface Campaign {
   stop_on_reply: boolean;
   track_opens: boolean;
   track_clicks: boolean;
+  include_unsubscribe: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -85,6 +86,7 @@ export interface CreateCampaignInput {
   stop_on_reply?: boolean;
   track_opens?: boolean;
   track_clicks?: boolean;
+  include_unsubscribe?: boolean;
 }
 
 export interface CreateStepInput {

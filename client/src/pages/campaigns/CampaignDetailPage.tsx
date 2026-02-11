@@ -291,6 +291,10 @@ export function CampaignDetailPage() {
                   ].filter(Boolean).join(', ') || 'None'}
                 </dd>
               </div>
+              <div>
+                <dt className="text-tertiary">Unsubscribe Link</dt>
+                <dd className="font-medium text-primary">{campaign.include_unsubscribe ? 'Included' : 'Not included'}</dd>
+              </div>
             </dl>
           </div>
         </div>

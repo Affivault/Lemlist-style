@@ -75,6 +75,7 @@ export function CampaignCreatePage() {
     stop_on_reply: true,
     track_opens: true,
     track_clicks: true,
+    include_unsubscribe: false,
   });
 
   const [steps, setSteps] = useState<FlowStep[]>([]);
@@ -128,6 +129,7 @@ export function CampaignCreatePage() {
         stop_on_reply: existingCampaign.stop_on_reply ?? true,
         track_opens: existingCampaign.track_opens ?? true,
         track_clicks: existingCampaign.track_clicks ?? true,
+        include_unsubscribe: existingCampaign.include_unsubscribe ?? false,
       });
       if (existingCampaign.steps) {
         setSteps(
@@ -474,6 +476,22 @@ export function CampaignCreatePage() {
                       Track clicks
                     </p>
                     <p className="text-xs text-tertiary">Rewrite links to track click-throughs</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.include_unsubscribe === true}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, include_unsubscribe: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-secondary" />
+                      Include unsubscribe link
+                    </p>
+                    <p className="text-xs text-tertiary">Add an unsubscribe link and List-Unsubscribe header to emails</p>
                   </div>
                 </label>
               </div>
@@ -841,6 +859,10 @@ export function CampaignCreatePage() {
                         campaignForm.track_clicks !== false && 'Clicks',
                       ].filter(Boolean).join(', ') || 'None'}
                     </dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Unsubscribe Link</dt>
+                    <dd className="font-medium text-primary">{campaignForm.include_unsubscribe ? 'Included' : 'Not included'}</dd>
                   </div>
                   {senderPoolIds.length > 0 && (
                     <div className="col-span-2">
