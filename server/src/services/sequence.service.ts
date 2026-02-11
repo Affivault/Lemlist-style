@@ -56,13 +56,25 @@ export async function processNextStep(campaignContactId: string): Promise<void> 
   // Fetch campaign contact with current state
   const { data: cc } = await supabaseAdmin
     .from('campaign_contacts')
-    .select('*, campaigns(id, user_id, dcs_threshold, status, send_window_start, send_window_end, send_days, timezone, daily_limit, delay_between_emails, stop_on_reply, track_opens, track_clicks), contacts(id, email, first_name, last_name, company, dcs_score)')
+    .select('*, campaigns(id, user_id, dcs_threshold, status, send_window_start, send_window_end, send_days, timezone, daily_limit, delay_between_emails, stop_on_reply, track_opens, track_clicks), contacts(id, email, first_name, last_name, company, dcs_score, is_bounced, is_unsubscribed)')
     .eq('id', campaignContactId)
     .single();
 
   if (!cc || !cc.campaigns || !cc.contacts) return;
   if (cc.status !== 'active') return;
   if (cc.campaigns.status !== 'running') return;
+
+  // Skip contacts that are globally unsubscribed or bounced
+  if (cc.contacts.is_unsubscribed || cc.contacts.is_bounced) {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        status: cc.contacts.is_bounced ? 'bounced' : 'unsubscribed',
+        next_send_at: null,
+      })
+      .eq('id', campaignContactId);
+    return;
+  }
 
   // Check send window (skip if outside active hours/days)
   if (!isWithinSendWindow(cc.campaigns)) return;
@@ -198,8 +210,16 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
     return;
   }
 
+  // A/B subject: pick variant based on contact ID hash (deterministic 50/50 split)
+  let rawSubject = step.subject || '';
+  if (step.subject_b) {
+    // Use first char of contact ID to deterministically split
+    const charCode = cc.contact_id.charCodeAt(0) || 0;
+    rawSubject = charCode % 2 === 0 ? rawSubject : step.subject_b;
+  }
+
   // Interpolate merge tags in subject and body
-  const subject = interpolateMergeTags(step.subject || '', cc.contacts);
+  const subject = interpolateMergeTags(rawSubject, cc.contacts);
   const bodyHtml = interpolateMergeTags(step.body_html || '', cc.contacts);
   const bodyText = bodyHtml.replace(/<[^>]*>/g, '');
 

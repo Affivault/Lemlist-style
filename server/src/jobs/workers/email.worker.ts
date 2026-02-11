@@ -126,6 +126,21 @@ export function startEmailWorker() {
         // 5. Prepare email with tracking (respect campaign settings)
         const trackingId = generateTrackingId(campaignContactId, stepId);
         let finalHtml = bodyHtml;
+
+        // Inject unsubscribe link (replace {{unsubscribe_link}} merge tag)
+        const unsubUrl = `${env.TRACKING_BASE_URL}/api/track/unsubscribe/${trackingId}`;
+        finalHtml = finalHtml.replace(/\{\{unsubscribe_link\}\}/gi, unsubUrl);
+
+        // Auto-append unsubscribe footer if no {{unsubscribe_link}} was in the template
+        if (!bodyHtml.match(/\{\{unsubscribe_link\}\}/i)) {
+          const footer = `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af;"><a href="${unsubUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></div>`;
+          if (finalHtml.includes('</body>')) {
+            finalHtml = finalHtml.replace('</body>', `${footer}</body>`);
+          } else {
+            finalHtml += footer;
+          }
+        }
+
         if (campaign.track_clicks !== false) {
           finalHtml = wrapLinks(finalHtml, trackingId);
         }
@@ -149,6 +164,7 @@ export function startEmailWorker() {
             'X-SkySend-Campaign': campaignId,
             'X-SkySend-Contact': contactId,
             'X-SkySend-Step': stepId,
+            'List-Unsubscribe': `<${unsubUrl}>`,
           },
         };
 

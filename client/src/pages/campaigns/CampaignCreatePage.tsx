@@ -32,6 +32,12 @@ import {
   Eye,
   MousePointerClick,
   MessageSquare,
+  Send,
+  AlertTriangle,
+  Rocket,
+  RotateCcw,
+  Plus,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type {
@@ -49,6 +55,7 @@ const WIZARD_STEPS = [
   { label: 'Settings', icon: Settings },
   { label: 'Sequence', icon: Layers },
   { label: 'Contacts', icon: Users },
+  { label: 'Review', icon: Rocket },
 ];
 
 export function CampaignCreatePage() {
@@ -76,6 +83,10 @@ export function CampaignCreatePage() {
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [contactSearch, setContactSearch] = useState('');
   const [wizardStep, setWizardStep] = useState(0);
+
+  const [senderPoolIds, setSenderPoolIds] = useState<string[]>([]);
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
 
   const subjectRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
@@ -302,18 +313,50 @@ export function CampaignCreatePage() {
               placeholder="e.g., Q1 Outreach"
               required
             />
-            <Select
-              label="Sending Account (SMTP)"
-              value={campaignForm.smtp_account_id || ''}
-              onChange={(e) => setCampaignForm({ ...campaignForm, smtp_account_id: e.target.value || undefined })}
-              options={[
-                { value: '', label: 'Select an SMTP account...' },
-                ...(smtpAccounts || []).map((a: SmtpAccount) => ({
-                  value: a.id,
-                  label: `${a.label} (${a.email_address})`,
-                })),
-              ]}
-            />
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-secondary">Primary Sending Account</label>
+              <select
+                value={campaignForm.smtp_account_id || ''}
+                onChange={(e) => setCampaignForm({ ...campaignForm, smtp_account_id: e.target.value || undefined })}
+                className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+              >
+                <option value="">Select an SMTP account...</option>
+                {(smtpAccounts || []).map((a: SmtpAccount) => (
+                  <option key={a.id} value={a.id}>{a.label} ({a.email_address})</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sender Rotation Pool */}
+            {(smtpAccounts || []).length > 1 && (
+              <div className="border border-subtle rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <RotateCcw className="h-4 w-4 text-secondary" />
+                  <h3 className="text-sm font-medium text-primary">Sender Rotation</h3>
+                  <span className="text-xs text-tertiary">(optional)</span>
+                </div>
+                <p className="text-xs text-secondary mb-3">Distribute emails across multiple accounts to protect sender reputation and increase volume.</p>
+                <div className="space-y-1.5">
+                  {(smtpAccounts || []).map((a: SmtpAccount) => (
+                    <label key={a.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-hover cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={senderPoolIds.includes(a.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSenderPoolIds([...senderPoolIds, a.id]);
+                          else setSenderPoolIds(senderPoolIds.filter(id => id !== a.id));
+                        }}
+                        className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-primary">{a.label}</p>
+                        <p className="text-xs text-tertiary">{a.email_address} · {a.daily_send_limit}/day · Health: {a.health_score}%</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="border-t border-subtle pt-4">
               <h3 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-secondary" />
@@ -532,6 +575,68 @@ export function CampaignCreatePage() {
                       <p className="text-xs text-tertiary">Don't send if the contact already replied</p>
                     </div>
                   </label>
+
+                  {/* A/B Subject Variant */}
+                  <div className="border border-subtle rounded-md p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-secondary">A/B Subject (optional)</p>
+                    </div>
+                    <input
+                      type="text"
+                      value={(steps[editingStep] as any).subject_b || ''}
+                      onChange={(e) => updateStep(editingStep, { subject: steps[editingStep].subject, body_html: steps[editingStep].body_html } as any)}
+                      onChangeCapture={(e) => {
+                        const val = (e.target as HTMLInputElement).value;
+                        setSteps(steps.map((s, i) => i === editingStep ? { ...s, subject_b: val } as any : s));
+                      }}
+                      placeholder="Variant B subject line (50/50 split)"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                    />
+                    <p className="text-xs text-tertiary mt-1">If set, 50% of contacts will get this subject line instead.</p>
+                  </div>
+
+                  {/* Send Test Email */}
+                  {campaignForm.smtp_account_id && (
+                    <div className="border-t border-subtle pt-3">
+                      <p className="text-xs font-medium text-secondary mb-2">Send Test Email</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          value={testEmailTo}
+                          onChange={(e) => setTestEmailTo(e.target.value)}
+                          placeholder="your@email.com"
+                          className="flex-1 rounded-md border border-default bg-surface px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                        />
+                        <button
+                          type="button"
+                          disabled={sendingTest || !testEmailTo || !steps[editingStep].subject}
+                          onClick={async () => {
+                            if (!id) {
+                              toast.error('Save the campaign first to send a test');
+                              return;
+                            }
+                            setSendingTest(true);
+                            try {
+                              const result = await campaignsApi.sendTest(id, {
+                                to: testEmailTo,
+                                subject: steps[editingStep].subject || 'Test',
+                                body_html: steps[editingStep].body_html || '',
+                                smtp_account_id: campaignForm.smtp_account_id!,
+                              });
+                              if (result.success) toast.success(result.message || 'Test sent!');
+                              else toast.error(result.error || 'Failed');
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.error || 'Send failed');
+                            }
+                            setSendingTest(false);
+                          }}
+                          className="px-3 py-1.5 rounded-md bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+                        >
+                          {sendingTest ? 'Sending...' : 'Send'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : editingStep !== null && steps[editingStep]?.step_type === 'delay' ? (
@@ -631,13 +736,172 @@ export function CampaignCreatePage() {
               <ArrowLeft className="h-4 w-4" />
               Back: Sequence
             </Button>
-            <Button onClick={handleSave} disabled={createCampaignMutation.isPending}>
-              <Save className="h-4 w-4" />
-              {createCampaignMutation.isPending ? 'Saving...' : 'Save Campaign'}
+            <Button onClick={() => setWizardStep(3)}>
+              Next: Review
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       )}
+
+      {/* Step 4: Review & Launch */}
+      {wizardStep === 3 && (() => {
+        const emailSteps = steps.filter(s => s.step_type === 'email');
+        const delaySteps = steps.filter(s => s.step_type === 'delay');
+        const warnings: string[] = [];
+        if (!campaignForm.name) warnings.push('Campaign name is required');
+        if (!campaignForm.smtp_account_id) warnings.push('No SMTP account selected');
+        if (steps.length === 0) warnings.push('No sequence steps added');
+        if (emailSteps.length === 0) warnings.push('No email steps in sequence');
+        if (selectedContactIds.length === 0) warnings.push('No contacts selected');
+        if (emailSteps.some(s => !s.subject)) warnings.push('Some email steps have no subject line');
+        if (emailSteps.some(s => !s.body_html)) warnings.push('Some email steps have no body content');
+        const smtpName = (smtpAccounts || []).find((a: SmtpAccount) => a.id === campaignForm.smtp_account_id);
+
+        return (
+          <div className="space-y-4">
+            {/* Warnings */}
+            {warnings.length > 0 && (
+              <div className="rounded-lg border border-[var(--error)]/30 bg-[var(--error)]/5 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="h-4 w-4 text-[var(--error)]" />
+                  <h3 className="text-sm font-medium text-[var(--error)]">Issues to resolve</h3>
+                </div>
+                <ul className="space-y-1">
+                  {warnings.map((w, i) => (
+                    <li key={i} className="text-sm text-[var(--error)]/80 flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-[var(--error)]" />
+                      {w}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Contacts</p>
+                <p className="text-xl font-semibold text-primary">{selectedContactIds.length}</p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Email Steps</p>
+                <p className="text-xl font-semibold text-primary">{emailSteps.length}</p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Delays</p>
+                <p className="text-xl font-semibold text-primary">{delaySteps.length}</p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Total Emails</p>
+                <p className="text-xl font-semibold text-primary">{emailSteps.length * selectedContactIds.length}</p>
+              </div>
+            </div>
+
+            {/* Config Summary */}
+            <div className="rounded-lg border border-subtle bg-surface">
+              <div className="p-5 border-b border-subtle">
+                <h2 className="font-medium text-primary">Campaign Summary</h2>
+              </div>
+              <div className="p-5">
+                <dl className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <dt className="text-tertiary">Campaign Name</dt>
+                    <dd className="font-medium text-primary">{campaignForm.name || '—'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Primary Sender</dt>
+                    <dd className="font-medium text-primary">{smtpName ? `${smtpName.label} (${smtpName.email_address})` : '—'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Send Window</dt>
+                    <dd className="font-medium text-primary">{campaignForm.send_window_start} – {campaignForm.send_window_end} ({campaignForm.timezone})</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Active Days</dt>
+                    <dd className="font-medium capitalize text-primary">{(campaignForm.send_days || []).join(', ')}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Daily Limit</dt>
+                    <dd className="font-medium text-primary">{campaignForm.daily_limit || 'Unlimited'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Delay Between Sends</dt>
+                    <dd className="font-medium text-primary">{campaignForm.delay_between_emails}s</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Stop on Reply</dt>
+                    <dd className="font-medium text-primary">{campaignForm.stop_on_reply !== false ? 'Yes' : 'No'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Tracking</dt>
+                    <dd className="font-medium text-primary">
+                      {[
+                        campaignForm.track_opens !== false && 'Opens',
+                        campaignForm.track_clicks !== false && 'Clicks',
+                      ].filter(Boolean).join(', ') || 'None'}
+                    </dd>
+                  </div>
+                  {senderPoolIds.length > 0 && (
+                    <div className="col-span-2">
+                      <dt className="text-tertiary">Sender Rotation Pool</dt>
+                      <dd className="font-medium text-primary">
+                        {senderPoolIds.length} accounts: {senderPoolIds.map(id => {
+                          const a = (smtpAccounts || []).find((a: SmtpAccount) => a.id === id);
+                          return a?.label || id;
+                        }).join(', ')}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </div>
+
+            {/* Sequence Preview */}
+            <div className="rounded-lg border border-subtle bg-surface">
+              <div className="p-5 border-b border-subtle">
+                <h2 className="font-medium text-primary">Sequence Preview</h2>
+              </div>
+              <div className="p-5 space-y-2">
+                {steps.map((step, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-md bg-elevated">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface text-xs font-medium text-secondary">{i + 1}</span>
+                    {step.step_type === 'email' ? (
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-secondary" />
+                          <span className="text-sm font-medium text-primary truncate">{step.subject || 'Untitled'}</span>
+                        </div>
+                        {(step as any).subject_b && (
+                          <p className="text-xs text-tertiary mt-0.5">A/B: "{(step as any).subject_b}"</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5 text-secondary" />
+                        <span className="text-sm text-primary">Wait {step.delay_days || 0}d {step.delay_hours || 0}h {step.delay_minutes || 0}m</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between">
+              <Button variant="secondary" onClick={() => setWizardStep(2)}>
+                <ArrowLeft className="h-4 w-4" />
+                Back: Contacts
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={handleSave} disabled={createCampaignMutation.isPending}>
+                  <Save className="h-4 w-4" />
+                  {createCampaignMutation.isPending ? 'Saving...' : 'Save Draft'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Contact Selection Modal */}
       <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Select Contacts" size="lg">
