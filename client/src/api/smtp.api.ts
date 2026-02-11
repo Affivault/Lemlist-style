@@ -30,4 +30,9 @@ export const smtpApi = {
     const { data } = await apiClient.post<{ success: boolean; message: string }>(`/smtp-accounts/${id}/test`);
     return data;
   },
+
+  sendTestEmail: async (smtpAccountId: string, input: { to: string; subject: string; body_html?: string }) => {
+    const { data } = await apiClient.post<{ success: boolean; message?: string; error?: string }>(`/smtp-accounts/${smtpAccountId}/send-test`, input);
+    return data;
+  },
 };

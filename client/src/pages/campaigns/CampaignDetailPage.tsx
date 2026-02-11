@@ -276,7 +276,7 @@ export function CampaignDetailPage() {
               </div>
               <div>
                 <dt className="text-tertiary">Delay Between Emails</dt>
-                <dd className="font-medium text-primary">{campaign.delay_between_emails ?? 60}s</dd>
+                <dd className="font-medium text-primary">{campaign.delay_between_emails_min ?? campaign.delay_between_emails ?? 50}s – {campaign.delay_between_emails_max ?? campaign.delay_between_emails ?? 200}s</dd>
               </div>
               <div>
                 <dt className="text-tertiary">Stop on Reply</dt>
