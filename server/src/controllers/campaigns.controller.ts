@@ -1,8 +1,12 @@
 import { Response, NextFunction } from 'express';
+import nodemailer from 'nodemailer';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import { campaignsService } from '../services/campaigns.service.js';
 import { campaignStepsService } from '../services/campaign-steps.service.js';
 import { campaignContactsService } from '../services/campaign-contacts.service.js';
+import { supabaseAdmin } from '../config/supabase.js';
+import { decrypt } from '../utils/encryption.js';
+import * as sse from '../services/sse.service.js';
 
 export const campaignsController = {
   // Campaign CRUD
@@ -124,6 +128,60 @@ export const campaignsController = {
   async removeContacts(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       await campaignContactsService.remove(req.params.id, req.body.contact_ids);
+      res.status(204).send();
+    } catch (err) { next(err); }
+  },
+
+  // Send test email
+  async sendTest(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { to, subject, body_html, smtp_account_id } = req.body;
+      if (!to || !subject || !body_html || !smtp_account_id) {
+        return res.status(400).json({ error: 'to, subject, body_html, and smtp_account_id are required' });
+      }
+
+      const { data: account } = await supabaseAdmin
+        .from('smtp_accounts')
+        .select('*')
+        .eq('id', smtp_account_id)
+        .eq('user_id', req.userId!)
+        .single();
+      if (!account) return res.status(404).json({ error: 'SMTP account not found' });
+
+      const password = decrypt(account.smtp_pass_encrypted);
+      const transporter = nodemailer.createTransport({
+        host: account.smtp_host,
+        port: account.smtp_port,
+        secure: account.smtp_secure,
+        auth: { user: account.smtp_user, pass: password },
+        connectionTimeout: 15000,
+      });
+
+      await transporter.sendMail({
+        from: account.email_address,
+        to,
+        subject: `[TEST] ${subject}`,
+        html: body_html,
+        text: body_html.replace(/<[^>]*>/g, ''),
+      });
+
+      res.json({ success: true, message: `Test email sent to ${to}` });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  // Sender pool (rotation)
+  async getSenderPool(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const pool = await sse.getCampaignPool(req.params.id);
+      res.json(pool);
+    } catch (err) { next(err); }
+  },
+
+  async setSenderPool(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      await sse.setCampaignPool(req.params.id, req.body.smtp_account_ids || []);
       res.status(204).send();
     } catch (err) { next(err); }
   },

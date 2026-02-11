@@ -94,4 +94,20 @@ export const campaignsApi = {
       data: { contact_ids: contactIds },
     });
   },
+
+  // Test email
+  sendTest: async (campaignId: string, input: { to: string; subject: string; body_html: string; smtp_account_id: string }) => {
+    const { data } = await apiClient.post<{ success: boolean; message?: string; error?: string }>(`/campaigns/${campaignId}/test-email`, input);
+    return data;
+  },
+
+  // Sender pool (rotation)
+  getSenderPool: async (campaignId: string) => {
+    const { data } = await apiClient.get<string[]>(`/campaigns/${campaignId}/sender-pool`);
+    return data;
+  },
+
+  setSenderPool: async (campaignId: string, smtpAccountIds: string[]) => {
+    await apiClient.put(`/campaigns/${campaignId}/sender-pool`, { smtp_account_ids: smtpAccountIds });
+  },
 };

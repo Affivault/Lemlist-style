@@ -27,3 +27,10 @@ campaignRoutes.delete('/:id/steps/:stepId', campaignsController.deleteStep);
 campaignRoutes.get('/:id/contacts', campaignsController.getContacts);
 campaignRoutes.post('/:id/contacts', campaignsController.addContacts);
 campaignRoutes.delete('/:id/contacts', campaignsController.removeContacts);
+
+// Test email
+campaignRoutes.post('/:id/test-email', campaignsController.sendTest);
+
+// Sender pool (rotation)
+campaignRoutes.get('/:id/sender-pool', campaignsController.getSenderPool);
+campaignRoutes.put('/:id/sender-pool', campaignsController.setSenderPool);
