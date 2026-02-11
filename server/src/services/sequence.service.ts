@@ -53,27 +53,60 @@ function isWithinSendWindow(campaign: any): boolean {
  * Called after campaign launch, after email sent, or after delay expires.
  */
 export async function processNextStep(campaignContactId: string): Promise<void> {
+  try {
+    await _processNextStepInner(campaignContactId);
+  } catch (err: any) {
+    // CRITICAL: On ANY error, nullify next_send_at to prevent infinite loop.
+    // Without this, a failed query leaves the contact in a re-processable state
+    // and the sequence worker picks it up again every 30 seconds.
+    console.error(`processNextStep error for ${campaignContactId}:`, err.message);
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ next_send_at: null, error_message: `Sequence error: ${err.message}`.slice(0, 500) })
+      .eq('id', campaignContactId);
+  }
+}
+
+async function _processNextStepInner(campaignContactId: string): Promise<void> {
   // Fetch campaign contact with current state
-  const { data: cc } = await supabaseAdmin
+  // NOTE: We intentionally do NOT select is_bounced/is_unsubscribed in the join
+  // to avoid query failures if those columns don't exist yet (migration not run).
+  // We check them separately below.
+  const { data: cc, error: ccError } = await supabaseAdmin
     .from('campaign_contacts')
-    .select('*, campaigns(id, user_id, dcs_threshold, status, send_window_start, send_window_end, send_days, timezone, daily_limit, delay_between_emails, stop_on_reply, track_opens, track_clicks), contacts(id, email, first_name, last_name, company, dcs_score, is_bounced, is_unsubscribed)')
+    .select('*, campaigns(id, user_id, dcs_threshold, status, send_window_start, send_window_end, send_days, timezone, daily_limit, delay_between_emails, stop_on_reply, track_opens, track_clicks, include_unsubscribe), contacts(id, email, first_name, last_name, company, dcs_score)')
     .eq('id', campaignContactId)
     .single();
+
+  if (ccError) {
+    throw new Error(`Failed to fetch campaign contact: ${ccError.message}`);
+  }
 
   if (!cc || !cc.campaigns || !cc.contacts) return;
   if (cc.status !== 'active') return;
   if (cc.campaigns.status !== 'running') return;
 
-  // Skip contacts that are globally unsubscribed or bounced
-  if (cc.contacts.is_unsubscribed || cc.contacts.is_bounced) {
-    await supabaseAdmin
-      .from('campaign_contacts')
-      .update({
-        status: cc.contacts.is_bounced ? 'bounced' : 'unsubscribed',
-        next_send_at: null,
-      })
-      .eq('id', campaignContactId);
-    return;
+  // Check if contact is globally unsubscribed or bounced (separate query for safety)
+  try {
+    const { data: contactFlags } = await supabaseAdmin
+      .from('contacts')
+      .select('is_unsubscribed, is_bounced')
+      .eq('id', cc.contact_id)
+      .single();
+
+    if (contactFlags?.is_unsubscribed || contactFlags?.is_bounced) {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({
+          status: contactFlags.is_bounced ? 'bounced' : 'unsubscribed',
+          next_send_at: null,
+        })
+        .eq('id', campaignContactId);
+      return;
+    }
+  } catch {
+    // Columns may not exist yet — continue without filtering
+    console.warn(`Could not check unsubscribe/bounce flags for contact ${cc.contact_id} — columns may not exist`);
   }
 
   // Check send window (skip if outside active hours/days)
@@ -512,7 +545,12 @@ export async function processDueSteps(): Promise<number> {
   if (!dueContacts || dueContacts.length === 0) return 0;
 
   for (const cc of dueContacts) {
-    await processNextStep(cc.id);
+    try {
+      await processNextStep(cc.id);
+    } catch (err: any) {
+      // processNextStep already handles errors, but double-guard here
+      console.error(`processDueSteps: unhandled error for ${cc.id}:`, err.message);
+    }
   }
 
   return dueContacts.length;

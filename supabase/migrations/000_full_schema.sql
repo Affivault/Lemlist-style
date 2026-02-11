@@ -621,5 +621,13 @@ alter table campaign_steps add column if not exists subject_b text;
 
 
 -- =============================================
+-- MIGRATION 008: Fix missing columns + include_unsubscribe
+-- =============================================
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_unsubscribed boolean NOT NULL DEFAULT false;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_bounced boolean NOT NULL DEFAULT false;
+ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS include_unsubscribe boolean NOT NULL DEFAULT false;
+
+
+-- =============================================
 -- DONE
 -- =============================================
