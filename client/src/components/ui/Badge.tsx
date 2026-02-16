@@ -2,24 +2,24 @@ import { cn } from '../../lib/utils';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple';
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'brand';
   className?: string;
 }
 
 export function Badge({ children, variant = 'default', className }: BadgeProps) {
   const variants = {
-    default: 'bg-white/5 text-secondary',
-    success: 'bg-emerald-500/10 text-emerald-400',
-    warning: 'bg-amber-500/10 text-amber-400',
-    danger: 'bg-red-500/10 text-red-400',
-    info: 'bg-blue-500/10 text-blue-400',
-    purple: 'bg-violet-500/10 text-violet-400',
+    default: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)]',
+    success: 'bg-[var(--success-bg)] text-[var(--success)] border border-[var(--success-border)]',
+    warning: 'bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning-border)]',
+    danger: 'bg-[var(--error-bg)] text-[var(--error)] border border-[var(--error-border)]',
+    info: 'bg-[var(--info-bg)] text-[var(--info)] border border-[var(--info-border)]',
+    brand: 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-default)]',
   };
 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors duration-150',
         variants[variant],
         className
       )}

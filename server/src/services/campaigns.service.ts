@@ -2,6 +2,7 @@ import { supabaseAdmin } from '../config/supabase.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
 import { fireEvent } from './webhook.service.js';
+import { processDueSteps } from './sequence.service.js';
 
 interface ListParams {
   page?: number;
@@ -108,6 +109,16 @@ export const campaignsService = {
       throw new AppError('Campaign must be in draft or scheduled status to launch', 400);
     }
 
+    // Validate steps exist
+    const { count: stepsExist } = await supabaseAdmin
+      .from('campaign_steps')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', id);
+
+    if (!stepsExist || stepsExist === 0) {
+      throw new AppError('Campaign must have at least one email step', 400);
+    }
+
     // Count contacts
     const { count } = await supabaseAdmin
       .from('campaign_contacts')
@@ -116,6 +127,29 @@ export const campaignsService = {
 
     if (!count || count === 0) {
       throw new AppError('Campaign must have at least one contact', 400);
+    }
+
+    // Validate SMTP account
+    if (campaign.smtp_account_id) {
+      const { data: smtp } = await supabaseAdmin
+        .from('smtp_accounts')
+        .select('id, label, is_active')
+        .eq('id', campaign.smtp_account_id)
+        .single();
+      if (!smtp || !smtp.is_active) {
+        throw new AppError('Campaign SMTP account is inactive or missing. Check your email account settings.', 400);
+      }
+    } else {
+      // Check if user has ANY active SMTP account
+      const { data: anySMTP } = await supabaseAdmin
+        .from('smtp_accounts')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .limit(1);
+      if (!anySMTP || anySMTP.length === 0) {
+        throw new AppError('No active email account found. Add and connect an email account first.', 400);
+      }
     }
 
     const { data, error } = await supabaseAdmin
@@ -131,14 +165,42 @@ export const campaignsService = {
 
     if (error) throw new AppError(error.message, 500);
 
-    // Set all pending contacts to active
-    await supabaseAdmin
+    // Activate ALL contacts that aren't completed/bounced/unsubscribed
+    // This handles both fresh launches (pending → active) and re-launches (active contacts with stale next_send_at)
+    const now = new Date().toISOString();
+    console.log(`[Campaign] Activating contacts for campaign ${id}`);
+
+    const { data: activatedPending, error: pendErr } = await supabaseAdmin
       .from('campaign_contacts')
-      .update({ status: 'active', next_send_at: new Date().toISOString() })
+      .update({ status: 'active', next_send_at: now })
       .eq('campaign_id', id)
-      .eq('status', 'pending');
+      .eq('status', 'pending')
+      .select('id');
+    if (pendErr) console.error('[Campaign] Error activating pending contacts:', pendErr.message);
+
+    // Also reset any stuck 'active' contacts (from failed previous launches) — give them a fresh next_send_at
+    const { data: resetActive, error: actErr } = await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ next_send_at: now, error_message: null })
+      .eq('campaign_id', id)
+      .eq('status', 'active')
+      .select('id');
+    if (actErr) console.error('[Campaign] Error resetting active contacts:', actErr.message);
+
+    const totalActivated = (activatedPending?.length || 0) + (resetActive?.length || 0);
+    console.log(`[Campaign] Activated ${activatedPending?.length || 0} pending + reset ${resetActive?.length || 0} active = ${totalActivated} total contacts`);
 
     fireEvent(userId, 'campaign.launched', { campaign: data }).catch(() => {});
+
+    // Immediately start processing — await for real feedback
+    console.log(`[Campaign] Launched campaign ${id} — triggering immediate processing`);
+    try {
+      const processed = await processDueSteps();
+      console.log(`[Campaign] Immediate processing: ${processed} contact(s) processed`);
+    } catch (err: any) {
+      console.error('[Campaign] Immediate processing error:', err.message);
+    }
+
     return data;
   },
 

@@ -31,13 +31,13 @@ const activityIcons: Record<string, React.ElementType> = {
 };
 
 const activityColors: Record<string, string> = {
-  sent: 'text-blue-400',
-  delivered: 'text-green-400',
-  opened: 'text-green-500',
-  clicked: 'text-purple-400',
-  replied: 'text-brand',
-  bounced: 'text-red-400',
-  error: 'text-red-400',
+  sent: 'text-[var(--text-secondary)]',
+  delivered: 'text-[var(--success)]',
+  opened: 'text-[var(--success)]',
+  clicked: 'text-[var(--text-secondary)]',
+  replied: 'text-[var(--text-primary)]',
+  bounced: 'text-[var(--error)]',
+  error: 'text-[var(--error)]',
 };
 
 export function ContactDetailPage() {
@@ -74,7 +74,7 @@ export function ContactDetailPage() {
   }
 
   if (!contact) {
-    return <div className="text-center text-secondary">Contact not found</div>;
+    return <div className="text-center text-[var(--text-secondary)]">Contact not found</div>;
   }
 
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
@@ -84,7 +84,7 @@ export function ContactDetailPage() {
       {/* Back link */}
       <button
         onClick={() => navigate('/contacts')}
-        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Contacts
@@ -93,12 +93,12 @@ export function ContactDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center text-brand font-medium">
+          <div className="w-12 h-12 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] font-medium">
             {getInitials(contact.first_name, contact.last_name, contact.email)}
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-primary">{fullName || contact.email}</h1>
-            {fullName && <p className="text-sm text-secondary">{contact.email}</p>}
+            <h1 className="text-xl font-semibold text-[var(--text-primary)]">{fullName || contact.email}</h1>
+            {fullName && <p className="text-sm text-[var(--text-secondary)]">{contact.email}</p>}
             <div className="flex items-center gap-2 mt-1">
               {contact.tags?.map((tag: any) => (
                 <span
@@ -110,10 +110,10 @@ export function ContactDetailPage() {
                 </span>
               ))}
               {contact.is_unsubscribed && (
-                <span className="text-xs text-yellow-500">Unsubscribed</span>
+                <span className="text-xs text-[var(--warning)]">Unsubscribed</span>
               )}
               {contact.is_bounced && (
-                <span className="text-xs text-red-500">Bounced</span>
+                <span className="text-xs text-[var(--error)]">Bounced</span>
               )}
             </div>
           </div>
@@ -122,7 +122,7 @@ export function ContactDetailPage() {
           onClick={() => {
             if (confirm('Delete this contact?')) deleteMutation.mutate();
           }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-400 hover:text-red-300 border border-red-400/30 rounded-md hover:bg-red-400/10 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--error)] hover:text-[var(--error)] border border-[var(--error)]/30 rounded-md hover:bg-[var(--error)]/10 transition-colors"
         >
           <Trash2 className="h-4 w-4" />
           Delete
@@ -131,8 +131,8 @@ export function ContactDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contact Info */}
-        <div className="bg-surface border border-subtle rounded-md p-5">
-          <h2 className="text-sm font-medium text-primary mb-4">Contact Info</h2>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-md p-5">
+          <h2 className="text-sm font-medium text-[var(--text-primary)] mb-4">Contact Info</h2>
           <div className="space-y-3">
             <InfoRow icon={Mail} label="Email" value={contact.email} />
             {contact.company && <InfoRow icon={Building2} label="Company" value={contact.company} />}
@@ -141,7 +141,7 @@ export function ContactDetailPage() {
             {contact.linkedin_url && <InfoRow icon={Linkedin} label="LinkedIn" value={contact.linkedin_url} isLink />}
             {contact.website && <InfoRow icon={Globe} label="Website" value={contact.website} isLink />}
           </div>
-          <div className="mt-4 pt-4 border-t border-subtle text-xs text-secondary space-y-1">
+          <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] space-y-1">
             <p>Source: {contact.source}</p>
             <p>Created: {formatDate(contact.created_at)}</p>
             <p>Updated: {formatDate(contact.updated_at)}</p>
@@ -149,28 +149,28 @@ export function ContactDetailPage() {
         </div>
 
         {/* Activity Timeline */}
-        <div className="lg:col-span-2 bg-surface border border-subtle rounded-md p-5">
-          <h2 className="text-sm font-medium text-primary mb-4">Activity</h2>
+        <div className="lg:col-span-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-md p-5">
+          <h2 className="text-sm font-medium text-[var(--text-primary)] mb-4">Activity</h2>
           {!timeline || timeline.length === 0 ? (
-            <p className="text-sm text-secondary">No activity yet</p>
+            <p className="text-sm text-[var(--text-secondary)]">No activity yet</p>
           ) : (
             <div className="space-y-3">
               {timeline.map((item: any) => {
                 const Icon = activityIcons[item.activity_type] || Send;
-                const color = activityColors[item.activity_type] || 'text-secondary';
+                const color = activityColors[item.activity_type] || 'text-[var(--text-secondary)]';
                 return (
                   <div key={item.id} className="flex items-start gap-3">
                     <div className={`mt-0.5 ${color}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-primary">
+                      <p className="text-sm text-[var(--text-primary)]">
                         <span className="capitalize">{item.activity_type}</span>
                         {item.step_subject && (
-                          <span className="text-secondary"> - {item.step_subject}</span>
+                          <span className="text-[var(--text-secondary)]"> - {item.step_subject}</span>
                         )}
                       </p>
-                      <p className="text-xs text-secondary">
+                      <p className="text-xs text-[var(--text-secondary)]">
                         {item.campaign_name} · {formatDateTime(item.occurred_at)}
                       </p>
                     </div>
@@ -198,20 +198,20 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <Icon className="h-4 w-4 text-secondary mt-0.5 shrink-0" />
+      <Icon className="h-4 w-4 text-[var(--text-secondary)] mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-xs text-secondary">{label}</p>
+        <p className="text-xs text-[var(--text-secondary)]">{label}</p>
         {isLink ? (
           <a
             href={value}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-brand hover:underline truncate block"
+            className="text-sm text-[var(--text-primary)] hover:underline truncate block"
           >
             {value}
           </a>
         ) : (
-          <p className="text-sm text-primary">{value}</p>
+          <p className="text-sm text-[var(--text-primary)]">{value}</p>
         )}
       </div>
     </div>

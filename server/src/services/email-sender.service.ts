@@ -1,0 +1,255 @@
+import nodemailer from 'nodemailer';
+import crypto from 'node:crypto';
+import { supabaseAdmin } from '../config/supabase.js';
+import { env } from '../config/env.js';
+import { decrypt } from '../utils/encryption.js';
+import { fireEvent } from './webhook.service.js';
+import * as sse from './sse.service.js';
+
+/**
+ * Direct Email Sender Service
+ *
+ * Sends campaign emails directly via nodemailer, bypassing BullMQ.
+ * This ensures emails are sent even when Redis is unavailable.
+ */
+
+interface SendEmailParams {
+  campaignId: string;
+  campaignContactId: string;
+  contactId: string;
+  stepId: string;
+  to: string;
+  subject: string;
+  bodyHtml: string;
+  bodyText: string;
+}
+
+function generateTrackingId(campaignContactId: string, stepId: string): string {
+  const payload = `${campaignContactId}:${stepId}`;
+  const hmac = crypto.createHmac('sha256', env.TRACKING_SECRET).update(payload).digest('hex').slice(0, 16);
+  return Buffer.from(`${payload}:${hmac}`).toString('base64url');
+}
+
+function injectTrackingPixel(html: string, trackingId: string): string {
+  const pixelUrl = `${env.TRACKING_BASE_URL}/api/track/open/${trackingId}`;
+  const pixel = `<img src="${pixelUrl}" width="1" height="1" style="display:none;border:0;" alt="" />`;
+  if (html.includes('</body>')) {
+    return html.replace('</body>', `${pixel}</body>`);
+  }
+  return html + pixel;
+}
+
+function wrapLinks(html: string, trackingId: string): string {
+  return html.replace(
+    /href="(https?:\/\/[^"]+)"/gi,
+    (_match, url) => {
+      if (url.includes('/api/track/') || url.includes('unsubscribe')) {
+        return `href="${url}"`;
+      }
+      const encoded = Buffer.from(url).toString('base64url');
+      const trackUrl = `${env.TRACKING_BASE_URL}/api/track/click/${trackingId}?url=${encoded}`;
+      return `href="${trackUrl}"`;
+    }
+  );
+}
+
+/**
+ * Send a single campaign email directly via SMTP.
+ * Returns true on success, throws on failure.
+ */
+export async function sendCampaignEmail(params: SendEmailParams): Promise<void> {
+  const { campaignId, campaignContactId, contactId, stepId, to, subject, bodyHtml, bodyText } = params;
+  console.log(`[EmailSender] Sending to ${to} (campaign: ${campaignId}, step: ${stepId})`);
+
+  // 1. Get campaign settings
+  const { data: campaign } = await supabaseAdmin
+    .from('campaigns')
+    .select('*')
+    .eq('id', campaignId)
+    .single();
+
+  if (!campaign) {
+    throw new Error(`Campaign ${campaignId} not found`);
+  }
+
+  // 2. Find SMTP account
+  let smtpAccount: any = null;
+
+  // Try SSE selection (multi-account pool)
+  const sseResult = await sse.selectBestSender(campaign.user_id, campaignId);
+  if (sseResult.account) {
+    smtpAccount = sseResult.account;
+    console.log(`[EmailSender] SSE selected: ${sseResult.reason}`);
+  } else if (campaign.smtp_account_id) {
+    // Fallback to campaign's default SMTP account
+    const { data: fallback } = await supabaseAdmin
+      .from('smtp_accounts')
+      .select('*')
+      .eq('id', campaign.smtp_account_id)
+      .single();
+    smtpAccount = fallback;
+    console.log(`[EmailSender] Using campaign default SMTP: ${smtpAccount?.label || smtpAccount?.id}`);
+  }
+
+  // Last resort: any active SMTP account
+  if (!smtpAccount) {
+    const { data: anyAccount } = await supabaseAdmin
+      .from('smtp_accounts')
+      .select('*')
+      .eq('user_id', campaign.user_id)
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+    if (anyAccount) {
+      smtpAccount = anyAccount;
+      console.log(`[EmailSender] Last resort SMTP: ${smtpAccount.label || smtpAccount.id}`);
+    }
+  }
+
+  if (!smtpAccount) {
+    throw new Error('No SMTP account available. Add and configure an SMTP account first.');
+  }
+
+  // 3. Decrypt SMTP password
+  let smtpPassword: string;
+  try {
+    smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
+  } catch (err: any) {
+    throw new Error(`Failed to decrypt SMTP password for ${smtpAccount.label}: ${err.message}`);
+  }
+
+  // 4. Create transporter and verify connection
+  console.log(`[EmailSender] Connecting to SMTP: ${smtpAccount.smtp_host}:${smtpAccount.smtp_port} (secure: ${smtpAccount.smtp_secure}) user: ${smtpAccount.smtp_user}`);
+  const transporter = nodemailer.createTransport({
+    host: smtpAccount.smtp_host,
+    port: smtpAccount.smtp_port,
+    secure: smtpAccount.smtp_secure,
+    auth: { user: smtpAccount.smtp_user, pass: smtpPassword },
+    connectionTimeout: 15000,
+    socketTimeout: 30000,
+  });
+
+  // Verify SMTP connection before attempting to send
+  try {
+    await transporter.verify();
+    console.log(`[EmailSender] SMTP connection verified for ${smtpAccount.label || smtpAccount.smtp_host}`);
+  } catch (verifyErr: any) {
+    throw new Error(`SMTP connection failed for ${smtpAccount.label}: ${verifyErr.message}. Check host, port, and credentials.`);
+  }
+
+  // 5. Prepare email with tracking
+  const trackingId = generateTrackingId(campaignContactId, stepId);
+  let finalHtml = bodyHtml;
+
+  // Unsubscribe link (only when enabled)
+  const unsubUrl = `${env.TRACKING_BASE_URL}/api/track/unsubscribe/${trackingId}`;
+  if (campaign.include_unsubscribe === true) {
+    finalHtml = finalHtml.replace(/\{\{unsubscribe_link\}\}/gi, unsubUrl);
+    if (!bodyHtml.match(/\{\{unsubscribe_link\}\}/i)) {
+      const footer = `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af;"><a href="${unsubUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></div>`;
+      finalHtml = finalHtml.includes('</body>')
+        ? finalHtml.replace('</body>', `${footer}</body>`)
+        : finalHtml + footer;
+    }
+  } else {
+    finalHtml = finalHtml.replace(/\{\{unsubscribe_link\}\}/gi, unsubUrl);
+  }
+
+  if (campaign.track_clicks !== false) {
+    finalHtml = wrapLinks(finalHtml, trackingId);
+  }
+  if (campaign.track_opens !== false) {
+    finalHtml = injectTrackingPixel(finalHtml, trackingId);
+  }
+
+  // 6. Send
+  const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
+  const messageId = `<${crypto.randomUUID()}@${domain}>`;
+
+  const info = await transporter.sendMail({
+    from: smtpAccount.email_address,
+    to,
+    subject,
+    html: finalHtml,
+    text: bodyText,
+    messageId,
+    headers: {
+      'X-SkySend-Campaign': campaignId,
+      'X-SkySend-Contact': contactId,
+      'X-SkySend-Step': stepId,
+      ...(campaign.include_unsubscribe === true ? { 'List-Unsubscribe': `<${unsubUrl}>` } : {}),
+    },
+  });
+
+  console.log(`[EmailSender] Sent to ${to} via ${smtpAccount.label || smtpAccount.smtp_host} — messageId: ${info.messageId}`);
+
+  // 7. Record send in SSE
+  await sse.recordSend(smtpAccount.id).catch(() => {});
+
+  // 8. Record campaign activity
+  await supabaseAdmin
+    .from('campaign_activities')
+    .insert({
+      campaign_id: campaignId,
+      campaign_contact_id: campaignContactId,
+      contact_id: contactId,
+      step_id: stepId,
+      activity_type: 'sent',
+      message_id: messageId,
+      metadata: {
+        subject, to,
+        smtp_account_id: smtpAccount.id,
+        smtp_label: smtpAccount.label,
+        tracking_id: trackingId,
+      },
+    });
+
+  // 9. Fire webhook
+  fireEvent(campaign.user_id, 'email.sent', {
+    campaign_id: campaignId,
+    contact_id: contactId,
+    step_id: stepId,
+    to, subject,
+    message_id: messageId,
+  }).catch(() => {});
+
+  // 10. Advance to next step
+  const { data: currentStep } = await supabaseAdmin
+    .from('campaign_steps')
+    .select('step_order')
+    .eq('id', stepId)
+    .single();
+
+  if (currentStep) {
+    const { data: allSteps } = await supabaseAdmin
+      .from('campaign_steps')
+      .select('step_order')
+      .eq('campaign_id', campaignId)
+      .order('step_order');
+
+    const nextStepOrder = currentStep.step_order + 1;
+    const hasMoreSteps = allSteps?.some((s: any) => s.step_order === nextStepOrder);
+
+    if (hasMoreSteps) {
+      const delayMin = campaign.delay_between_emails_min ?? campaign.delay_between_emails ?? 60;
+      const delayMax = campaign.delay_between_emails_max ?? campaign.delay_between_emails ?? 60;
+      const delaySecs = delayMin + Math.floor(Math.random() * (delayMax - delayMin + 1));
+      const nextSendAt = new Date(Date.now() + delaySecs * 1000);
+      console.log(`[EmailSender] Next step in ${delaySecs}s (range: ${delayMin}-${delayMax}s)`);
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({ current_step_order: nextStepOrder, next_send_at: nextSendAt.toISOString() })
+        .eq('id', campaignContactId);
+    } else {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', campaignContactId);
+
+      fireEvent(campaign.user_id, 'campaign.completed', {
+        campaign_id: campaignId,
+        contact_id: contactId,
+      }).catch(() => {});
+    }
+  }
+}

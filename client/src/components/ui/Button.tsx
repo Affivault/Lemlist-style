@@ -2,17 +2,23 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'brand';
   size?: 'sm' | 'md' | 'lg';
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
     const variants = {
-      primary: 'bg-[var(--accent)] text-[var(--bg-app)] hover:bg-[var(--accent-hover)]',
-      secondary: 'bg-transparent border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]',
-      danger: 'bg-[var(--error)] text-white hover:opacity-90',
-      ghost: 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
+      primary:
+        'bg-[var(--accent)] text-[var(--bg-app)] hover:bg-[var(--accent-hover)] shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-0',
+      secondary:
+        'bg-transparent border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]',
+      danger:
+        'bg-[var(--error)] text-white hover:opacity-90',
+      ghost:
+        'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]',
+      brand:
+        'bg-[var(--accent)] text-[var(--bg-app)] hover:bg-[var(--accent-hover)] shadow-sm hover:shadow-md hover:translate-y-[-1px] active:translate-y-0',
     };
 
     const sizes = {
@@ -25,7 +31,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+          'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
           variants[variant],
           sizes[size],
           className

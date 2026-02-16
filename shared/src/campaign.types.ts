@@ -15,6 +15,14 @@ export interface Campaign {
   send_days: string[];
   total_contacts: number;
   dcs_threshold: number;
+  daily_limit: number;
+  delay_between_emails: number;
+  delay_between_emails_min: number;
+  delay_between_emails_max: number;
+  stop_on_reply: boolean;
+  track_opens: boolean;
+  track_clicks: boolean;
+  include_unsubscribe: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +33,7 @@ export interface CampaignStep {
   step_order: number;
   step_type: StepType;
   subject: string | null;
+  subject_b: string | null;
   body_html: string | null;
   body_text: string | null;
   delay_days: number;
@@ -74,12 +83,21 @@ export interface CreateCampaignInput {
   send_window_end?: string;
   send_days?: string[];
   dcs_threshold?: number;
+  daily_limit?: number;
+  delay_between_emails?: number;
+  delay_between_emails_min?: number;
+  delay_between_emails_max?: number;
+  stop_on_reply?: boolean;
+  track_opens?: boolean;
+  track_clicks?: boolean;
+  include_unsubscribe?: boolean;
 }
 
 export interface CreateStepInput {
   step_type: StepType;
   step_order: number;
   subject?: string;
+  subject_b?: string;
   body_html?: string;
   body_text?: string;
   delay_days?: number;

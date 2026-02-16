@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { ArrowRight } from 'lucide-react';
+import { SkySendLogo } from '../../components/SkySendLogo';
 
 export function LoginPage() {
   const { signIn, signInWithOAuth } = useAuth();
@@ -23,84 +24,126 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-app)] px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="h-8 w-8 rounded bg-[var(--text-primary)] flex items-center justify-center">
-              <span className="text-[var(--bg-app)] text-sm font-bold">S</span>
-            </div>
-            <span className="text-lg font-semibold text-[var(--text-primary)]">SkySend</span>
-          </Link>
+    <div className="flex min-h-screen">
+      {/* Left Panel - Brand */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 bg-[#0A0A0B]">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-white/10" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-white/10" />
+          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-white/10" />
         </div>
 
-        {/* Card */}
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8">
-          <div className="mb-6 text-center">
-            <h1 className="text-xl font-semibold text-[var(--text-primary)]">Sign in</h1>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">Welcome back to SkySend</p>
+        <div className="relative z-10">
+          {/* Logo */}
+          <Link to="/" className="inline-flex items-center">
+            <span className="text-2xl"><SkySendLogo inverted /></span>
+          </Link>
+
+          {/* Tagline */}
+          <div className="mt-16">
+            <h1 className="text-4xl font-bold text-white leading-tight">
+              Outreach that<br />
+              actually converts.
+            </h1>
+            <p className="mt-4 text-lg text-white/60 max-w-md">
+              Join thousands of sales teams using SkySend to automate personalized email campaigns at scale.
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                className="input-field"
-              />
+          {/* Feature bullets */}
+          <div className="mt-12 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-white">Multi-channel sequences</p>
+                <p className="mt-1 text-sm text-white/60">Email, LinkedIn, and calls in one automated workflow</p>
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                className="input-field"
-              />
+            <div className="flex items-start gap-4">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-white">AI personalization</p>
+                <p className="mt-1 text-sm text-white/60">Every message feels hand-written with smart variables</p>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary justify-center py-2.5"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-              {!loading && <ArrowRight className="h-4 w-4" />}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[var(--border-subtle)]" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-tertiary)]">or</span>
+            <div className="flex items-start gap-4">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-white">Real-time analytics</p>
+                <p className="mt-1 text-sm text-white/60">Track opens, clicks, and replies with detailed insights</p>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Google OAuth */}
+        {/* Testimonial */}
+        <div className="relative z-10 mt-auto pt-12">
+          <div className="rounded-2xl bg-white/[0.06] backdrop-blur-sm p-6 border border-white/[0.08]">
+            <p className="text-white/90 text-sm leading-relaxed italic">
+              "SkySend transformed our outbound strategy. We went from 2% to 18% reply rates in just two weeks. The automation saves our team 20+ hours per week."
+            </p>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white font-semibold text-sm">
+                SR
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Sarah Rodriguez</p>
+                <p className="text-xs text-white/60">VP of Sales, TechCorp</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Form */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[var(--bg-app)] px-6 py-12">
+        <div className="w-full max-w-[420px]">
+          {/* Mobile Logo */}
+          <div className="mb-8 lg:hidden">
+            <Link to="/" className="inline-flex items-center">
+              <span className="text-xl"><SkySendLogo /></span>
+            </Link>
+          </div>
+
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Sign in to your account to continue
+            </p>
+          </div>
+
+          {/* Google OAuth - top placement */}
           <button
             type="button"
             onClick={async () => {
               const { error } = await signInWithOAuth('google');
               if (error) toast.error(error.message);
             }}
-            className="w-full btn-secondary justify-center py-2.5"
+            className="w-full btn-secondary justify-center py-2.5 rounded-xl"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -111,11 +154,72 @@ export function LoginPage() {
             Continue with Google
           </button>
 
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[var(--border-subtle)]" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-[var(--bg-app)] px-4 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
+                or continue with email
+              </span>
+            </div>
+          </div>
+
+          {/* Form Card */}
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-sm">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="block text-sm font-medium text-[var(--text-primary)]">
+                    Password
+                  </label>
+                  <a href="#" className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors">
+                    Forgot password?
+                  </a>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  className="input-field"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full btn-primary justify-center py-2.5 rounded-xl"
+              >
+                {loading ? 'Signing in...' : 'Sign in'}
+                {!loading && <ArrowRight className="h-4 w-4" />}
+              </button>
+            </form>
+          </div>
+
           {/* Signup link */}
-          <p className="mt-6 text-center text-sm text-[var(--text-secondary)]">
+          <p className="mt-8 text-center text-sm text-[var(--text-secondary)]">
             Don't have an account?{' '}
-            <Link to="/signup" className="font-medium text-[var(--text-primary)] hover:underline">
-              Sign up
+            <Link to="/signup" className="font-semibold text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors">
+              Create a free account
             </Link>
           </p>
         </div>

@@ -31,19 +31,30 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative w-full ${sizes[size]} max-h-[90vh] overflow-y-auto rounded-lg bg-surface border border-subtle p-6`}>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-primary">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Overlay with backdrop blur */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        onClick={onClose}
+      />
+      {/* Modal container */}
+      <div
+        className={`relative w-full ${sizes[size]} max-h-[90vh] overflow-y-auto rounded-2xl bg-surface border border-subtle shadow-xl animate-slide-up`}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-subtle bg-surface rounded-t-2xl px-6 py-4">
+          <h2 className="text-lg font-semibold tracking-tight text-primary">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-tertiary hover:bg-hover hover:text-primary transition-colors"
+            className="rounded-lg p-1.5 text-tertiary hover:bg-hover hover:text-primary transition-all duration-200"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        {children}
+        {/* Body */}
+        <div className="px-6 py-5">
+          {children}
+        </div>
       </div>
     </div>
   );

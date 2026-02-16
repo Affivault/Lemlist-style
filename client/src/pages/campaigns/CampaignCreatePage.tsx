@@ -27,6 +27,17 @@ import {
   Building2,
   ChevronRight,
   SkipForward,
+  Gauge,
+  Shield,
+  Eye,
+  MousePointerClick,
+  MessageSquare,
+  Send,
+  AlertTriangle,
+  Rocket,
+  RotateCcw,
+  Plus,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type {
@@ -44,6 +55,7 @@ const WIZARD_STEPS = [
   { label: 'Settings', icon: Settings },
   { label: 'Sequence', icon: Layers },
   { label: 'Contacts', icon: Users },
+  { label: 'Review', icon: Rocket },
 ];
 
 export function CampaignCreatePage() {
@@ -55,9 +67,16 @@ export function CampaignCreatePage() {
   const [campaignForm, setCampaignForm] = useState<CreateCampaignInput>({
     name: '',
     timezone: 'UTC',
-    send_window_start: '09:00',
-    send_window_end: '17:00',
-    send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    send_window_start: '00:00',
+    send_window_end: '23:59',
+    send_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+    daily_limit: 50,
+    delay_between_emails_min: 50,
+    delay_between_emails_max: 200,
+    stop_on_reply: true,
+    track_opens: true,
+    track_clicks: true,
+    include_unsubscribe: false,
   });
 
   const [steps, setSteps] = useState<FlowStep[]>([]);
@@ -66,6 +85,10 @@ export function CampaignCreatePage() {
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [contactSearch, setContactSearch] = useState('');
   const [wizardStep, setWizardStep] = useState(0);
+
+  const [senderPoolIds, setSenderPoolIds] = useState<string[]>([]);
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
 
   const subjectRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
@@ -102,6 +125,13 @@ export function CampaignCreatePage() {
         send_window_start: existingCampaign.send_window_start || '09:00',
         send_window_end: existingCampaign.send_window_end || '17:00',
         send_days: existingCampaign.send_days,
+        daily_limit: existingCampaign.daily_limit ?? 50,
+        delay_between_emails_min: existingCampaign.delay_between_emails_min ?? existingCampaign.delay_between_emails ?? 50,
+        delay_between_emails_max: existingCampaign.delay_between_emails_max ?? existingCampaign.delay_between_emails ?? 200,
+        stop_on_reply: existingCampaign.stop_on_reply ?? true,
+        track_opens: existingCampaign.track_opens ?? true,
+        track_clicks: existingCampaign.track_clicks ?? true,
+        include_unsubscribe: existingCampaign.include_unsubscribe ?? false,
       });
       if (existingCampaign.steps) {
         setSteps(
@@ -219,7 +249,7 @@ export function CampaignCreatePage() {
   const contacts = contactsData?.data || [];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
@@ -253,14 +283,14 @@ export function CampaignCreatePage() {
               onClick={() => setWizardStep(i)}
               className={`flex-1 flex items-center gap-3 rounded-md px-4 py-3 text-left transition-colors ${
                 wizardStep === i
-                  ? 'bg-brand text-primary'
+                  ? 'bg-[var(--text-primary)] text-[var(--bg-app)]'
                   : i < wizardStep
-                  ? 'bg-brand/10 text-brand border border-brand/20'
+                  ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-default)]'
                   : 'bg-surface border border-subtle text-secondary hover:bg-hover'
               }`}
             >
               <div className={`flex h-8 w-8 items-center justify-center rounded-md ${
-                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-brand/20' : 'bg-elevated'
+                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-[var(--bg-hover)]' : 'bg-elevated'
               }`}>
                 {i < wizardStep ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
               </div>
@@ -287,18 +317,50 @@ export function CampaignCreatePage() {
               placeholder="e.g., Q1 Outreach"
               required
             />
-            <Select
-              label="Sending Account (SMTP)"
-              value={campaignForm.smtp_account_id || ''}
-              onChange={(e) => setCampaignForm({ ...campaignForm, smtp_account_id: e.target.value || undefined })}
-              options={[
-                { value: '', label: 'Select an SMTP account...' },
-                ...(smtpAccounts || []).map((a: SmtpAccount) => ({
-                  value: a.id,
-                  label: `${a.label} (${a.email_address})`,
-                })),
-              ]}
-            />
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-secondary">Primary Sending Account</label>
+              <select
+                value={campaignForm.smtp_account_id || ''}
+                onChange={(e) => setCampaignForm({ ...campaignForm, smtp_account_id: e.target.value || undefined })}
+                className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+              >
+                <option value="">Select an SMTP account...</option>
+                {(smtpAccounts || []).map((a: SmtpAccount) => (
+                  <option key={a.id} value={a.id}>{a.label} ({a.email_address})</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sender Rotation Pool */}
+            {(smtpAccounts || []).length > 1 && (
+              <div className="border border-subtle rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <RotateCcw className="h-4 w-4 text-secondary" />
+                  <h3 className="text-sm font-medium text-primary">Sender Rotation</h3>
+                  <span className="text-xs text-tertiary">(optional)</span>
+                </div>
+                <p className="text-xs text-secondary mb-3">Distribute emails across multiple accounts to protect sender reputation and increase volume.</p>
+                <div className="space-y-1.5">
+                  {(smtpAccounts || []).map((a: SmtpAccount) => (
+                    <label key={a.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-hover cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={senderPoolIds.includes(a.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSenderPoolIds([...senderPoolIds, a.id]);
+                          else setSenderPoolIds(senderPoolIds.filter(id => id !== a.id));
+                        }}
+                        className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-primary">{a.label}</p>
+                        <p className="text-xs text-tertiary">{a.email_address} · {a.daily_send_limit}/day · Health: {a.health_score}%</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="border-t border-subtle pt-4">
               <h3 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-secondary" />
@@ -320,12 +382,12 @@ export function CampaignCreatePage() {
                         const current = campaignForm.send_days || [];
                         setCampaignForm({
                           ...campaignForm,
-                          send_days: current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
+                          send_days: current.includes(day) ? current.filter((d: string) => d !== day) : [...current, day],
                         });
                       }}
                       className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                         (campaignForm.send_days || []).includes(day)
-                          ? 'bg-brand text-primary'
+                          ? 'bg-[var(--text-primary)] text-[var(--bg-app)]'
                           : 'bg-elevated text-secondary hover:text-primary'
                       }`}
                     >
@@ -333,6 +395,115 @@ export function CampaignCreatePage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Sending Controls */}
+            <div className="border-t border-subtle pt-4">
+              <h3 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
+                <Gauge className="h-4 w-4 text-secondary" />
+                Sending Controls
+              </h3>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1.5">Daily Limit</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={campaignForm.daily_limit ?? 50}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, daily_limit: parseInt(e.target.value) || 0 })}
+                    className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                  />
+                  <p className="text-xs text-tertiary mt-1">Max emails per day. 0 = unlimited.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1.5">Delay Between Emails</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={campaignForm.delay_between_emails_min ?? 50}
+                      onChange={(e) => setCampaignForm({ ...campaignForm, delay_between_emails_min: parseInt(e.target.value) || 0 })}
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                    />
+                    <span className="text-sm text-secondary whitespace-nowrap">to</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={campaignForm.delay_between_emails_max ?? 200}
+                      onChange={(e) => setCampaignForm({ ...campaignForm, delay_between_emails_max: parseInt(e.target.value) || 0 })}
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                    />
+                    <span className="text-sm text-secondary whitespace-nowrap">seconds</span>
+                  </div>
+                  <p className="text-xs text-tertiary mt-1">Random delay between each email send (e.g. 50-200s).</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.stop_on_reply !== false}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, stop_on_reply: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-secondary" />
+                      Stop on reply
+                    </p>
+                    <p className="text-xs text-tertiary">Stop sending to a contact once they reply</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.track_opens !== false}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, track_opens: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <Eye className="h-3.5 w-3.5 text-secondary" />
+                      Track opens
+                    </p>
+                    <p className="text-xs text-tertiary">Inject a tracking pixel to detect email opens</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.track_clicks !== false}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, track_clicks: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <MousePointerClick className="h-3.5 w-3.5 text-secondary" />
+                      Track clicks
+                    </p>
+                    <p className="text-xs text-tertiary">Rewrite links to track click-throughs</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 rounded-md bg-elevated cursor-pointer hover:bg-hover transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={campaignForm.include_unsubscribe === true}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, include_unsubscribe: e.target.checked })}
+                    className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-secondary" />
+                      Include unsubscribe link
+                    </p>
+                    <p className="text-xs text-tertiary">Add an unsubscribe link and List-Unsubscribe header to emails</p>
+                  </div>
+                </label>
               </div>
             </div>
           </div>
@@ -356,11 +527,11 @@ export function CampaignCreatePage() {
                   <p className="text-sm text-secondary mt-1">Build your email sequence</p>
                 </div>
                 <div className="flex gap-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-brand bg-brand/10">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)]">
                     <Mail className="h-3 w-3" />
                     {steps.filter(s => s.step_type === 'email').length} Emails
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-amber-500 bg-amber-500/10">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-elevated)]">
                     <Clock className="h-3 w-3" />
                     {steps.filter(s => s.step_type === 'delay').length} Delays
                   </span>
@@ -381,7 +552,7 @@ export function CampaignCreatePage() {
           <div className="lg:col-span-2">
             {editingStep !== null && steps[editingStep]?.step_type === 'email' ? (
               <div className="rounded-lg border border-subtle bg-surface sticky top-20">
-                <div className="p-4 border-b border-subtle bg-brand/5">
+                <div className="p-4 border-b border-subtle bg-[var(--bg-elevated)]">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium text-primary">Edit Email</h3>
@@ -400,7 +571,7 @@ export function CampaignCreatePage() {
                       onChange={(e) => updateStep(editingStep, { subject: e.target.value })}
                       onFocus={() => setActiveField('subject')}
                       placeholder="e.g., Quick question about {{company}}"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
                     />
                   </div>
                   <div>
@@ -410,7 +581,7 @@ export function CampaignCreatePage() {
                     </div>
                     <textarea
                       ref={bodyRef}
-                      className="w-full min-h-[250px] rounded-md border border-default bg-surface p-3 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 font-mono"
+                      className="w-full min-h-[250px] rounded-md border border-default bg-surface p-3 text-sm text-primary placeholder:text-tertiary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)] font-mono"
                       value={steps[editingStep].body_html || ''}
                       onChange={(e) => updateStep(editingStep, { body_html: e.target.value })}
                       onFocus={() => setActiveField('body')}
@@ -422,7 +593,7 @@ export function CampaignCreatePage() {
                       type="checkbox"
                       checked={steps[editingStep].skip_if_replied !== false}
                       onChange={(e) => updateStep(editingStep, { skip_if_replied: e.target.checked })}
-                      className="h-4 w-4 rounded border-default bg-surface text-brand focus:ring-brand"
+                      className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]"
                     />
                     <div>
                       <p className="text-sm font-medium text-primary flex items-center gap-1.5">
@@ -432,11 +603,68 @@ export function CampaignCreatePage() {
                       <p className="text-xs text-tertiary">Don't send if the contact already replied</p>
                     </div>
                   </label>
+
+                  {/* A/B Subject Variant */}
+                  <div className="border border-subtle rounded-md p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-secondary">A/B Subject (optional)</p>
+                    </div>
+                    <input
+                      type="text"
+                      value={(steps[editingStep] as any).subject_b || ''}
+                      onChange={(e) => updateStep(editingStep, { subject: steps[editingStep].subject, body_html: steps[editingStep].body_html } as any)}
+                      onChangeCapture={(e) => {
+                        const val = (e.target as HTMLInputElement).value;
+                        setSteps(steps.map((s, i) => i === editingStep ? { ...s, subject_b: val } as any : s));
+                      }}
+                      placeholder="Variant B subject line (50/50 split)"
+                      className="w-full rounded-md border border-default bg-surface px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                    />
+                    <p className="text-xs text-tertiary mt-1">If set, 50% of contacts will get this subject line instead.</p>
+                  </div>
+
+                  {/* Send Test Email */}
+                  {campaignForm.smtp_account_id && (
+                    <div className="border-t border-subtle pt-3">
+                      <p className="text-xs font-medium text-secondary mb-2">Send Test Email</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          value={testEmailTo}
+                          onChange={(e) => setTestEmailTo(e.target.value)}
+                          placeholder="your@email.com"
+                          className="flex-1 rounded-md border border-default bg-surface px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                        />
+                        <button
+                          type="button"
+                          disabled={sendingTest || !testEmailTo || !steps[editingStep].subject}
+                          onClick={async () => {
+                            setSendingTest(true);
+                            try {
+                              const result = await smtpApi.sendTestEmail(campaignForm.smtp_account_id!, {
+                                to: testEmailTo,
+                                subject: steps[editingStep].subject || 'Test',
+                                body_html: steps[editingStep].body_html || '',
+                              });
+                              if (result.success) toast.success(result.message || 'Test sent!');
+                              else toast.error(result.error || 'Failed');
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.error || 'Send failed');
+                            }
+                            setSendingTest(false);
+                          }}
+                          className="px-3 py-1.5 rounded-md bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+                        >
+                          {sendingTest ? 'Sending...' : 'Send'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : editingStep !== null && steps[editingStep]?.step_type === 'delay' ? (
               <div className="rounded-lg border border-subtle bg-surface sticky top-20">
-                <div className="p-4 border-b border-subtle bg-amber-500/5">
+                <div className="p-4 border-b border-subtle bg-[var(--bg-elevated)]">
                   <h3 className="font-medium text-primary">Configure Delay</h3>
                   <p className="text-xs text-secondary">Step {editingStep + 1}</p>
                 </div>
@@ -444,26 +672,26 @@ export function CampaignCreatePage() {
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-secondary mb-1">Days</label>
-                      <input type="number" min="0" value={steps[editingStep].delay_days || 0} onChange={(e) => updateStep(editingStep, { delay_days: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-primary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
+                      <input type="number" min="0" value={steps[editingStep].delay_days || 0} onChange={(e) => updateStep(editingStep, { delay_days: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]" />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-secondary mb-1">Hours</label>
-                      <input type="number" min="0" max="23" value={steps[editingStep].delay_hours || 0} onChange={(e) => updateStep(editingStep, { delay_hours: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-primary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
+                      <input type="number" min="0" max="23" value={steps[editingStep].delay_hours || 0} onChange={(e) => updateStep(editingStep, { delay_hours: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]" />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-secondary mb-1">Minutes</label>
-                      <input type="number" min="0" max="59" value={steps[editingStep].delay_minutes || 0} onChange={(e) => updateStep(editingStep, { delay_minutes: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-primary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
+                      <input type="number" min="0" max="59" value={steps[editingStep].delay_minutes || 0} onChange={(e) => updateStep(editingStep, { delay_minutes: parseInt(e.target.value) || 0 })} className="w-full rounded-md border border-default bg-surface px-3 py-2 text-center text-sm font-medium text-primary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]" />
                     </div>
                   </div>
-                  <div className="rounded-md bg-amber-500/10 border border-amber-500/20 p-3">
-                    <p className="text-xs text-amber-500">Tip: A 1-3 day delay between emails typically performs best.</p>
+                  <div className="rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-3">
+                    <p className="text-xs text-[var(--text-secondary)]">Tip: A 1-3 day delay between emails typically performs best.</p>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="rounded-lg border border-subtle bg-surface p-6 text-center sticky top-20">
-                <div className="w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center mx-auto mb-3">
-                  <Mail className="h-6 w-6 text-brand" />
+                <div className="w-12 h-12 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center mx-auto mb-3">
+                  <Mail className="h-6 w-6 text-[var(--text-secondary)]" />
                 </div>
                 <h3 className="font-medium text-primary mb-1">Step Editor</h3>
                 <p className="text-sm text-secondary">Click "Edit" on an email step to customize it here.</p>
@@ -494,7 +722,7 @@ export function CampaignCreatePage() {
                 <p className="text-sm text-secondary mt-1">Choose contacts for this campaign</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-brand bg-brand/10">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)]">
                   <Users className="h-3 w-3" />
                   {selectedContactIds.length} selected
                 </span>
@@ -508,8 +736,8 @@ export function CampaignCreatePage() {
           <div className="p-5">
             {selectedContactIds.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-6 w-6 text-brand" />
+                <div className="w-12 h-12 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-6 w-6 text-[var(--text-secondary)]" />
                 </div>
                 <h3 className="font-medium text-primary mb-1">No contacts selected</h3>
                 <p className="text-sm text-secondary mb-4">Click "Add Contacts" to choose recipients.</p>
@@ -519,10 +747,10 @@ export function CampaignCreatePage() {
                 </Button>
               </div>
             ) : (
-              <div className="rounded-md bg-brand/10 border border-brand/20 p-4 text-center">
-                <CheckCircle2 className="h-8 w-8 text-brand mx-auto mb-2" />
-                <p className="font-medium text-brand">{selectedContactIds.length} contacts ready</p>
-                <p className="text-sm text-brand/70 mt-1">These contacts will receive all {steps.filter(s => s.step_type === 'email').length} emails.</p>
+              <div className="rounded-md bg-[var(--bg-elevated)] border border-[var(--border-default)] p-4 text-center">
+                <CheckCircle2 className="h-8 w-8 text-[var(--text-primary)] mx-auto mb-2" />
+                <p className="font-medium text-[var(--text-primary)]">{selectedContactIds.length} contacts ready</p>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">These contacts will receive all {steps.filter(s => s.step_type === 'email').length} emails.</p>
               </div>
             )}
           </div>
@@ -531,26 +759,189 @@ export function CampaignCreatePage() {
               <ArrowLeft className="h-4 w-4" />
               Back: Sequence
             </Button>
-            <Button onClick={handleSave} disabled={createCampaignMutation.isPending}>
-              <Save className="h-4 w-4" />
-              {createCampaignMutation.isPending ? 'Saving...' : 'Save Campaign'}
+            <Button onClick={() => setWizardStep(3)}>
+              Next: Review
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       )}
+
+      {/* Step 4: Review & Launch */}
+      {wizardStep === 3 && (() => {
+        const emailSteps = steps.filter(s => s.step_type === 'email');
+        const delaySteps = steps.filter(s => s.step_type === 'delay');
+        const warnings: string[] = [];
+        if (!campaignForm.name) warnings.push('Campaign name is required');
+        if (!campaignForm.smtp_account_id) warnings.push('No SMTP account selected');
+        if (steps.length === 0) warnings.push('No sequence steps added');
+        if (emailSteps.length === 0) warnings.push('No email steps in sequence');
+        if (selectedContactIds.length === 0) warnings.push('No contacts selected');
+        if (emailSteps.some(s => !s.subject)) warnings.push('Some email steps have no subject line');
+        if (emailSteps.some(s => !s.body_html)) warnings.push('Some email steps have no body content');
+        const smtpName = (smtpAccounts || []).find((a: SmtpAccount) => a.id === campaignForm.smtp_account_id);
+
+        return (
+          <div className="space-y-4">
+            {/* Warnings */}
+            {warnings.length > 0 && (
+              <div className="rounded-lg border border-[var(--error)]/30 bg-[var(--error)]/5 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="h-4 w-4 text-[var(--error)]" />
+                  <h3 className="text-sm font-medium text-[var(--error)]">Issues to resolve</h3>
+                </div>
+                <ul className="space-y-1">
+                  {warnings.map((w, i) => (
+                    <li key={i} className="text-sm text-[var(--error)]/80 flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-[var(--error)]" />
+                      {w}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Contacts</p>
+                <p className="text-xl font-semibold text-primary">{selectedContactIds.length}</p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Email Steps</p>
+                <p className="text-xl font-semibold text-primary">{emailSteps.length}</p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Delays</p>
+                <p className="text-xl font-semibold text-primary">{delaySteps.length}</p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface p-4">
+                <p className="text-xs text-tertiary mb-1">Total Emails</p>
+                <p className="text-xl font-semibold text-primary">{emailSteps.length * selectedContactIds.length}</p>
+              </div>
+            </div>
+
+            {/* Config Summary */}
+            <div className="rounded-lg border border-subtle bg-surface">
+              <div className="p-5 border-b border-subtle">
+                <h2 className="font-medium text-primary">Campaign Summary</h2>
+              </div>
+              <div className="p-5">
+                <dl className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <dt className="text-tertiary">Campaign Name</dt>
+                    <dd className="font-medium text-primary">{campaignForm.name || '—'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Primary Sender</dt>
+                    <dd className="font-medium text-primary">{smtpName ? `${smtpName.label} (${smtpName.email_address})` : '—'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Send Window</dt>
+                    <dd className="font-medium text-primary">{campaignForm.send_window_start} – {campaignForm.send_window_end} ({campaignForm.timezone})</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Active Days</dt>
+                    <dd className="font-medium capitalize text-primary">{(campaignForm.send_days || []).join(', ')}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Daily Limit</dt>
+                    <dd className="font-medium text-primary">{campaignForm.daily_limit || 'Unlimited'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Delay Between Sends</dt>
+                    <dd className="font-medium text-primary">{campaignForm.delay_between_emails_min ?? 50}s – {campaignForm.delay_between_emails_max ?? 200}s</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Stop on Reply</dt>
+                    <dd className="font-medium text-primary">{campaignForm.stop_on_reply !== false ? 'Yes' : 'No'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Tracking</dt>
+                    <dd className="font-medium text-primary">
+                      {[
+                        campaignForm.track_opens !== false && 'Opens',
+                        campaignForm.track_clicks !== false && 'Clicks',
+                      ].filter(Boolean).join(', ') || 'None'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-tertiary">Unsubscribe Link</dt>
+                    <dd className="font-medium text-primary">{campaignForm.include_unsubscribe ? 'Included' : 'Not included'}</dd>
+                  </div>
+                  {senderPoolIds.length > 0 && (
+                    <div className="col-span-2">
+                      <dt className="text-tertiary">Sender Rotation Pool</dt>
+                      <dd className="font-medium text-primary">
+                        {senderPoolIds.length} accounts: {senderPoolIds.map(id => {
+                          const a = (smtpAccounts || []).find((a: SmtpAccount) => a.id === id);
+                          return a?.label || id;
+                        }).join(', ')}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </div>
+
+            {/* Sequence Preview */}
+            <div className="rounded-lg border border-subtle bg-surface">
+              <div className="p-5 border-b border-subtle">
+                <h2 className="font-medium text-primary">Sequence Preview</h2>
+              </div>
+              <div className="p-5 space-y-2">
+                {steps.map((step, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-md bg-elevated">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface text-xs font-medium text-secondary">{i + 1}</span>
+                    {step.step_type === 'email' ? (
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-secondary" />
+                          <span className="text-sm font-medium text-primary truncate">{step.subject || 'Untitled'}</span>
+                        </div>
+                        {(step as any).subject_b && (
+                          <p className="text-xs text-tertiary mt-0.5">A/B: "{(step as any).subject_b}"</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5 text-secondary" />
+                        <span className="text-sm text-primary">Wait {step.delay_days || 0}d {step.delay_hours || 0}h {step.delay_minutes || 0}m</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between">
+              <Button variant="secondary" onClick={() => setWizardStep(2)}>
+                <ArrowLeft className="h-4 w-4" />
+                Back: Contacts
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={handleSave} disabled={createCampaignMutation.isPending}>
+                  <Save className="h-4 w-4" />
+                  {createCampaignMutation.isPending ? 'Saving...' : 'Save Draft'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Contact Selection Modal */}
       <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Select Contacts" size="lg">
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
-            <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full rounded-md border border-default bg-surface pl-10 pr-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30" />
+            <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full rounded-md border border-default bg-surface pl-10 pr-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]" />
           </div>
           <div className="max-h-[350px] overflow-y-auto rounded-md border border-subtle">
             {contacts.map((contact: ContactWithTags) => (
               <label key={contact.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-hover border-b border-subtle last:border-0 transition-colors">
-                <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-default bg-surface text-brand focus:ring-brand" />
-                <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center text-brand text-xs font-medium">
+                <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]" />
+                <div className="w-8 h-8 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] text-xs font-medium">
                   {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">

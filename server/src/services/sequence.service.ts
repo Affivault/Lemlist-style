@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
-import { emailQueue } from '../jobs/queues.js';
 import { fireEvent } from './webhook.service.js';
 import { classifyReply } from './sara.service.js';
+import { sendCampaignEmail } from './email-sender.service.js';
 
 /**
  * Sequence Engine Service
@@ -14,6 +14,84 @@ import { classifyReply } from './sara.service.js';
  */
 
 // ============================================
+// Send Window & Schedule Helpers
+// ============================================
+
+/**
+ * Check if current time is within the campaign's send window and active days.
+ */
+function isWithinSendWindow(campaign: any): boolean {
+  const tz = campaign.timezone || 'UTC';
+  let now: Date;
+  try {
+    now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+  } catch {
+    now = new Date();
+  }
+
+  // Check active days
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const todayName = dayNames[now.getDay()];
+  const sendDays: string[] = campaign.send_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  if (!sendDays.includes(todayName)) return false;
+
+  // Check time window
+  const windowStart = campaign.send_window_start || '00:00';
+  const windowEnd = campaign.send_window_end || '23:59';
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  if (currentTime < windowStart || currentTime > windowEnd) return false;
+
+  return true;
+}
+
+/**
+ * Calculate when the next valid send window opens (in real UTC time).
+ * Looks up to 7 days ahead to find the next active day + window start.
+ */
+function getNextSendWindowStart(campaign: any): Date {
+  const tz = campaign.timezone || 'UTC';
+  let localNow: Date;
+  try {
+    localNow = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+  } catch {
+    localNow = new Date();
+  }
+
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const sendDays: string[] = campaign.send_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  const windowStart = campaign.send_window_start || '00:00';
+  const [startH, startM] = windowStart.split(':').map(Number);
+  const currentTime = `${String(localNow.getHours()).padStart(2, '0')}:${String(localNow.getMinutes()).padStart(2, '0')}`;
+
+  // If today is an active day and we're before the window start, schedule for today
+  const todayName = dayNames[localNow.getDay()];
+  if (sendDays.includes(todayName) && currentTime < windowStart) {
+    const target = new Date(localNow);
+    target.setHours(startH, startM, 0, 0);
+    // Convert back to real time: offset = localNow - real now
+    const realNow = new Date();
+    const offsetMs = localNow.getTime() - realNow.getTime();
+    return new Date(target.getTime() - offsetMs);
+  }
+
+  // Otherwise find the next active day
+  for (let daysAhead = 1; daysAhead <= 7; daysAhead++) {
+    const future = new Date(localNow);
+    future.setDate(future.getDate() + daysAhead);
+    const futureDayName = dayNames[future.getDay()];
+    if (sendDays.includes(futureDayName)) {
+      future.setHours(startH, startM, 0, 0);
+      const realNow = new Date();
+      const offsetMs = localNow.getTime() - realNow.getTime();
+      return new Date(future.getTime() - offsetMs);
+    }
+  }
+
+  // Fallback: 24 hours from now
+  return new Date(Date.now() + 24 * 60 * 60_000);
+}
+
+// ============================================
 // Step Processing
 // ============================================
 
@@ -22,16 +100,87 @@ import { classifyReply } from './sara.service.js';
  * Called after campaign launch, after email sent, or after delay expires.
  */
 export async function processNextStep(campaignContactId: string): Promise<void> {
+  try {
+    await _processNextStepInner(campaignContactId);
+  } catch (err: any) {
+    // CRITICAL: On ANY error, nullify next_send_at to prevent infinite loop.
+    // Without this, a failed query leaves the contact in a re-processable state
+    // and the sequence worker picks it up again every 30 seconds.
+    console.error(`processNextStep error for ${campaignContactId}:`, err.message);
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ next_send_at: null, error_message: `Sequence error: ${err.message}`.slice(0, 500) })
+      .eq('id', campaignContactId);
+  }
+}
+
+async function _processNextStepInner(campaignContactId: string): Promise<void> {
   // Fetch campaign contact with current state
-  const { data: cc } = await supabaseAdmin
+  // Use wildcard selects to avoid failures when new columns haven't been migrated yet
+  const { data: cc, error: ccError } = await supabaseAdmin
     .from('campaign_contacts')
-    .select('*, campaigns(id, user_id, dcs_threshold, status), contacts(id, email, first_name, last_name, company, dcs_score)')
+    .select('*, campaigns(*), contacts(*)')
     .eq('id', campaignContactId)
     .single();
+
+  if (ccError) {
+    throw new Error(`Failed to fetch campaign contact: ${ccError.message}`);
+  }
 
   if (!cc || !cc.campaigns || !cc.contacts) return;
   if (cc.status !== 'active') return;
   if (cc.campaigns.status !== 'running') return;
+
+  // Check if contact is globally unsubscribed or bounced
+  if (cc.contacts.is_unsubscribed || cc.contacts.is_bounced) {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        status: cc.contacts.is_bounced ? 'bounced' : 'unsubscribed',
+        next_send_at: null,
+      })
+      .eq('id', campaignContactId);
+    return;
+  }
+
+  // Check send window (skip if outside active hours/days)
+  if (!isWithinSendWindow(cc.campaigns)) {
+    // Reschedule to the start of the next valid send window
+    const nextWindow = getNextSendWindowStart(cc.campaigns);
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ next_send_at: nextWindow.toISOString() })
+      .eq('id', campaignContactId);
+    console.log(`[Sequence] Contact ${campaignContactId} outside send window — rescheduled to ${nextWindow.toISOString()}`);
+    return;
+  }
+
+  // Check daily limit
+  const dailyLimit = cc.campaigns.daily_limit || 0;
+  if (dailyLimit > 0) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: sentToday } = await supabaseAdmin
+      .from('campaign_activities')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', cc.campaign_id)
+      .eq('activity_type', 'sent')
+      .gte('occurred_at', todayStart.toISOString());
+    if (sentToday && sentToday >= dailyLimit) return;
+  }
+
+  // Check stop_on_reply — if contact already replied, mark completed
+  if (cc.campaigns.stop_on_reply !== false) {
+    const { count: replyCount } = await supabaseAdmin
+      .from('campaign_activities')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_contact_id', cc.id)
+      .eq('activity_type', 'replied');
+    if (replyCount && replyCount > 0) {
+      await markCompleted(campaignContactId);
+      return;
+    }
+  }
 
   // Fetch all steps for this campaign, ordered
   const { data: steps } = await supabaseAdmin
@@ -119,32 +268,86 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
     }
   }
 
+  // Check if email was already queued/sent for this exact step to prevent duplicates
+  const { count: alreadySent } = await supabaseAdmin
+    .from('campaign_activities')
+    .select('*', { count: 'exact', head: true })
+    .eq('campaign_contact_id', cc.id)
+    .eq('step_id', step.id)
+    .eq('activity_type', 'sent');
+  if (alreadySent && alreadySent > 0) {
+    // Already sent for this step — advance to next
+    const { data: steps } = await supabaseAdmin
+      .from('campaign_steps')
+      .select('*')
+      .eq('campaign_id', cc.campaign_id)
+      .order('step_order');
+    await advanceToNextStep(cc.id, step.step_order, steps || []);
+    return;
+  }
+
+  // A/B subject: pick variant based on contact ID hash (deterministic 50/50 split)
+  let rawSubject = step.subject || '';
+  if (step.subject_b) {
+    const charCode = cc.contact_id.charCodeAt(0) || 0;
+    rawSubject = charCode % 2 === 0 ? rawSubject : step.subject_b;
+  }
+
   // Interpolate merge tags in subject and body
-  const subject = interpolateMergeTags(step.subject || '', cc.contacts);
+  const subject = interpolateMergeTags(rawSubject, cc.contacts);
   const bodyHtml = interpolateMergeTags(step.body_html || '', cc.contacts);
   const bodyText = bodyHtml.replace(/<[^>]*>/g, '');
 
-  // Queue the email job
-  await emailQueue.add(`email-${cc.id}-step-${step.id}`, {
-    campaignId: cc.campaign_id,
-    campaignContactId: cc.id,
-    contactId: cc.contact_id,
-    stepId: step.id,
-    to: cc.contacts.email,
-    subject,
-    bodyHtml,
-    bodyText,
-    smtpAccountId: '', // SSE will select the best sender
-  });
-
-  // Update campaign contact to track current step
+  // Nullify next_send_at BEFORE sending to prevent re-processing
   await supabaseAdmin
     .from('campaign_contacts')
-    .update({
-      current_step_order: step.step_order,
-      last_step_at: new Date().toISOString(),
-    })
+    .update({ current_step_order: step.step_order, next_send_at: null })
     .eq('id', cc.id);
+
+  // Send email DIRECTLY (no BullMQ queue — eliminates Redis dependency)
+  // sendCampaignEmail handles: SMTP selection, sending, activity recording, step advancement
+  console.log(`[Sequence] Sending email directly to ${cc.contacts.email} (subject: "${subject}")`);
+  try {
+    await sendCampaignEmail({
+      campaignId: cc.campaign_id,
+      campaignContactId: cc.id,
+      contactId: cc.contact_id,
+      stepId: step.id,
+      to: cc.contacts.email,
+      subject,
+      bodyHtml,
+      bodyText,
+    });
+  } catch (err: any) {
+    console.error(`[Sequence] Email send failed for ${cc.contacts.email}:`, err.message);
+
+    // Check for bounce
+    const isBounce = err.responseCode >= 500 || err.code === 'EENVELOPE';
+    if (isBounce) {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({ status: 'bounced', next_send_at: null })
+        .eq('id', cc.id);
+      await supabaseAdmin
+        .from('contacts')
+        .update({ is_bounced: true })
+        .eq('id', cc.contact_id);
+    }
+
+    // Record error activity
+    await supabaseAdmin
+      .from('campaign_activities')
+      .insert({
+        campaign_id: cc.campaign_id,
+        campaign_contact_id: cc.id,
+        contact_id: cc.contact_id,
+        step_id: step.id,
+        activity_type: isBounce ? 'bounced' : 'error',
+        metadata: { error: err.message, code: err.code || err.responseCode, to: cc.contacts.email },
+      });
+    // Don't rethrow — error is handled, contact won't be re-processed
+    return;
+  }
 
   fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
     campaign_id: cc.campaign_id,
@@ -314,14 +517,24 @@ async function processWebhookWaitStep(cc: any, step: any): Promise<void> {
   const timeoutHours = step.webhook_timeout_hours || 72;
   const waitUntil = new Date(Date.now() + timeoutHours * 3600000);
 
-  await supabaseAdmin
-    .from('campaign_contacts')
-    .update({
-      current_step_order: step.step_order,
-      waiting_for_webhook: step.webhook_event,
-      webhook_wait_until: waitUntil.toISOString(),
-    })
-    .eq('id', cc.id);
+  try {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        current_step_order: step.step_order,
+        next_send_at: null,
+        waiting_for_webhook: step.webhook_event,
+        webhook_wait_until: waitUntil.toISOString(),
+      })
+      .eq('id', cc.id);
+  } catch (err: any) {
+    // If webhook columns don't exist, just pause the contact
+    console.warn('[Sequence] webhook columns missing, pausing contact:', err.message);
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ current_step_order: step.step_order, next_send_at: null })
+      .eq('id', cc.id);
+  }
 
   fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
     campaign_id: cc.campaign_id,
@@ -367,27 +580,33 @@ export async function resumeWebhookWait(
  * Should be called periodically (e.g., every 5 minutes via cron).
  */
 export async function processWebhookTimeouts(): Promise<number> {
-  const { data: timedOut } = await supabaseAdmin
-    .from('campaign_contacts')
-    .select('id, current_step_order')
-    .not('waiting_for_webhook', 'is', null)
-    .lt('webhook_wait_until', new Date().toISOString());
-
-  if (!timedOut || timedOut.length === 0) return 0;
-
-  for (const cc of timedOut) {
-    await supabaseAdmin
+  try {
+    const { data: timedOut, error } = await supabaseAdmin
       .from('campaign_contacts')
-      .update({
-        waiting_for_webhook: null,
-        webhook_wait_until: null,
-        current_step_order: (cc.current_step_order || 0) + 1,
-        next_send_at: new Date().toISOString(),
-      })
-      .eq('id', cc.id);
-  }
+      .select('id, current_step_order')
+      .not('waiting_for_webhook', 'is', null)
+      .lt('webhook_wait_until', new Date().toISOString());
 
-  return timedOut.length;
+    if (error || !timedOut || timedOut.length === 0) return 0;
+
+    for (const cc of timedOut) {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({
+          waiting_for_webhook: null,
+          webhook_wait_until: null,
+          current_step_order: (cc.current_step_order || 0) + 1,
+          next_send_at: new Date().toISOString(),
+        })
+        .eq('id', cc.id);
+    }
+
+    return timedOut.length;
+  } catch (err: any) {
+    // waiting_for_webhook/webhook_wait_until columns may not exist yet
+    console.warn('[Sequence] processWebhookTimeouts skipped:', err.message);
+    return 0;
+  }
 }
 
 // ============================================
@@ -399,18 +618,29 @@ export async function processWebhookTimeouts(): Promise<number> {
  * Should be called periodically (e.g., every 30 seconds via cron/scheduler).
  */
 export async function processDueSteps(): Promise<number> {
-  const { data: dueContacts } = await supabaseAdmin
+  const { data: dueContacts, error: dueError } = await supabaseAdmin
     .from('campaign_contacts')
     .select('id')
     .eq('status', 'active')
-    .is('waiting_for_webhook', null)
+    .not('next_send_at', 'is', null)
     .lte('next_send_at', new Date().toISOString())
     .limit(50);
 
+  if (dueError) {
+    console.error('[Sequence] processDueSteps query error:', dueError.message);
+    return 0;
+  }
+
   if (!dueContacts || dueContacts.length === 0) return 0;
+  console.log(`[Sequence] Found ${dueContacts.length} due contact(s) to process`);
 
   for (const cc of dueContacts) {
-    await processNextStep(cc.id);
+    try {
+      await processNextStep(cc.id);
+    } catch (err: any) {
+      // processNextStep already handles errors, but double-guard here
+      console.error(`processDueSteps: unhandled error for ${cc.id}:`, err.message);
+    }
   }
 
   return dueContacts.length;

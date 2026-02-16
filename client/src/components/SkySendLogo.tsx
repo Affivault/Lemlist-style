@@ -1,40 +1,35 @@
-export function SkySendLogo({ className = 'h-8 w-8' }: { className?: string }) {
+/**
+ * SkySend Logo - Clean modern wordmark. No icon, just the name.
+ */
+export function SkySendLogo({ className = '', inverted = false }: { className?: string; inverted?: boolean }) {
+  const color = inverted ? 'white' : 'var(--text-primary)';
+
   return (
-    <svg
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <span
       className={className}
+      style={{
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        fontWeight: 500,
+        letterSpacing: '-0.03em',
+        color,
+        fontSize: 'inherit',
+        lineHeight: 1,
+        display: 'inline-flex',
+        alignItems: 'center',
+      }}
     >
-      <defs>
-        <linearGradient id="skyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="50%" stopColor="#3b82f6" />
-          <stop offset="100%" stopColor="#06b6d4" />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="10" fill="url(#skyGrad)" />
-      {/* Paper plane */}
-      <path
-        d="M10 28L30 12L18 22L10 28Z"
-        fill="white"
-        fillOpacity="0.95"
-      />
-      <path
-        d="M18 22L30 12L22 30L18 22Z"
-        fill="white"
-        fillOpacity="0.7"
-      />
-      <path
-        d="M18 22L22 30L16 26L18 22Z"
-        fill="white"
-        fillOpacity="0.5"
-      />
-    </svg>
+      skysend
+    </span>
   );
 }
 
-export function SkySendLogoMark({ className = 'h-6 w-6' }: { className?: string }) {
+/**
+ * Compact logo mark - just a simple "s" in a rounded square for favicon/collapsed sidebar contexts.
+ */
+export function SkySendLogoMark({ className = 'h-7 w-7', inverted = false }: { className?: string; inverted?: boolean }) {
+  const bg = inverted ? 'white' : 'var(--text-primary)';
+  const fg = inverted ? '#0A0A0B' : 'var(--bg-app)';
+
   return (
     <svg
       viewBox="0 0 32 32"
@@ -42,21 +37,19 @@ export function SkySendLogoMark({ className = 'h-6 w-6' }: { className?: string 
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <path
-        d="M4 24L28 8L16 18L4 24Z"
-        fill="currentColor"
-        fillOpacity="0.95"
-      />
-      <path
-        d="M16 18L28 8L20 26L16 18Z"
-        fill="currentColor"
-        fillOpacity="0.7"
-      />
-      <path
-        d="M16 18L20 26L12 22L16 18Z"
-        fill="currentColor"
-        fillOpacity="0.5"
-      />
+      <rect width="32" height="32" rx="8" fill={bg} />
+      <text
+        x="16"
+        y="22"
+        textAnchor="middle"
+        fill={fg}
+        fontFamily="Inter, system-ui, -apple-system, sans-serif"
+        fontWeight="500"
+        fontSize="20"
+        letterSpacing="-0.5"
+      >
+        s
+      </text>
     </svg>
   );
 }

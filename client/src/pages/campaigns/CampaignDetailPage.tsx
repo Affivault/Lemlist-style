@@ -115,10 +115,10 @@ export function CampaignDetailPage() {
 
   const chartData = analytics
     ? [
-        { name: 'Sent', value: analytics.sent, fill: '#10b981' },
-        { name: 'Opened', value: analytics.opened, fill: '#10b981' },
-        { name: 'Clicked', value: analytics.clicked, fill: '#10b981' },
-        { name: 'Replied', value: analytics.replied, fill: '#10b981' },
+        { name: 'Sent', value: analytics.sent, fill: '#888888' },
+        { name: 'Opened', value: analytics.opened, fill: '#888888' },
+        { name: 'Clicked', value: analytics.clicked, fill: '#888888' },
+        { name: 'Replied', value: analytics.replied, fill: '#888888' },
         { name: 'Bounced', value: analytics.bounced, fill: '#ef4444' },
       ]
     : [];
@@ -130,7 +130,7 @@ export function CampaignDetailPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6">
       <button
         onClick={() => navigate('/campaigns')}
         className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
@@ -203,7 +203,7 @@ export function CampaignDetailPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
               activeTab === tab.id
-                ? 'border-brand text-primary'
+                ? 'border-[var(--text-primary)] text-primary'
                 : 'border-transparent text-secondary hover:text-primary'
             }`}
           >
@@ -270,6 +270,31 @@ export function CampaignDetailPage() {
                 <dt className="text-tertiary">Total Contacts</dt>
                 <dd className="font-medium text-primary">{campaign.total_contacts}</dd>
               </div>
+              <div>
+                <dt className="text-tertiary">Daily Limit</dt>
+                <dd className="font-medium text-primary">{campaign.daily_limit || 'Unlimited'}</dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Delay Between Emails</dt>
+                <dd className="font-medium text-primary">{campaign.delay_between_emails_min ?? campaign.delay_between_emails ?? 50}s – {campaign.delay_between_emails_max ?? campaign.delay_between_emails ?? 200}s</dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Stop on Reply</dt>
+                <dd className="font-medium text-primary">{campaign.stop_on_reply !== false ? 'Yes' : 'No'}</dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Tracking</dt>
+                <dd className="font-medium text-primary">
+                  {[
+                    campaign.track_opens !== false && 'Opens',
+                    campaign.track_clicks !== false && 'Clicks',
+                  ].filter(Boolean).join(', ') || 'None'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-tertiary">Unsubscribe Link</dt>
+                <dd className="font-medium text-primary">{campaign.include_unsubscribe ? 'Included' : 'Not included'}</dd>
+              </div>
             </dl>
           </div>
         </div>
@@ -290,7 +315,7 @@ export function CampaignDetailPage() {
                   {step.step_type === 'email' ? (
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-brand" />
+                        <Mail className="h-4 w-4 text-[var(--text-secondary)]" />
                         <span className="font-medium text-primary">{step.subject || 'Untitled Email'}</span>
                       </div>
                       {step.body_text && (
@@ -299,7 +324,7 @@ export function CampaignDetailPage() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-amber-500" />
+                      <Clock className="h-4 w-4 text-[var(--text-secondary)]" />
                       <span className="font-medium text-primary">
                         Wait {step.delay_days}d {step.delay_hours}h {step.delay_minutes}m
                       </span>
@@ -350,7 +375,7 @@ export function CampaignDetailPage() {
                       <td className="px-4 py-3 text-secondary">
                         {cc.next_send_at ? formatDateTime(cc.next_send_at) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-red-400">{cc.error_message || '—'}</td>
+                      <td className="px-4 py-3 text-[var(--error)]">{cc.error_message || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -373,7 +398,7 @@ function StatCard({ icon: Icon, label, value, rate, isNegative }: {
   return (
     <div className="rounded-lg border border-subtle bg-surface p-4">
       <div className="flex items-center gap-2 mb-2">
-        <Icon className={`h-4 w-4 ${isNegative ? 'text-red-400' : 'text-secondary'}`} />
+        <Icon className={`h-4 w-4 ${isNegative ? 'text-[var(--error)]' : 'text-secondary'}`} />
         <span className="text-sm text-secondary">{label}</span>
       </div>
       <p className="text-2xl font-semibold text-primary">{value}</p>

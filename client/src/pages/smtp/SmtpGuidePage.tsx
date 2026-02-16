@@ -101,7 +101,7 @@ export function SmtpGuidePage() {
   const [selectedProvider, setSelectedProvider] = useState(providers[0]);
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <Link
@@ -120,22 +120,22 @@ export function SmtpGuidePage() {
       {/* What You'll Need */}
       <div className="grid grid-cols-4 gap-4">
         <div className="rounded-lg border border-subtle bg-surface p-4">
-          <Server className="h-5 w-5 text-brand mb-3" />
+          <Server className="h-5 w-5 text-primary mb-3" />
           <h3 className="text-sm font-medium text-primary mb-1">SMTP Host</h3>
           <p className="text-xs text-secondary">Server address</p>
         </div>
         <div className="rounded-lg border border-subtle bg-surface p-4">
-          <Globe className="h-5 w-5 text-brand mb-3" />
+          <Globe className="h-5 w-5 text-primary mb-3" />
           <h3 className="text-sm font-medium text-primary mb-1">Port</h3>
           <p className="text-xs text-secondary">Usually 587 or 465</p>
         </div>
         <div className="rounded-lg border border-subtle bg-surface p-4">
-          <Mail className="h-5 w-5 text-brand mb-3" />
+          <Mail className="h-5 w-5 text-primary mb-3" />
           <h3 className="text-sm font-medium text-primary mb-1">Username</h3>
           <p className="text-xs text-secondary">Your email address</p>
         </div>
         <div className="rounded-lg border border-subtle bg-surface p-4">
-          <Key className="h-5 w-5 text-brand mb-3" />
+          <Key className="h-5 w-5 text-primary mb-3" />
           <h3 className="text-sm font-medium text-primary mb-1">Password</h3>
           <p className="text-xs text-secondary">Password or API key</p>
         </div>
@@ -153,7 +153,7 @@ export function SmtpGuidePage() {
               onClick={() => setSelectedProvider(provider)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 selectedProvider.name === provider.name
-                  ? 'bg-brand text-primary'
+                  ? 'bg-[var(--text-primary)] text-[var(--bg-app)]'
                   : 'bg-surface border border-subtle text-secondary hover:text-primary hover:bg-hover'
               }`}
             >
@@ -202,7 +202,7 @@ export function SmtpGuidePage() {
             <div className="space-y-2">
               {selectedProvider.steps.map((step, index) => (
                 <div key={index} className="flex items-start gap-3 p-3 rounded-md bg-elevated">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-medium">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-primary flex items-center justify-center text-xs font-medium">
                     {index + 1}
                   </div>
                   <p className="text-sm text-secondary pt-0.5">{step}</p>
@@ -214,12 +214,12 @@ export function SmtpGuidePage() {
       </div>
 
       {/* Tips */}
-      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+      <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] p-4">
         <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+          <AlertCircle className="h-5 w-5 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-sm font-medium text-amber-500 mb-2">Tips</h3>
-            <ul className="space-y-1.5 text-sm text-amber-500/80">
+            <h3 className="text-sm font-medium text-primary mb-2">Tips</h3>
+            <ul className="space-y-1.5 text-sm text-secondary">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 Always use TLS/SSL encryption
@@ -245,7 +245,7 @@ export function SmtpGuidePage() {
         </p>
         <Link
           to="/smtp-accounts"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-primary text-sm font-medium rounded-md hover:bg-brand-400 transition-colors"
+          className="btn-primary inline-flex items-center gap-2 px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium rounded-md hover:opacity-90 transition-opacity"
         >
           <Mail className="h-4 w-4" />
           Add SMTP Account
