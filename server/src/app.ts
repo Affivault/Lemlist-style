@@ -36,7 +36,7 @@ app.get('/health', async (_req, res) => {
   const diagnostics: Record<string, any> = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: 'direct-send-v3-fix-webhook-column',
+    version: 'direct-send-v4-full-pipeline-fix',
   };
 
   // Check Redis
@@ -101,6 +101,99 @@ app.get('/health', async (_req, res) => {
   }
 
   res.json(diagnostics);
+});
+
+// Diagnostic: attempt to send a real test email through the first available SMTP account
+// Usage: POST /debug/send-email { "to": "you@gmail.com" }
+app.post('/debug/send-email', async (req, res) => {
+  const steps: string[] = [];
+  try {
+    const { to } = req.body || {};
+    if (!to) {
+      return res.status(400).json({ error: 'POST body must include "to" email address' });
+    }
+    steps.push(`1. Target: ${to}`);
+
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { decrypt } = await import('./utils/encryption.js');
+    const nodemailer = (await import('nodemailer')).default;
+
+    // Find any SMTP account
+    const { data: accounts, error: accErr } = await supabaseAdmin
+      .from('smtp_accounts')
+      .select('*')
+      .eq('is_active', true)
+      .limit(5);
+
+    if (accErr) {
+      steps.push(`2. FAIL: DB error fetching SMTP accounts: ${accErr.message}`);
+      return res.json({ success: false, steps });
+    }
+    if (!accounts || accounts.length === 0) {
+      steps.push('2. FAIL: No active SMTP accounts found in database');
+      return res.json({ success: false, steps });
+    }
+    steps.push(`2. Found ${accounts.length} active SMTP account(s): ${accounts.map((a: any) => `${a.label} (${a.email_address}, verified=${a.is_verified})`).join(', ')}`);
+
+    const account = accounts[0];
+    steps.push(`3. Using: ${account.label} — ${account.smtp_host}:${account.smtp_port} (secure=${account.smtp_secure}) user=${account.smtp_user}`);
+
+    // Decrypt password
+    let password: string;
+    try {
+      password = decrypt(account.smtp_pass_encrypted);
+      steps.push('4. Password decrypted OK');
+    } catch (err: any) {
+      steps.push(`4. FAIL: Password decrypt error: ${err.message}`);
+      return res.json({ success: false, steps });
+    }
+
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: account.smtp_host,
+      port: account.smtp_port,
+      secure: account.smtp_secure,
+      auth: { user: account.smtp_user, pass: password },
+      connectionTimeout: 15000,
+      socketTimeout: 30000,
+    });
+
+    // Verify connection
+    try {
+      await transporter.verify();
+      steps.push('5. SMTP connection verified OK');
+    } catch (err: any) {
+      steps.push(`5. FAIL: SMTP connection failed: ${err.message}`);
+      return res.json({ success: false, steps });
+    }
+
+    // Send test email
+    try {
+      const info = await transporter.sendMail({
+        from: account.email_address,
+        to,
+        subject: `[SkySend Debug] Test email at ${new Date().toISOString()}`,
+        html: '<h2>SkySend Debug Test</h2><p>If you see this email, your SMTP configuration is working correctly.</p>',
+        text: 'SkySend Debug Test - If you see this email, your SMTP configuration is working correctly.',
+      });
+      steps.push(`6. EMAIL SENT OK — messageId: ${info.messageId}, accepted: ${JSON.stringify(info.accepted)}, rejected: ${JSON.stringify(info.rejected)}`);
+    } catch (err: any) {
+      steps.push(`6. FAIL: sendMail error: ${err.message} (code: ${err.code || 'none'}, responseCode: ${err.responseCode || 'none'})`);
+      return res.json({ success: false, steps });
+    }
+
+    // Auto-verify the account
+    await supabaseAdmin
+      .from('smtp_accounts')
+      .update({ is_verified: true })
+      .eq('id', account.id);
+    steps.push('7. SMTP account marked as verified');
+
+    res.json({ success: true, steps });
+  } catch (err: any) {
+    steps.push(`UNEXPECTED ERROR: ${err.message}`);
+    res.json({ success: false, steps });
+  }
 });
 
 // Error handler (must be last)
