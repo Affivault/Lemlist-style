@@ -14,3 +14,7 @@ ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS include_unsubscribe boolean NOT N
 -- Campaign delay range (random delay between min and max seconds)
 ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS delay_between_emails_min integer NOT NULL DEFAULT 50;
 ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS delay_between_emails_max integer NOT NULL DEFAULT 200;
+
+-- Webhook wait support for campaign_contacts (used by webhook_wait step type)
+ALTER TABLE campaign_contacts ADD COLUMN IF NOT EXISTS waiting_for_webhook text;
+ALTER TABLE campaign_contacts ADD COLUMN IF NOT EXISTS webhook_wait_until timestamptz;
