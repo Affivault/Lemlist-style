@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
+import nodemailer from 'nodemailer';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import { smtpService } from '../services/smtp.service.js';
 import { supabaseAdmin } from '../config/supabase.js';
 import { decrypt } from '../utils/encryption.js';
-import { sendSimpleEmail } from '../services/email-sender.service.js';
 
 export const smtpController = {
   async list(req: AuthRequest, res: Response, next: NextFunction) {
@@ -50,7 +50,7 @@ export const smtpController = {
 
   /**
    * POST /smtp-accounts/:id/send-test
-   * Send a test email through Resend (primary) or SMTP (fallback).
+   * Send a test email through a specific SMTP account (no campaign needed).
    */
   async sendTestEmail(req: AuthRequest, res: Response, _next: NextFunction) {
     try {
@@ -61,7 +61,6 @@ export const smtpController = {
 
       console.log(`[TestEmail] Request: to=${to}, subject=${subject}, smtpId=${req.params.id}, userId=${req.userId}`);
 
-      // Fetch the SMTP account (for from address and SMTP fallback)
       const { data: account, error: fetchError } = await supabaseAdmin
         .from('smtp_accounts')
         .select('*')
@@ -77,34 +76,54 @@ export const smtpController = {
         return res.status(404).json({ error: 'SMTP account not found for this user' });
       }
 
-      // Decrypt password for SMTP fallback
-      let password: string | undefined;
+      console.log(`[TestEmail] Using SMTP: ${account.smtp_host}:${account.smtp_port} user=${account.smtp_user}`);
+
+      let password: string;
       try {
         password = decrypt(account.smtp_pass_encrypted);
       } catch (decryptErr: any) {
-        console.warn('[TestEmail] Decrypt warning (will try Resend):', decryptErr.message);
+        console.error('[TestEmail] Decrypt error:', decryptErr.message);
+        return res.status(500).json({ error: `Failed to decrypt SMTP password: ${decryptErr.message}` });
+      }
+
+      const transporter = nodemailer.createTransport({
+        host: account.smtp_host,
+        port: account.smtp_port,
+        secure: account.smtp_secure,
+        auth: { user: account.smtp_user, pass: password },
+        connectionTimeout: 15000,
+        socketTimeout: 30000,
+      });
+
+      // Verify SMTP connection first
+      try {
+        await transporter.verify();
+        console.log('[TestEmail] SMTP connection verified');
+      } catch (verifyErr: any) {
+        console.error('[TestEmail] SMTP verify failed:', verifyErr.message);
+        return res.status(500).json({
+          success: false,
+          error: `SMTP connection failed: ${verifyErr.message}. Check your host, port, username, and password.`,
+        });
       }
 
       const htmlBody = body_html || '<p>This is a test email from SkySend.</p>';
-
-      // Use shared sendSimpleEmail — tries Resend first, falls back to SMTP
-      const result = await sendSimpleEmail({
+      await transporter.sendMail({
         from: account.email_address,
         to,
         subject: `[TEST] ${subject}`,
         html: htmlBody,
-        smtpAccount: account,
-        smtpPassword: password,
+        text: htmlBody.replace(/<[^>]*>/g, ''),
       });
 
-      // Mark account as verified since we know sending works
+      // Mark account as verified since we know the credentials work
       await supabaseAdmin
         .from('smtp_accounts')
         .update({ is_verified: true })
         .eq('id', account.id);
 
-      console.log(`[TestEmail] Sent to ${to} via ${result.provider} — messageId: ${result.messageId}`);
-      res.json({ success: true, message: `Test email sent to ${to} via ${result.provider}`, provider: result.provider });
+      console.log(`[TestEmail] Sent to ${to} via ${account.label || account.smtp_host}`);
+      res.json({ success: true, message: `Test email sent to ${to}` });
     } catch (err: any) {
       console.error('[TestEmail] Send error:', err.message);
       res.status(500).json({ success: false, error: `Send failed: ${err.message}` });
