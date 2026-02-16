@@ -517,14 +517,24 @@ async function processWebhookWaitStep(cc: any, step: any): Promise<void> {
   const timeoutHours = step.webhook_timeout_hours || 72;
   const waitUntil = new Date(Date.now() + timeoutHours * 3600000);
 
-  await supabaseAdmin
-    .from('campaign_contacts')
-    .update({
-      current_step_order: step.step_order,
-      waiting_for_webhook: step.webhook_event,
-      webhook_wait_until: waitUntil.toISOString(),
-    })
-    .eq('id', cc.id);
+  try {
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({
+        current_step_order: step.step_order,
+        next_send_at: null,
+        waiting_for_webhook: step.webhook_event,
+        webhook_wait_until: waitUntil.toISOString(),
+      })
+      .eq('id', cc.id);
+  } catch (err: any) {
+    // If webhook columns don't exist, just pause the contact
+    console.warn('[Sequence] webhook columns missing, pausing contact:', err.message);
+    await supabaseAdmin
+      .from('campaign_contacts')
+      .update({ current_step_order: step.step_order, next_send_at: null })
+      .eq('id', cc.id);
+  }
 
   fireEvent(cc.campaigns.user_id, 'sequence.step_executed', {
     campaign_id: cc.campaign_id,
@@ -570,27 +580,33 @@ export async function resumeWebhookWait(
  * Should be called periodically (e.g., every 5 minutes via cron).
  */
 export async function processWebhookTimeouts(): Promise<number> {
-  const { data: timedOut } = await supabaseAdmin
-    .from('campaign_contacts')
-    .select('id, current_step_order')
-    .not('waiting_for_webhook', 'is', null)
-    .lt('webhook_wait_until', new Date().toISOString());
-
-  if (!timedOut || timedOut.length === 0) return 0;
-
-  for (const cc of timedOut) {
-    await supabaseAdmin
+  try {
+    const { data: timedOut, error } = await supabaseAdmin
       .from('campaign_contacts')
-      .update({
-        waiting_for_webhook: null,
-        webhook_wait_until: null,
-        current_step_order: (cc.current_step_order || 0) + 1,
-        next_send_at: new Date().toISOString(),
-      })
-      .eq('id', cc.id);
-  }
+      .select('id, current_step_order')
+      .not('waiting_for_webhook', 'is', null)
+      .lt('webhook_wait_until', new Date().toISOString());
 
-  return timedOut.length;
+    if (error || !timedOut || timedOut.length === 0) return 0;
+
+    for (const cc of timedOut) {
+      await supabaseAdmin
+        .from('campaign_contacts')
+        .update({
+          waiting_for_webhook: null,
+          webhook_wait_until: null,
+          current_step_order: (cc.current_step_order || 0) + 1,
+          next_send_at: new Date().toISOString(),
+        })
+        .eq('id', cc.id);
+    }
+
+    return timedOut.length;
+  } catch (err: any) {
+    // waiting_for_webhook/webhook_wait_until columns may not exist yet
+    console.warn('[Sequence] processWebhookTimeouts skipped:', err.message);
+    return 0;
+  }
 }
 
 // ============================================
@@ -602,15 +618,21 @@ export async function processWebhookTimeouts(): Promise<number> {
  * Should be called periodically (e.g., every 30 seconds via cron/scheduler).
  */
 export async function processDueSteps(): Promise<number> {
-  const { data: dueContacts } = await supabaseAdmin
+  const { data: dueContacts, error: dueError } = await supabaseAdmin
     .from('campaign_contacts')
     .select('id')
     .eq('status', 'active')
-    .is('waiting_for_webhook', null)
+    .not('next_send_at', 'is', null)
     .lte('next_send_at', new Date().toISOString())
     .limit(50);
 
+  if (dueError) {
+    console.error('[Sequence] processDueSteps query error:', dueError.message);
+    return 0;
+  }
+
   if (!dueContacts || dueContacts.length === 0) return 0;
+  console.log(`[Sequence] Found ${dueContacts.length} due contact(s) to process`);
 
   for (const cc of dueContacts) {
     try {

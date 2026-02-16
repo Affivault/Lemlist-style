@@ -33,10 +33,10 @@ app.use('/api/v1', routes);
 
 // Health check with diagnostics
 app.get('/health', async (_req, res) => {
-  const diagnostics: Record<string, string> = {
+  const diagnostics: Record<string, any> = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: 'direct-send-v2',
+    version: 'direct-send-v3-fix-webhook-column',
   };
 
   // Check Redis
@@ -49,6 +49,55 @@ app.get('/health', async (_req, res) => {
     }
   } catch (err: any) {
     diagnostics.redis = `error: ${err.message}`;
+  }
+
+  // Check Supabase connectivity
+  try {
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { count, error } = await supabaseAdmin
+      .from('campaigns')
+      .select('*', { count: 'exact', head: true });
+    diagnostics.supabase = error ? `error: ${error.message}` : `ok (${count} campaigns)`;
+  } catch (err: any) {
+    diagnostics.supabase = `error: ${err.message}`;
+  }
+
+  // Check SMTP accounts
+  try {
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { data: accounts } = await supabaseAdmin
+      .from('smtp_accounts')
+      .select('id, label, is_active, is_verified, email_address');
+    diagnostics.smtp_accounts = (accounts || []).map((a: any) => ({
+      label: a.label,
+      email: a.email_address,
+      active: a.is_active,
+      verified: a.is_verified,
+    }));
+  } catch (err: any) {
+    diagnostics.smtp_accounts = `error: ${err.message}`;
+  }
+
+  // Check running campaigns
+  try {
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { data: running } = await supabaseAdmin
+      .from('campaigns')
+      .select('id, name, status, started_at')
+      .eq('status', 'running');
+    diagnostics.running_campaigns = running || [];
+
+    // Check due contacts
+    const { data: dueContacts, error: dueErr } = await supabaseAdmin
+      .from('campaign_contacts')
+      .select('id, campaign_id, status, current_step_order, next_send_at, error_message')
+      .eq('status', 'active')
+      .not('next_send_at', 'is', null)
+      .lte('next_send_at', new Date().toISOString())
+      .limit(10);
+    diagnostics.due_contacts = dueErr ? `error: ${dueErr.message}` : (dueContacts || []);
+  } catch (err: any) {
+    diagnostics.running_campaigns = `error: ${err.message}`;
   }
 
   res.json(diagnostics);
