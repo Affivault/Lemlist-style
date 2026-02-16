@@ -118,7 +118,8 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     throw new Error(`Failed to decrypt SMTP password for ${smtpAccount.label}: ${err.message}`);
   }
 
-  // 4. Create transporter
+  // 4. Create transporter and verify connection
+  console.log(`[EmailSender] Connecting to SMTP: ${smtpAccount.smtp_host}:${smtpAccount.smtp_port} (secure: ${smtpAccount.smtp_secure}) user: ${smtpAccount.smtp_user}`);
   const transporter = nodemailer.createTransport({
     host: smtpAccount.smtp_host,
     port: smtpAccount.smtp_port,
@@ -127,6 +128,14 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     connectionTimeout: 15000,
     socketTimeout: 30000,
   });
+
+  // Verify SMTP connection before attempting to send
+  try {
+    await transporter.verify();
+    console.log(`[EmailSender] SMTP connection verified for ${smtpAccount.label || smtpAccount.smtp_host}`);
+  } catch (verifyErr: any) {
+    throw new Error(`SMTP connection failed for ${smtpAccount.label}: ${verifyErr.message}. Check host, port, and credentials.`);
+  }
 
   // 5. Prepare email with tracking
   const trackingId = generateTrackingId(campaignContactId, stepId);
