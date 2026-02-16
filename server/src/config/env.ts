@@ -14,6 +14,8 @@ const envSchema = z.object({
   TRACKING_BASE_URL: z.string().default('http://localhost:3001'),
   TRACKING_SECRET: z.string().min(16),
   ENCRYPTION_KEY: z.string().length(64),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
