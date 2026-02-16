@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import crypto from 'node:crypto';
+import { Resend } from 'resend';
 import { supabaseAdmin } from '../config/supabase.js';
 import { env } from '../config/env.js';
 import { decrypt } from '../utils/encryption.js';
@@ -9,9 +10,12 @@ import * as sse from './sse.service.js';
 /**
  * Direct Email Sender Service
  *
- * Sends campaign emails directly via nodemailer, bypassing BullMQ.
- * This ensures emails are sent even when Redis is unavailable.
+ * Sends campaign emails via Resend HTTP API (primary) or SMTP (fallback).
+ * Resend bypasses Render's SMTP port blocking.
  */
+
+// Initialize Resend client if API key is configured
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
 interface SendEmailParams {
   campaignId: string;
@@ -54,8 +58,89 @@ function wrapLinks(html: string, trackingId: string): string {
 }
 
 /**
- * Send a single campaign email directly via SMTP.
- * Returns true on success, throws on failure.
+ * Send an email via Resend HTTP API.
+ * Returns the message ID on success, throws on failure.
+ */
+async function sendViaResend(params: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  headers?: Record<string, string>;
+}): Promise<string> {
+  if (!resend) throw new Error('Resend not configured');
+
+  const fromAddress = env.RESEND_FROM_EMAIL || params.from;
+  console.log(`[EmailSender:Resend] Sending from ${fromAddress} to ${params.to}`);
+
+  const { data, error } = await resend.emails.send({
+    from: fromAddress,
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
+    text: params.text,
+    headers: params.headers,
+  });
+
+  if (error) {
+    throw new Error(`Resend error: ${error.message} (${error.name})`);
+  }
+
+  const messageId = data?.id || `resend-${crypto.randomUUID()}`;
+  console.log(`[EmailSender:Resend] Sent OK — id: ${messageId}`);
+  return messageId;
+}
+
+/**
+ * Send an email via SMTP/nodemailer.
+ * Returns the message ID on success, throws on failure.
+ */
+async function sendViaSMTP(params: {
+  smtpAccount: any;
+  smtpPassword: string;
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  messageId: string;
+  headers?: Record<string, string>;
+}): Promise<string> {
+  console.log(`[EmailSender:SMTP] Connecting to ${params.smtpAccount.smtp_host}:${params.smtpAccount.smtp_port}`);
+  const transporter = nodemailer.createTransport({
+    host: params.smtpAccount.smtp_host,
+    port: params.smtpAccount.smtp_port,
+    secure: params.smtpAccount.smtp_secure,
+    auth: { user: params.smtpAccount.smtp_user, pass: params.smtpPassword },
+    connectionTimeout: 15000,
+    socketTimeout: 30000,
+  });
+
+  try {
+    await transporter.verify();
+    console.log(`[EmailSender:SMTP] Connection verified`);
+  } catch (verifyErr: any) {
+    throw new Error(`SMTP connection failed: ${verifyErr.message}`);
+  }
+
+  const info = await transporter.sendMail({
+    from: params.from,
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
+    text: params.text,
+    messageId: params.messageId,
+    headers: params.headers,
+  });
+
+  console.log(`[EmailSender:SMTP] Sent OK — messageId: ${info.messageId}`);
+  return info.messageId;
+}
+
+/**
+ * Send a single campaign email.
+ * Tries Resend HTTP API first, falls back to SMTP.
  */
 export async function sendCampaignEmail(params: SendEmailParams): Promise<void> {
   const { campaignId, campaignContactId, contactId, stepId, to, subject, bodyHtml, bodyText } = params;
@@ -72,16 +157,14 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     throw new Error(`Campaign ${campaignId} not found`);
   }
 
-  // 2. Find SMTP account
+  // 2. Find SMTP account (needed for from address and SMTP fallback)
   let smtpAccount: any = null;
 
-  // Try SSE selection (multi-account pool)
   const sseResult = await sse.selectBestSender(campaign.user_id, campaignId);
   if (sseResult.account) {
     smtpAccount = sseResult.account;
     console.log(`[EmailSender] SSE selected: ${sseResult.reason}`);
   } else if (campaign.smtp_account_id) {
-    // Fallback to campaign's default SMTP account
     const { data: fallback } = await supabaseAdmin
       .from('smtp_accounts')
       .select('*')
@@ -91,7 +174,6 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     console.log(`[EmailSender] Using campaign default SMTP: ${smtpAccount?.label || smtpAccount?.id}`);
   }
 
-  // Last resort: any active SMTP account
   if (!smtpAccount) {
     const { data: anyAccount } = await supabaseAdmin
       .from('smtp_accounts')
@@ -106,42 +188,14 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     }
   }
 
-  if (!smtpAccount) {
-    throw new Error('No SMTP account available. Add and configure an SMTP account first.');
+  if (!smtpAccount && !resend) {
+    throw new Error('No SMTP account available and Resend is not configured.');
   }
 
-  // 3. Decrypt SMTP password
-  let smtpPassword: string;
-  try {
-    smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
-  } catch (err: any) {
-    throw new Error(`Failed to decrypt SMTP password for ${smtpAccount.label}: ${err.message}`);
-  }
-
-  // 4. Create transporter and verify connection
-  console.log(`[EmailSender] Connecting to SMTP: ${smtpAccount.smtp_host}:${smtpAccount.smtp_port} (secure: ${smtpAccount.smtp_secure}) user: ${smtpAccount.smtp_user}`);
-  const transporter = nodemailer.createTransport({
-    host: smtpAccount.smtp_host,
-    port: smtpAccount.smtp_port,
-    secure: smtpAccount.smtp_secure,
-    auth: { user: smtpAccount.smtp_user, pass: smtpPassword },
-    connectionTimeout: 15000,
-    socketTimeout: 30000,
-  });
-
-  // Verify SMTP connection before attempting to send
-  try {
-    await transporter.verify();
-    console.log(`[EmailSender] SMTP connection verified for ${smtpAccount.label || smtpAccount.smtp_host}`);
-  } catch (verifyErr: any) {
-    throw new Error(`SMTP connection failed for ${smtpAccount.label}: ${verifyErr.message}. Check host, port, and credentials.`);
-  }
-
-  // 5. Prepare email with tracking
+  // 3. Prepare email with tracking
   const trackingId = generateTrackingId(campaignContactId, stepId);
   let finalHtml = bodyHtml;
 
-  // Unsubscribe link (only when enabled)
   const unsubUrl = `${env.TRACKING_BASE_URL}/api/track/unsubscribe/${trackingId}`;
   if (campaign.include_unsubscribe === true) {
     finalHtml = finalHtml.replace(/\{\{unsubscribe_link\}\}/gi, unsubUrl);
@@ -162,31 +216,59 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     finalHtml = injectTrackingPixel(finalHtml, trackingId);
   }
 
-  // 6. Send
-  const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
+  // 4. Send via Resend (primary) or SMTP (fallback)
+  const fromAddress = smtpAccount?.email_address || env.RESEND_FROM_EMAIL || 'noreply@skysend.io';
+  const domain = fromAddress.split('@')[1] || 'skysend.io';
   const messageId = `<${crypto.randomUUID()}@${domain}>`;
+  const headers: Record<string, string> = {
+    'X-SkySend-Campaign': campaignId,
+    'X-SkySend-Contact': contactId,
+    'X-SkySend-Step': stepId,
+    ...(campaign.include_unsubscribe === true ? { 'List-Unsubscribe': `<${unsubUrl}>` } : {}),
+  };
 
-  const info = await transporter.sendMail({
-    from: smtpAccount.email_address,
-    to,
-    subject,
-    html: finalHtml,
-    text: bodyText,
-    messageId,
-    headers: {
-      'X-SkySend-Campaign': campaignId,
-      'X-SkySend-Contact': contactId,
-      'X-SkySend-Step': stepId,
-      ...(campaign.include_unsubscribe === true ? { 'List-Unsubscribe': `<${unsubUrl}>` } : {}),
-    },
-  });
+  let sentMessageId: string;
 
-  console.log(`[EmailSender] Sent to ${to} via ${smtpAccount.label || smtpAccount.smtp_host} — messageId: ${info.messageId}`);
+  if (resend) {
+    // Primary: Resend HTTP API (bypasses SMTP port blocks)
+    try {
+      sentMessageId = await sendViaResend({
+        from: fromAddress,
+        to, subject, html: finalHtml, text: bodyText, headers,
+      });
+    } catch (resendErr: any) {
+      console.error(`[EmailSender] Resend failed: ${resendErr.message}`);
+      // Fall back to SMTP
+      if (smtpAccount) {
+        console.log('[EmailSender] Falling back to SMTP...');
+        const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
+        sentMessageId = await sendViaSMTP({
+          smtpAccount, smtpPassword, from: fromAddress,
+          to, subject, html: finalHtml, text: bodyText, messageId, headers,
+        });
+      } else {
+        throw resendErr;
+      }
+    }
+  } else if (smtpAccount) {
+    // Fallback: direct SMTP
+    const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
+    sentMessageId = await sendViaSMTP({
+      smtpAccount, smtpPassword, from: fromAddress,
+      to, subject, html: finalHtml, text: bodyText, messageId, headers,
+    });
+  } else {
+    throw new Error('No email transport available');
+  }
 
-  // 7. Record send in SSE
-  await sse.recordSend(smtpAccount.id).catch(() => {});
+  console.log(`[EmailSender] Successfully sent to ${to} — messageId: ${sentMessageId}`);
 
-  // 8. Record campaign activity
+  // 5. Record send in SSE
+  if (smtpAccount) {
+    await sse.recordSend(smtpAccount.id).catch(() => {});
+  }
+
+  // 6. Record campaign activity
   await supabaseAdmin
     .from('campaign_activities')
     .insert({
@@ -195,25 +277,26 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
       contact_id: contactId,
       step_id: stepId,
       activity_type: 'sent',
-      message_id: messageId,
+      message_id: sentMessageId,
       metadata: {
         subject, to,
-        smtp_account_id: smtpAccount.id,
-        smtp_label: smtpAccount.label,
+        smtp_account_id: smtpAccount?.id,
+        smtp_label: smtpAccount?.label,
         tracking_id: trackingId,
+        provider: resend ? 'resend' : 'smtp',
       },
     });
 
-  // 9. Fire webhook
+  // 7. Fire webhook
   fireEvent(campaign.user_id, 'email.sent', {
     campaign_id: campaignId,
     contact_id: contactId,
     step_id: stepId,
     to, subject,
-    message_id: messageId,
+    message_id: sentMessageId,
   }).catch(() => {});
 
-  // 10. Advance to next step
+  // 8. Advance to next step
   const { data: currentStep } = await supabaseAdmin
     .from('campaign_steps')
     .select('step_order')
@@ -252,4 +335,52 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
       }).catch(() => {});
     }
   }
+}
+
+/**
+ * Send a simple email (for test emails, debug, etc.)
+ * Uses Resend if available, otherwise SMTP.
+ */
+export async function sendSimpleEmail(params: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  smtpAccount?: any;
+  smtpPassword?: string;
+}): Promise<{ messageId: string; provider: string }> {
+  if (resend) {
+    const fromAddress = env.RESEND_FROM_EMAIL || params.from;
+    try {
+      const messageId = await sendViaResend({
+        from: fromAddress,
+        to: params.to,
+        subject: params.subject,
+        html: params.html,
+        text: params.text || params.html.replace(/<[^>]*>/g, ''),
+      });
+      return { messageId, provider: 'resend' };
+    } catch (err: any) {
+      console.error(`[EmailSender] Resend failed for simple email: ${err.message}`);
+      if (!params.smtpAccount) throw err;
+      // Fall through to SMTP
+    }
+  }
+
+  if (params.smtpAccount && params.smtpPassword) {
+    const messageId = await sendViaSMTP({
+      smtpAccount: params.smtpAccount,
+      smtpPassword: params.smtpPassword,
+      from: params.from,
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text || params.html.replace(/<[^>]*>/g, ''),
+      messageId: `<${crypto.randomUUID()}@skysend.io>`,
+    });
+    return { messageId, provider: 'smtp' };
+  }
+
+  throw new Error('No email transport available (Resend not configured, no SMTP account provided)');
 }
