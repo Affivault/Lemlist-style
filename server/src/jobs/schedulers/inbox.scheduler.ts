@@ -8,6 +8,11 @@ const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
  * Runs every 5 minutes.
  */
 export function scheduleInboxSync() {
+  if (!inboxSyncQueue) {
+    console.log('Inbox sync scheduler skipped — no Redis connection');
+    return;
+  }
+  const queue = inboxSyncQueue;
   async function syncAll() {
     try {
       // Get all verified, active SMTP accounts
@@ -20,7 +25,7 @@ export function scheduleInboxSync() {
       if (!accounts || accounts.length === 0) return;
 
       for (const account of accounts) {
-        await inboxSyncQueue.add(
+        await queue.add(
           `inbox-sync-${account.id}`,
           {
             userId: account.user_id,

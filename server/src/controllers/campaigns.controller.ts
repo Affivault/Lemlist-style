@@ -1,11 +1,11 @@
 import { Response, NextFunction } from 'express';
-import nodemailer from 'nodemailer';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import { campaignsService } from '../services/campaigns.service.js';
 import { campaignStepsService } from '../services/campaign-steps.service.js';
 import { campaignContactsService } from '../services/campaign-contacts.service.js';
 import { supabaseAdmin } from '../config/supabase.js';
 import { decrypt } from '../utils/encryption.js';
+import { sendViaSmtp } from '../services/email-sender.service.js';
 import * as sse from '../services/sse.service.js';
 
 export const campaignsController = {
@@ -149,15 +149,12 @@ export const campaignsController = {
       if (!account) return res.status(404).json({ error: 'SMTP account not found' });
 
       const password = decrypt(account.smtp_pass_encrypted);
-      const transporter = nodemailer.createTransport({
-        host: account.smtp_host,
-        port: account.smtp_port,
-        secure: account.smtp_secure,
-        auth: { user: account.smtp_user, pass: password },
-        connectionTimeout: 15000,
-      });
-
-      await transporter.sendMail({
+      await sendViaSmtp({
+        smtpHost: account.smtp_host,
+        smtpPort: account.smtp_port,
+        smtpSecure: account.smtp_secure,
+        smtpUser: account.smtp_user,
+        smtpPass: password,
         from: account.email_address,
         to,
         subject: `[TEST] ${subject}`,

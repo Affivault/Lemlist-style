@@ -8,14 +8,14 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  REDIS_URL: z.string().default('redis://localhost:6379'),
+  REDIS_URL: z.string().optional().default(''),
   API_BASE_URL: z.string().default('http://localhost:3001'),
   CLIENT_URL: z.string().default('http://localhost:5173'),
   TRACKING_BASE_URL: z.string().default('http://localhost:3001'),
   TRACKING_SECRET: z.string().min(16),
   ENCRYPTION_KEY: z.string().length(64),
-  RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().optional(),
+  SMTP_RELAY_URL: z.string().optional().default(''),
+  SMTP_RELAY_SECRET: z.string().optional().default(''),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -36,13 +36,15 @@ app.get('/health', async (_req, res) => {
   const diagnostics: Record<string, any> = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: 'v5-resend-integration',
+    version: 'v6-pure-smtp',
   };
 
   // Check Redis
   try {
     const { redisConnection } = await import('./config/redis.js');
-    if (redisConnection.status === 'ready') {
+    if (!redisConnection) {
+      diagnostics.redis = 'not configured (REDIS_URL not set)';
+    } else if (redisConnection.status === 'ready') {
       diagnostics.redis = 'connected';
     } else {
       diagnostics.redis = `status: ${redisConnection.status}`;
@@ -103,7 +105,7 @@ app.get('/health', async (_req, res) => {
   res.json(diagnostics);
 });
 
-// Diagnostic: attempt to send a real test email via Resend or SMTP
+// Diagnostic: attempt to send a real test email via SMTP
 // Usage: POST /debug/send-email { "to": "you@gmail.com" }
 app.post('/debug/send-email', async (req, res) => {
   const steps: string[] = [];
@@ -114,70 +116,70 @@ app.post('/debug/send-email', async (req, res) => {
     }
     steps.push(`1. Target: ${to}`);
 
-    const { env } = await import('./config/env.js');
-    const { sendSimpleEmail } = await import('./services/email-sender.service.js');
     const { supabaseAdmin } = await import('./config/supabase.js');
     const { decrypt } = await import('./utils/encryption.js');
+    const { sendViaSmtp } = await import('./services/email-sender.service.js');
 
-    // Check Resend config
-    if (env.RESEND_API_KEY) {
-      steps.push(`2. Resend API key configured (${env.RESEND_API_KEY.slice(0, 8)}...)`);
-      steps.push(`   RESEND_FROM_EMAIL: ${env.RESEND_FROM_EMAIL || '(not set — will use SMTP account email)'}`);
-    } else {
-      steps.push('2. Resend NOT configured — will try SMTP (may fail on Render free tier)');
-    }
-
-    // Find SMTP account for from address / fallback
-    const { data: accounts } = await supabaseAdmin
+    // Find any SMTP account
+    const { data: accounts, error: accErr } = await supabaseAdmin
       .from('smtp_accounts')
       .select('*')
       .eq('is_active', true)
       .limit(5);
 
-    const account = accounts?.[0];
-    if (account) {
-      steps.push(`3. SMTP account found: ${account.label} (${account.email_address})`);
-    } else {
-      steps.push('3. No SMTP accounts found in database');
+    if (accErr) {
+      steps.push(`2. FAIL: DB error fetching SMTP accounts: ${accErr.message}`);
+      return res.json({ success: false, steps });
+    }
+    if (!accounts || accounts.length === 0) {
+      steps.push('2. FAIL: No active SMTP accounts found in database');
+      return res.json({ success: false, steps });
+    }
+    steps.push(`2. Found ${accounts.length} active SMTP account(s): ${accounts.map((a: any) => `${a.label} (${a.email_address}, verified=${a.is_verified})`).join(', ')}`);
+
+    const account = accounts[0];
+    steps.push(`3. Using: ${account.label} — ${account.smtp_host}:${account.smtp_port} (secure=${account.smtp_secure}) user=${account.smtp_user}`);
+
+    // Decrypt password
+    let password: string;
+    try {
+      password = decrypt(account.smtp_pass_encrypted);
+      steps.push('4. Password decrypted OK');
+    } catch (err: any) {
+      steps.push(`4. FAIL: Password decrypt error: ${err.message}`);
+      return res.json({ success: false, steps });
     }
 
-    // Attempt to send
-    let password: string | undefined;
-    if (account) {
-      try {
-        password = decrypt(account.smtp_pass_encrypted);
-        steps.push('4. SMTP password decrypted OK');
-      } catch (err: any) {
-        steps.push(`4. SMTP password decrypt failed: ${err.message}`);
-      }
-    } else {
-      steps.push('4. No SMTP account to decrypt password for');
+    // Send test email via relay or direct SMTP
+    try {
+      const result = await sendViaSmtp({
+        smtpHost: account.smtp_host,
+        smtpPort: account.smtp_port,
+        smtpSecure: account.smtp_secure,
+        smtpUser: account.smtp_user,
+        smtpPass: password,
+        from: account.email_address,
+        to,
+        subject: `[SkySend Debug] Test email at ${new Date().toISOString()}`,
+        html: '<h2>SkySend Debug Test</h2><p>If you see this email, your SMTP configuration is working correctly.</p>',
+        text: 'SkySend Debug Test - If you see this email, your SMTP configuration is working correctly.',
+      });
+      steps.push(`5. EMAIL SENT OK — messageId: ${result.messageId}, accepted: ${JSON.stringify(result.accepted)}, rejected: ${JSON.stringify(result.rejected)}`);
+    } catch (err: any) {
+      steps.push(`5. FAIL: Send error: ${err.message}`);
+      return res.json({ success: false, steps });
     }
 
-    steps.push('5. Attempting to send email...');
-    const result = await sendSimpleEmail({
-      from: account?.email_address || 'noreply@skysend.io',
-      to,
-      subject: `[SkySend Debug] Test at ${new Date().toISOString()}`,
-      html: '<h2>SkySend Debug Test</h2><p>If you see this email, your email sending is working correctly.</p>',
-      smtpAccount: account,
-      smtpPassword: password,
-    });
+    // Auto-verify the account
+    await supabaseAdmin
+      .from('smtp_accounts')
+      .update({ is_verified: true })
+      .eq('id', account.id);
+    steps.push('7. SMTP account marked as verified');
 
-    steps.push(`6. EMAIL SENT OK via ${result.provider} — messageId: ${result.messageId}`);
-
-    // Auto-verify SMTP account
-    if (account) {
-      await supabaseAdmin
-        .from('smtp_accounts')
-        .update({ is_verified: true })
-        .eq('id', account.id);
-      steps.push('7. SMTP account marked as verified');
-    }
-
-    res.json({ success: true, provider: result.provider, steps });
+    res.json({ success: true, steps });
   } catch (err: any) {
-    steps.push(`FAIL: ${err.message}`);
+    steps.push(`UNEXPECTED ERROR: ${err.message}`);
     res.json({ success: false, steps });
   }
 });
