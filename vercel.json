@@ -1,8 +1,14 @@
 {
-  "buildCommand": "npm run build --workspace=client",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "client/dist",
   "framework": "vite",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/send-email.ts": {
+      "maxDuration": 30
+    }
+  }
 }

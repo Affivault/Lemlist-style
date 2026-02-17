@@ -7,11 +7,113 @@ import { fireEvent } from './webhook.service.js';
 import * as sse from './sse.service.js';
 
 /**
- * Direct Email Sender Service
+ * Email Sender Service
  *
- * Sends campaign emails directly via each user's own SMTP account (nodemailer).
- * No Redis/BullMQ dependency.
+ * Sends emails via Vercel SMTP relay (when SMTP_RELAY_URL is set)
+ * or directly via nodemailer. The relay bypasses Render's SMTP port block.
  */
+
+interface SmtpSendParams {
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string;
+  smtpPass: string;
+  from: string;
+  to: string;
+  subject: string;
+  html?: string;
+  text?: string;
+  messageId?: string;
+  headers?: Record<string, string>;
+}
+
+interface SmtpSendResult {
+  messageId: string;
+  accepted?: string[];
+  rejected?: string[];
+}
+
+/**
+ * Send an email via Vercel SMTP relay (HTTPS) or direct SMTP.
+ * When SMTP_RELAY_URL is configured, sends via relay to bypass port blocks.
+ * Otherwise falls back to direct nodemailer SMTP.
+ */
+export async function sendViaSmtp(params: SmtpSendParams): Promise<SmtpSendResult> {
+  if (env.SMTP_RELAY_URL && env.SMTP_RELAY_SECRET) {
+    return sendViaRelay(params);
+  }
+  return sendDirect(params);
+}
+
+async function sendViaRelay(params: SmtpSendParams): Promise<SmtpSendResult> {
+  console.log(`[SMTP Relay] Sending to ${params.to} via ${env.SMTP_RELAY_URL}`);
+
+  const response = await fetch(env.SMTP_RELAY_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.SMTP_RELAY_SECRET}`,
+    },
+    body: JSON.stringify({
+      smtp_host: params.smtpHost,
+      smtp_port: params.smtpPort,
+      smtp_secure: params.smtpSecure,
+      smtp_user: params.smtpUser,
+      smtp_pass: params.smtpPass,
+      from: params.from,
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text,
+      message_id: params.messageId,
+      headers: params.headers,
+    }),
+  });
+
+  const data = await response.json() as any;
+
+  if (!response.ok || !data.success) {
+    throw new Error(`SMTP relay error: ${data.error || response.statusText}`);
+  }
+
+  return {
+    messageId: data.messageId || params.messageId || '',
+    accepted: data.accepted,
+    rejected: data.rejected,
+  };
+}
+
+async function sendDirect(params: SmtpSendParams): Promise<SmtpSendResult> {
+  console.log(`[SMTP Direct] Sending to ${params.to} via ${params.smtpHost}:${params.smtpPort}`);
+
+  const transporter = nodemailer.createTransport({
+    host: params.smtpHost,
+    port: params.smtpPort,
+    secure: params.smtpSecure,
+    auth: { user: params.smtpUser, pass: params.smtpPass },
+    connectionTimeout: 15000,
+    socketTimeout: 30000,
+  });
+
+  await transporter.verify();
+
+  const info = await transporter.sendMail({
+    from: params.from,
+    to: params.to,
+    subject: params.subject,
+    html: params.html || undefined,
+    text: params.text || undefined,
+    messageId: params.messageId || undefined,
+    headers: params.headers || undefined,
+  });
+
+  return {
+    messageId: info.messageId,
+    accepted: info.accepted as string[],
+    rejected: info.rejected as string[],
+  };
+}
 
 interface SendEmailParams {
   campaignId: string;
@@ -116,25 +218,7 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     throw new Error(`Failed to decrypt SMTP password for ${smtpAccount.label}: ${err.message}`);
   }
 
-  // 4. Create transporter and verify connection
-  console.log(`[EmailSender] Connecting to SMTP: ${smtpAccount.smtp_host}:${smtpAccount.smtp_port} (secure: ${smtpAccount.smtp_secure}) user: ${smtpAccount.smtp_user}`);
-  const transporter = nodemailer.createTransport({
-    host: smtpAccount.smtp_host,
-    port: smtpAccount.smtp_port,
-    secure: smtpAccount.smtp_secure,
-    auth: { user: smtpAccount.smtp_user, pass: smtpPassword },
-    connectionTimeout: 15000,
-    socketTimeout: 30000,
-  });
-
-  try {
-    await transporter.verify();
-    console.log(`[EmailSender] SMTP connection verified for ${smtpAccount.label || smtpAccount.smtp_host}`);
-  } catch (verifyErr: any) {
-    throw new Error(`SMTP connection failed for ${smtpAccount.label}: ${verifyErr.message}. Check host, port, and credentials.`);
-  }
-
-  // 5. Prepare email with tracking
+  // 4. Prepare email with tracking
   const trackingId = generateTrackingId(campaignContactId, stepId);
   let finalHtml = bodyHtml;
 
@@ -158,26 +242,32 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
     finalHtml = injectTrackingPixel(finalHtml, trackingId);
   }
 
-  // 6. Send
+  // 5. Send via relay (Vercel) or direct SMTP
   const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
   const messageId = `<${crypto.randomUUID()}@${domain}>`;
+  const emailHeaders: Record<string, string> = {
+    'X-SkySend-Campaign': campaignId,
+    'X-SkySend-Contact': contactId,
+    'X-SkySend-Step': stepId,
+    ...(campaign.include_unsubscribe === true ? { 'List-Unsubscribe': `<${unsubUrl}>` } : {}),
+  };
 
-  const info = await transporter.sendMail({
+  const sendResult = await sendViaSmtp({
+    smtpHost: smtpAccount.smtp_host,
+    smtpPort: smtpAccount.smtp_port,
+    smtpSecure: smtpAccount.smtp_secure,
+    smtpUser: smtpAccount.smtp_user,
+    smtpPass: smtpPassword,
     from: smtpAccount.email_address,
     to,
     subject,
     html: finalHtml,
     text: bodyText,
     messageId,
-    headers: {
-      'X-SkySend-Campaign': campaignId,
-      'X-SkySend-Contact': contactId,
-      'X-SkySend-Step': stepId,
-      ...(campaign.include_unsubscribe === true ? { 'List-Unsubscribe': `<${unsubUrl}>` } : {}),
-    },
+    headers: emailHeaders,
   });
 
-  console.log(`[EmailSender] Sent to ${to} via ${smtpAccount.label || smtpAccount.smtp_host} — messageId: ${info.messageId}`);
+  console.log(`[EmailSender] Sent to ${to} via ${smtpAccount.label || smtpAccount.smtp_host} — messageId: ${sendResult.messageId}`);
 
   // 7. Record send in SSE
   await sse.recordSend(smtpAccount.id).catch(() => {});

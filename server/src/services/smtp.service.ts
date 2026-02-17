@@ -1,7 +1,7 @@
-import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '../config/supabase.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
+import { sendViaSmtp } from './email-sender.service.js';
 
 export const smtpService = {
   async list(userId: string) {
@@ -93,19 +93,19 @@ export const smtpService = {
     const account = data as any;
     const password = decrypt(account.smtp_pass_encrypted);
 
-    const transporter = nodemailer.createTransport({
-      host: account.smtp_host,
-      port: account.smtp_port,
-      secure: account.smtp_secure,
-      auth: {
-        user: account.smtp_user,
-        pass: password,
-      },
-      connectionTimeout: 10000,
-    });
-
     try {
-      await transporter.verify();
+      // Verify by sending a test email to the account's own address
+      await sendViaSmtp({
+        smtpHost: account.smtp_host,
+        smtpPort: account.smtp_port,
+        smtpSecure: account.smtp_secure,
+        smtpUser: account.smtp_user,
+        smtpPass: password,
+        from: account.email_address,
+        to: account.email_address,
+        subject: '[SkySend] SMTP Verification',
+        text: 'Your SMTP account has been verified successfully.',
+      });
       await supabaseAdmin
         .from('smtp_accounts')
         .update({ is_verified: true })

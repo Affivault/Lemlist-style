@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
-import nodemailer from 'nodemailer';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import { smtpService } from '../services/smtp.service.js';
 import { supabaseAdmin } from '../config/supabase.js';
 import { decrypt } from '../utils/encryption.js';
+import { sendViaSmtp } from '../services/email-sender.service.js';
 
 export const smtpController = {
   async list(req: AuthRequest, res: Response, next: NextFunction) {
@@ -86,29 +86,13 @@ export const smtpController = {
         return res.status(500).json({ error: `Failed to decrypt SMTP password: ${decryptErr.message}` });
       }
 
-      const transporter = nodemailer.createTransport({
-        host: account.smtp_host,
-        port: account.smtp_port,
-        secure: account.smtp_secure,
-        auth: { user: account.smtp_user, pass: password },
-        connectionTimeout: 15000,
-        socketTimeout: 30000,
-      });
-
-      // Verify SMTP connection first
-      try {
-        await transporter.verify();
-        console.log('[TestEmail] SMTP connection verified');
-      } catch (verifyErr: any) {
-        console.error('[TestEmail] SMTP verify failed:', verifyErr.message);
-        return res.status(500).json({
-          success: false,
-          error: `SMTP connection failed: ${verifyErr.message}. Check your host, port, username, and password.`,
-        });
-      }
-
       const htmlBody = body_html || '<p>This is a test email from SkySend.</p>';
-      await transporter.sendMail({
+      await sendViaSmtp({
+        smtpHost: account.smtp_host,
+        smtpPort: account.smtp_port,
+        smtpSecure: account.smtp_secure,
+        smtpUser: account.smtp_user,
+        smtpPass: password,
         from: account.email_address,
         to,
         subject: `[TEST] ${subject}`,

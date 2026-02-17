@@ -118,7 +118,7 @@ app.post('/debug/send-email', async (req, res) => {
 
     const { supabaseAdmin } = await import('./config/supabase.js');
     const { decrypt } = await import('./utils/encryption.js');
-    const nodemailer = (await import('nodemailer')).default;
+    const { sendViaSmtp } = await import('./services/email-sender.service.js');
 
     // Find any SMTP account
     const { data: accounts, error: accErr } = await supabaseAdmin
@@ -150,37 +150,23 @@ app.post('/debug/send-email', async (req, res) => {
       return res.json({ success: false, steps });
     }
 
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      host: account.smtp_host,
-      port: account.smtp_port,
-      secure: account.smtp_secure,
-      auth: { user: account.smtp_user, pass: password },
-      connectionTimeout: 15000,
-      socketTimeout: 30000,
-    });
-
-    // Verify connection
+    // Send test email via relay or direct SMTP
     try {
-      await transporter.verify();
-      steps.push('5. SMTP connection verified OK');
-    } catch (err: any) {
-      steps.push(`5. FAIL: SMTP connection failed: ${err.message}`);
-      return res.json({ success: false, steps });
-    }
-
-    // Send test email
-    try {
-      const info = await transporter.sendMail({
+      const result = await sendViaSmtp({
+        smtpHost: account.smtp_host,
+        smtpPort: account.smtp_port,
+        smtpSecure: account.smtp_secure,
+        smtpUser: account.smtp_user,
+        smtpPass: password,
         from: account.email_address,
         to,
         subject: `[SkySend Debug] Test email at ${new Date().toISOString()}`,
         html: '<h2>SkySend Debug Test</h2><p>If you see this email, your SMTP configuration is working correctly.</p>',
         text: 'SkySend Debug Test - If you see this email, your SMTP configuration is working correctly.',
       });
-      steps.push(`6. EMAIL SENT OK — messageId: ${info.messageId}, accepted: ${JSON.stringify(info.accepted)}, rejected: ${JSON.stringify(info.rejected)}`);
+      steps.push(`5. EMAIL SENT OK — messageId: ${result.messageId}, accepted: ${JSON.stringify(result.accepted)}, rejected: ${JSON.stringify(result.rejected)}`);
     } catch (err: any) {
-      steps.push(`6. FAIL: sendMail error: ${err.message} (code: ${err.code || 'none'}, responseCode: ${err.responseCode || 'none'})`);
+      steps.push(`5. FAIL: Send error: ${err.message}`);
       return res.json({ success: false, steps });
     }
 
