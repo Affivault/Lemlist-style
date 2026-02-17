@@ -65,6 +65,10 @@ function generateTrackingId(campaignContactId: string, stepId: string): string {
 }
 
 export function startEmailWorker() {
+  if (!redisConnection) {
+    console.log('Email worker skipped — no Redis connection');
+    return null;
+  }
   const worker = new Worker<EmailJobData>(
     'email-sending',
     async (job: Job<EmailJobData>) => {

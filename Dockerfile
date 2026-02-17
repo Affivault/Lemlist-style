@@ -21,8 +21,8 @@ COPY server/ ./server/
 # Build shared types first, then server
 RUN npm run build --workspace=shared && npm run build --workspace=server
 
-# Expose port
-EXPOSE 3001
+# Expose port (Koyeb uses PORT env var, default 8000; Render uses 3001)
+EXPOSE ${PORT:-8000}
 
 # Start the server
 CMD ["npm", "run", "start", "--workspace=server"]

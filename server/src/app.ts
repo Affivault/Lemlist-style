@@ -42,7 +42,9 @@ app.get('/health', async (_req, res) => {
   // Check Redis
   try {
     const { redisConnection } = await import('./config/redis.js');
-    if (redisConnection.status === 'ready') {
+    if (!redisConnection) {
+      diagnostics.redis = 'not configured (REDIS_URL not set)';
+    } else if (redisConnection.status === 'ready') {
       diagnostics.redis = 'connected';
     } else {
       diagnostics.redis = `status: ${redisConnection.status}`;

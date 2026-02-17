@@ -37,6 +37,10 @@ function extractTextBody(source: string): string {
 }
 
 export function startInboxWorker() {
+  if (!redisConnection) {
+    console.log('Inbox worker skipped — no Redis connection');
+    return null;
+  }
   const worker = new Worker<InboxSyncJobData>(
     'inbox-sync',
     async (job: Job<InboxSyncJobData>) => {
