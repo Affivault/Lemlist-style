@@ -105,8 +105,8 @@ export const campaignsService = {
 
   async launch(userId: string, id: string) {
     const campaign = await this.get(userId, id);
-    if (campaign.status !== 'draft' && campaign.status !== 'scheduled') {
-      throw new AppError('Campaign must be in draft or scheduled status to launch', 400);
+    if (!['draft', 'scheduled', 'running', 'paused'].includes(campaign.status)) {
+      throw new AppError('Campaign cannot be launched from its current status (' + campaign.status + ')', 400);
     }
 
     // Validate steps exist
