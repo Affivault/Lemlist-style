@@ -158,6 +158,37 @@ export function CampaignCreatePage() {
     }
   }, [campaignContacts]);
 
+  const [launching, setLaunching] = useState(false);
+  const [showLaunchConfirm, setShowLaunchConfirm] = useState(false);
+
+  const saveCampaign = async (): Promise<string | null> => {
+    try {
+      const campaign = isEdit
+        ? await campaignsApi.update(id!, campaignForm)
+        : await campaignsApi.create(campaignForm);
+      const campaignId = isEdit ? id! : campaign.id;
+
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const stepData = { ...step, step_order: i };
+        if (step.id && isEdit) {
+          await campaignsApi.updateStep(campaignId, step.id, stepData);
+        } else {
+          await campaignsApi.addStep(campaignId, stepData);
+        }
+      }
+
+      if (selectedContactIds.length > 0) {
+        await campaignsApi.addContacts(campaignId, selectedContactIds);
+      }
+
+      return campaignId;
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to save');
+      return null;
+    }
+  };
+
   const createCampaignMutation = useMutation({
     mutationFn: (input: CreateCampaignInput) =>
       isEdit ? campaignsApi.update(id!, input) : campaignsApi.create(input),
@@ -184,6 +215,27 @@ export function CampaignCreatePage() {
     },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to save'),
   });
+
+  const handleSaveAndLaunch = async () => {
+    if (!campaignForm.name) {
+      toast.error('Campaign name is required');
+      setWizardStep(0);
+      return;
+    }
+    setLaunching(true);
+    try {
+      const campaignId = await saveCampaign();
+      if (!campaignId) { setLaunching(false); return; }
+      await campaignsApi.launch(campaignId);
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success('Campaign launched!');
+      navigate(`/campaigns/${campaignId}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to launch');
+    }
+    setLaunching(false);
+    setShowLaunchConfirm(false);
+  };
 
   const updateStep = (index: number, updates: Partial<CreateStepInput>) => {
     setSteps(steps.map((s, i) => (i === index ? { ...s, ...updates } : s)));
@@ -607,20 +659,39 @@ export function CampaignCreatePage() {
                   {/* A/B Subject Variant */}
                   <div className="border border-subtle rounded-md p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-medium text-secondary">A/B Subject (optional)</p>
+                      <p className="text-xs font-medium text-secondary">A/B Subject Testing (optional)</p>
+                      {(steps[editingStep] as any).subject_b && (
+                        <button
+                          type="button"
+                          onClick={() => setSteps(steps.map((s, i) => i === editingStep ? { ...s, subject_b: '' } as any : s))}
+                          className="text-xs text-tertiary hover:text-primary transition-colors"
+                        >
+                          Clear
+                        </button>
+                      )}
                     </div>
-                    <input
-                      type="text"
-                      value={(steps[editingStep] as any).subject_b || ''}
-                      onChange={(e) => updateStep(editingStep, { subject: steps[editingStep].subject, body_html: steps[editingStep].body_html } as any)}
-                      onChangeCapture={(e) => {
-                        const val = (e.target as HTMLInputElement).value;
-                        setSteps(steps.map((s, i) => i === editingStep ? { ...s, subject_b: val } as any : s));
-                      }}
-                      placeholder="Variant B subject line (50/50 split)"
-                      className="w-full rounded-md border border-default bg-surface px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
-                    />
-                    <p className="text-xs text-tertiary mt-1">If set, 50% of contacts will get this subject line instead.</p>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-xs text-tertiary mb-1">Variant A (primary)</label>
+                        <div className="rounded-md border border-default bg-elevated px-3 py-1.5 text-xs text-secondary truncate">
+                          {steps[editingStep].subject || 'No subject set'}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-tertiary mb-1">Variant B</label>
+                        <input
+                          type="text"
+                          value={(steps[editingStep] as any).subject_b || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSteps(steps.map((s, i) => i === editingStep ? { ...s, subject_b: val } as any : s));
+                          }}
+                          placeholder="Enter alternate subject line..."
+                          className="w-full rounded-md border border-default bg-surface px-3 py-1.5 text-xs text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-tertiary mt-2">50/50 split: half your contacts get Variant A, half get Variant B.</p>
                   </div>
 
                   {/* Send Test Email */}
@@ -919,13 +990,45 @@ export function CampaignCreatePage() {
                 <ArrowLeft className="h-4 w-4" />
                 Back: Contacts
               </Button>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={handleSave} disabled={createCampaignMutation.isPending}>
+              <div className="flex gap-3">
+                <Button variant="secondary" onClick={handleSave} disabled={createCampaignMutation.isPending || launching}>
                   <Save className="h-4 w-4" />
                   {createCampaignMutation.isPending ? 'Saving...' : 'Save Draft'}
                 </Button>
+                <Button
+                  onClick={() => warnings.length > 0 ? toast.error('Resolve all issues before launching') : setShowLaunchConfirm(true)}
+                  disabled={launching || createCampaignMutation.isPending}
+                >
+                  <Rocket className="h-4 w-4" />
+                  {launching ? 'Launching...' : 'Save & Launch'}
+                </Button>
               </div>
             </div>
+
+            {/* Launch Confirmation Modal */}
+            <Modal isOpen={showLaunchConfirm} onClose={() => setShowLaunchConfirm(false)} title="Launch Campaign">
+              <div className="space-y-4">
+                <p className="text-sm text-secondary">
+                  You're about to launch <strong>{campaignForm.name}</strong>. This will start sending emails to{' '}
+                  <strong>{selectedContactIds.length} contacts</strong> with{' '}
+                  <strong>{emailSteps.length} email step{emailSteps.length !== 1 ? 's' : ''}</strong>.
+                </p>
+                <div className="rounded-md bg-elevated p-3 text-xs text-secondary space-y-1">
+                  <p>Sending window: {campaignForm.send_window_start} – {campaignForm.send_window_end} ({campaignForm.timezone})</p>
+                  <p>Daily limit: {campaignForm.daily_limit || 'Unlimited'}</p>
+                  <p>Stop on reply: {campaignForm.stop_on_reply !== false ? 'Yes' : 'No'}</p>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="secondary" onClick={() => setShowLaunchConfirm(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveAndLaunch} disabled={launching}>
+                    <Rocket className="h-4 w-4" />
+                    {launching ? 'Launching...' : 'Confirm & Launch'}
+                  </Button>
+                </div>
+              </div>
+            </Modal>
           </div>
         );
       })()}

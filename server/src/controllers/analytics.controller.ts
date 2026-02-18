@@ -5,7 +5,16 @@ import { analyticsService } from '../services/analytics.service.js';
 export const analyticsController = {
   async overview(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const data = await analyticsService.overview(req.userId!);
+      const days = req.query.days ? parseInt(req.query.days as string) : undefined;
+      const data = await analyticsService.overview(req.userId!, days);
+      res.json(data);
+    } catch (err) { next(err); }
+  },
+
+  async trend(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : 30;
+      const data = await analyticsService.trend(req.userId!, days);
       res.json(data);
     } catch (err) { next(err); }
   },
@@ -21,6 +30,25 @@ export const analyticsController = {
     try {
       const data = await analyticsService.campaignContacts(req.userId!, req.params.campaignId);
       res.json(data);
+    } catch (err) { next(err); }
+  },
+
+  async exportCampaignReport(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const csv = await analyticsService.exportCampaignReport(req.userId!, req.params.campaignId);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="campaign-report-${req.params.campaignId}.csv"`);
+      res.send(csv);
+    } catch (err) { next(err); }
+  },
+
+  async exportOverviewReport(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : undefined;
+      const csv = await analyticsService.exportOverviewReport(req.userId!, days);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="overview-report.csv"');
+      res.send(csv);
     } catch (err) { next(err); }
   },
 
