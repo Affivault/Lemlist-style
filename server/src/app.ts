@@ -36,8 +36,28 @@ app.get('/health', async (_req, res) => {
   const diagnostics: Record<string, any> = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: 'v6-pure-smtp',
+    version: 'v7-smtp-relay',
   };
+
+  // Check SMTP relay config
+  const { env: envConfig } = await import('./config/env.js');
+  diagnostics.smtp_relay = envConfig.SMTP_RELAY_URL
+    ? { configured: true, url: envConfig.SMTP_RELAY_URL }
+    : { configured: false, note: 'SMTP_RELAY_URL not set — using direct SMTP (blocked on Render free tier)' };
+
+  // Ping the relay if configured
+  if (envConfig.SMTP_RELAY_URL) {
+    try {
+      const healthUrl = envConfig.SMTP_RELAY_URL.replace('/api/send-email', '/api/health');
+      const relayResp = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) });
+      const relayData = await relayResp.json() as any;
+      diagnostics.smtp_relay.reachable = true;
+      diagnostics.smtp_relay.relay_status = relayData;
+    } catch (err: any) {
+      diagnostics.smtp_relay.reachable = false;
+      diagnostics.smtp_relay.relay_error = err.message;
+    }
+  }
 
   // Check Redis
   try {
@@ -148,6 +168,14 @@ app.post('/debug/send-email', async (req, res) => {
     } catch (err: any) {
       steps.push(`4. FAIL: Password decrypt error: ${err.message}`);
       return res.json({ success: false, steps });
+    }
+
+    // Check relay config
+    const { env: envCfg } = await import('./config/env.js');
+    if (envCfg.SMTP_RELAY_URL && envCfg.SMTP_RELAY_SECRET) {
+      steps.push(`5. SMTP relay configured: ${envCfg.SMTP_RELAY_URL}`);
+    } else {
+      steps.push('5. WARNING: SMTP relay NOT configured (SMTP_RELAY_URL/SMTP_RELAY_SECRET missing) — using direct SMTP which may be blocked on Render');
     }
 
     // Send test email via relay or direct SMTP
