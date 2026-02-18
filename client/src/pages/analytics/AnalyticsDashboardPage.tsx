@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../../api/analytics.api';
+import type { TrendDataPoint } from '../../api/analytics.api';
 import { campaignsApi } from '../../api/campaigns.api';
+import { apiClient } from '../../api/client';
 import { Spinner } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
 import { useTheme } from '../../context/ThemeContext';
@@ -31,6 +33,7 @@ import {
   TrendingUp,
   TrendingDown,
   ChevronDown,
+  Download,
 } from 'lucide-react';
 
 /* Monochrome palette for charts — separate light and dark palettes */
@@ -56,18 +59,18 @@ const tooltipItemStyle = {
   fontSize: '13px',
 };
 
+const DATE_RANGE_MAP = { '7d': 7, '30d': 30, '90d': 90 } as const;
+
 function StatCard({
   icon: Icon,
   label,
   value,
   rate,
-  trend,
 }: {
   icon: React.ElementType;
   label: string;
   value: number;
   rate?: number;
-  trend?: number;
 }) {
   return (
     <div
@@ -80,23 +83,6 @@ function StatCard({
         >
           <Icon className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={1.5} />
         </div>
-        {trend !== undefined && (
-          <span
-            className={`inline-flex items-center gap-0.5 px-2 py-0.5 text-xs font-semibold rounded-full ${
-              trend >= 0
-                ? 'bg-[var(--success-bg)] text-[var(--success)]'
-                : 'bg-[var(--error-bg)] text-[var(--error)]'
-            }`}
-          >
-            {trend >= 0 ? (
-              <TrendingUp className="h-3 w-3" />
-            ) : (
-              <TrendingDown className="h-3 w-3" />
-            )}
-            {trend >= 0 ? '+' : ''}
-            {trend}%
-          </span>
-        )}
       </div>
 
       <div className="relative">
@@ -181,6 +167,21 @@ function EngagementRing({ data, colors }: { data: { name: string; value: number 
   );
 }
 
+async function downloadReport(url: string, filename: string) {
+  try {
+    const resp = await apiClient.get(url, { responseType: 'blob' });
+    const blob = new Blob([resp.data], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  } catch {
+    // Fallback: open in new tab
+    window.open(url, '_blank');
+  }
+}
+
 export function AnalyticsDashboardPage() {
   const { theme } = useTheme();
   const COLORS = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
@@ -189,10 +190,16 @@ export function AnalyticsDashboardPage() {
 
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const days = DATE_RANGE_MAP[dateRange];
 
   const { data: overview, isLoading: overviewLoading } = useQuery({
-    queryKey: ['analytics', 'overview'],
-    queryFn: analyticsApi.overview,
+    queryKey: ['analytics', 'overview', days],
+    queryFn: () => analyticsApi.overview(days),
+  });
+
+  const { data: trendData } = useQuery({
+    queryKey: ['analytics', 'trend', days],
+    queryFn: () => analyticsApi.trend(days),
   });
 
   const { data: campaignsData } = useQuery({
@@ -232,24 +239,24 @@ export function AnalyticsDashboardPage() {
       ]
     : [], [campaignAnalytics, COLORS, theme]);
 
-  const trendData = [
-    { day: 'Mon', sent: 45, opened: 32, clicked: 12 },
-    { day: 'Tue', sent: 52, opened: 38, clicked: 18 },
-    { day: 'Wed', sent: 61, opened: 45, clicked: 22 },
-    { day: 'Thu', sent: 48, opened: 35, clicked: 15 },
-    { day: 'Fri', sent: 55, opened: 42, clicked: 20 },
-    { day: 'Sat', sent: 23, opened: 15, clicked: 8 },
-    { day: 'Sun', sent: 18, opened: 12, clicked: 5 },
-  ];
+  // Format trend data for the chart - show date labels
+  const formattedTrend = useMemo(() => {
+    if (!trendData || trendData.length === 0) return [];
+    return trendData.map((d: TrendDataPoint) => ({
+      ...d,
+      label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+    }));
+  }, [trendData]);
 
   const pieData = overview
     ? [
         { name: 'Opened', value: overview.total_opened },
         { name: 'Clicked', value: overview.total_clicked },
         { name: 'Replied', value: overview.total_replied },
-        { name: 'Bounced', value: overview.total_sent - overview.total_opened - overview.total_clicked - overview.total_replied > 0
-            ? Math.max(0, overview.total_sent - overview.total_opened)
-            : 0 },
+        { name: 'No engagement', value: Math.max(0, overview.total_sent - overview.total_opened) },
       ].filter((d) => d.value > 0)
     : [];
 
@@ -269,26 +276,35 @@ export function AnalyticsDashboardPage() {
             Monitor performance, engagement, and delivery metrics across all your campaigns.
           </p>
         </div>
-        <div className="flex items-center">
-          <div className="tab-bar border-b-0 gap-0">
-            {dateRangeOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setDateRange(opt.value)}
-                className={`tab-item text-xs px-3 py-2 ${
-                  dateRange === opt.value ? 'active' : ''
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="ml-3 pl-3 border-l border-[var(--border-subtle)]">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
-              <Calendar className="h-3.5 w-3.5" />
-              <span className="text-xs font-medium">
-                Last {dateRange === '7d' ? '7' : dateRange === '30d' ? '30' : '90'} days
-              </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => downloadReport(`/analytics/export/overview?days=${days}`, `overview-report-${dateRange}.csv`)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export
+          </button>
+          <div className="flex items-center">
+            <div className="tab-bar border-b-0 gap-0">
+              {dateRangeOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setDateRange(opt.value)}
+                  className={`tab-item text-xs px-3 py-2 ${
+                    dateRange === opt.value ? 'active' : ''
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <div className="ml-3 pl-3 border-l border-[var(--border-subtle)]">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
+                <Calendar className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">
+                  Last {dateRange === '7d' ? '7' : dateRange === '30d' ? '30' : '90'} days
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -301,28 +317,24 @@ export function AnalyticsDashboardPage() {
             icon={Send}
             label="Total Sent"
             value={overview.total_sent}
-            trend={12}
           />
           <StatCard
             icon={Mail}
             label="Opened"
             value={overview.total_opened}
             rate={overview.avg_open_rate}
-            trend={8}
           />
           <StatCard
             icon={MousePointerClick}
             label="Clicked"
             value={overview.total_clicked}
             rate={overview.avg_click_rate}
-            trend={-3}
           />
           <StatCard
             icon={MessageSquare}
             label="Replied"
             value={overview.total_replied}
             rate={overview.avg_reply_rate}
-            trend={15}
           />
           <StatCard
             icon={Target}
@@ -341,9 +353,9 @@ export function AnalyticsDashboardPage() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-heading-sm text-[var(--text-primary)]">Weekly Performance</h3>
+              <h3 className="text-heading-sm text-[var(--text-primary)]">Performance Trend</h3>
               <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                Email sends vs. opens over time
+                Email activity over the last {days} days
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -358,65 +370,81 @@ export function AnalyticsDashboardPage() {
             </div>
           </div>
           <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData}>
-                <defs>
-                  <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={primaryChartColor} stopOpacity={0.15} />
-                    <stop offset="95%" stopColor={primaryChartColor} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={secondaryChartColor} stopOpacity={0.15} />
-                    <stop offset="95%" stopColor={secondaryChartColor} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
-                  dy={8}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
-                  dx={-8}
-                />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  itemStyle={tooltipItemStyle}
-                  labelStyle={tooltipLabelStyle}
-                  cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="sent"
-                  stroke={primaryChartColor}
-                  strokeWidth={2.5}
-                  fill="url(#colorSent)"
-                  name="Sent"
-                  dot={false}
-                  activeDot={{ r: 5, fill: primaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="opened"
-                  stroke={secondaryChartColor}
-                  strokeWidth={2.5}
-                  fill="url(#colorOpened)"
-                  name="Opened"
-                  dot={false}
-                  activeDot={{ r: 5, fill: secondaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {formattedTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={formattedTrend}>
+                  <defs>
+                    <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={primaryChartColor} stopOpacity={0.15} />
+                      <stop offset="95%" stopColor={primaryChartColor} stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={secondaryChartColor} stopOpacity={0.15} />
+                      <stop offset="95%" stopColor={secondaryChartColor} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
+                    dy={8}
+                    interval={days <= 7 ? 0 : days <= 30 ? 4 : 13}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
+                    dx={-8}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    itemStyle={tooltipItemStyle}
+                    labelStyle={tooltipLabelStyle}
+                    cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="sent"
+                    stroke={primaryChartColor}
+                    strokeWidth={2.5}
+                    fill="url(#colorSent)"
+                    name="Sent"
+                    dot={false}
+                    activeDot={{ r: 5, fill: primaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="opened"
+                    stroke={secondaryChartColor}
+                    strokeWidth={2.5}
+                    fill="url(#colorOpened)"
+                    name="Opened"
+                    dot={false}
+                    activeDot={{ r: 5, fill: secondaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">
+                No activity data for this period
+              </div>
+            )}
           </div>
         </div>
 
         {/* Engagement ring */}
-        {pieData.length > 0 && <EngagementRing data={pieData} colors={COLORS} />}
+        {pieData.length > 0 ? (
+          <EngagementRing data={pieData} colors={COLORS} />
+        ) : (
+          <div
+            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 flex items-center justify-center"
+            style={{ boxShadow: 'var(--shadow-card)' }}
+          >
+            <p className="text-sm text-[var(--text-tertiary)]">No engagement data yet</p>
+          </div>
+        )}
       </div>
 
       {/* Campaign Deep Dive */}
@@ -432,20 +460,31 @@ export function AnalyticsDashboardPage() {
                 Select a campaign to view detailed analytics
               </p>
             </div>
-            <div className="relative">
-              <select
-                value={selectedCampaignId}
-                onChange={(e) => setSelectedCampaignId(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--text-primary)] min-w-[220px] transition-all duration-200 cursor-pointer"
-              >
-                <option value="">Choose a campaign...</option>
-                {campaigns.map((c: any) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-tertiary)] pointer-events-none" />
+            <div className="flex items-center gap-3">
+              {selectedCampaignId && (
+                <button
+                  onClick={() => downloadReport(`/analytics/export/campaigns/${selectedCampaignId}`, `campaign-report.csv`)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Export Report
+                </button>
+              )}
+              <div className="relative">
+                <select
+                  value={selectedCampaignId}
+                  onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  className="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--text-primary)] min-w-[220px] transition-all duration-200 cursor-pointer"
+                >
+                  <option value="">Choose a campaign...</option>
+                  {campaigns.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-tertiary)] pointer-events-none" />
+              </div>
             </div>
           </div>
         </div>

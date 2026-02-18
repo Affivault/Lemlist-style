@@ -1,9 +1,26 @@
 import { apiClient } from './client';
 import type { CampaignAnalytics, OverviewAnalytics, ContactActivityItem } from '@lemlist/shared';
 
+export interface TrendDataPoint {
+  date: string;
+  sent: number;
+  opened: number;
+  clicked: number;
+  replied: number;
+}
+
 export const analyticsApi = {
-  overview: async () => {
-    const { data } = await apiClient.get<OverviewAnalytics>('/analytics/overview');
+  overview: async (days?: number) => {
+    const { data } = await apiClient.get<OverviewAnalytics>('/analytics/overview', {
+      params: days ? { days } : undefined,
+    });
+    return data;
+  },
+
+  trend: async (days: number = 30) => {
+    const { data } = await apiClient.get<TrendDataPoint[]>('/analytics/trend', {
+      params: { days },
+    });
     return data;
   },
 
@@ -30,5 +47,15 @@ export const analyticsApi = {
   contactTimeline: async (contactId: string) => {
     const { data } = await apiClient.get<ContactActivityItem[]>(`/analytics/contacts/${contactId}/timeline`);
     return data;
+  },
+
+  exportOverviewReport: (days?: number) => {
+    const params = new URLSearchParams();
+    if (days) params.set('days', String(days));
+    return `${apiClient.defaults.baseURL}/analytics/export/overview${params.toString() ? '?' + params.toString() : ''}`;
+  },
+
+  exportCampaignReport: (campaignId: string) => {
+    return `${apiClient.defaults.baseURL}/analytics/export/campaigns/${campaignId}`;
   },
 };
