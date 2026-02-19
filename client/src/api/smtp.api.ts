@@ -35,4 +35,16 @@ export const smtpApi = {
     const { data } = await apiClient.post<{ success: boolean; message?: string; error?: string }>(`/smtp-accounts/${smtpAccountId}/send-test`, input);
     return data;
   },
+
+  checkDomain: async (domain: string) => {
+    const { data } = await apiClient.post<{
+      domain: string;
+      mx: { found: boolean; records: Array<{ exchange: string; priority: number }> };
+      spf: { found: boolean; record: string | null; valid: boolean };
+      dkim: { found: boolean; note: string };
+      dmarc: { found: boolean; record: string | null; policy: string | null };
+      provider_hint: string | null;
+    }>('/smtp-accounts/check-domain', { domain });
+    return data;
+  },
 };
