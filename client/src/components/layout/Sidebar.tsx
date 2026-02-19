@@ -7,7 +7,7 @@ import {
   BarChart3,
   Settings,
   Bot,
-  Layers,
+  FileText,
   Webhook,
   Send,
   Globe,
@@ -23,6 +23,7 @@ import { SkySendLogo, SkySendLogoMark } from '../SkySendLogo';
 const mainNav = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
+  { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Inbox', href: '/inbox', icon: Inbox },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
@@ -36,7 +37,6 @@ const toolsNav = [
 const settingsNav = [
   { name: 'SMTP Accounts', href: '/smtp-accounts', icon: Send },
   { name: 'Domains', href: '/domains', icon: Globe },
-  { name: 'Assets', href: '/assets', icon: Layers },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
