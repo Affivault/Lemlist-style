@@ -15,6 +15,7 @@ import { assetRoutes } from './asset.routes.js';
 import { verificationRoutes } from './verification.routes.js';
 import { webhookRoutes } from './webhook.routes.js';
 import { apikeyRoutes } from './apikey.routes.js';
+import { domainRoutes } from './domain.routes.js';
 
 export const routes = Router();
 
@@ -37,3 +38,4 @@ routes.use('/assets', assetRoutes);
 routes.use('/verification', verificationRoutes);
 routes.use('/webhooks', webhookRoutes);
 routes.use('/api-keys', apikeyRoutes);
+routes.use('/domains', domainRoutes);

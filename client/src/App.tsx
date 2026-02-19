@@ -19,6 +19,7 @@ import { SaraQueuePage } from './pages/sara/SaraQueuePage';
 import { SseDashboardPage } from './pages/sse/SseDashboardPage';
 import { AssetBuilderPage } from './pages/assets/AssetBuilderPage';
 import { DeveloperPage } from './pages/developer/DeveloperPage';
+import { DomainsPage } from './pages/domains/DomainsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -101,6 +102,7 @@ export default function App() {
         <Route path="/campaigns/:id/edit" element={<CampaignCreatePage />} />
         <Route path="/smtp-accounts" element={<SmtpAccountsPage />} />
         <Route path="/smtp-accounts/guide" element={<SmtpGuidePage />} />
+        <Route path="/domains" element={<DomainsPage />} />
         <Route path="/analytics" element={<AnalyticsDashboardPage />} />
         <Route path="/inbox" element={<InboxPage />} />
         <Route path="/sara" element={<SaraQueuePage />} />
