@@ -10,3 +10,4 @@ smtpRoutes.put('/:id', smtpController.update);
 smtpRoutes.delete('/:id', smtpController.delete);
 smtpRoutes.post('/:id/test', smtpController.test);
 smtpRoutes.post('/:id/send-test', smtpController.sendTestEmail);
+smtpRoutes.post('/check-domain', smtpController.checkDomain);

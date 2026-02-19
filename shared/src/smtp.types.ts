@@ -71,6 +71,16 @@ export interface SmtpPreset {
   imap_host: string;
   imap_port: number;
   imap_secure: boolean;
+  /** Domains that map to this provider (for auto-detection) */
+  domains?: string[];
+  /** Default username format hint */
+  username_hint?: string;
+  /** Password type hint */
+  password_hint?: string;
+  /** Whether this provider requires domain DNS setup */
+  requires_domain_setup?: boolean;
+  /** Default daily send limit recommendation */
+  recommended_daily_limit?: number;
 }
 
 export const SMTP_PRESETS: SmtpPreset[] = [
@@ -82,6 +92,23 @@ export const SMTP_PRESETS: SmtpPreset[] = [
     imap_host: 'imap.gmail.com',
     imap_port: 993,
     imap_secure: true,
+    domains: ['gmail.com'],
+    username_hint: 'Your full Gmail address',
+    password_hint: '16-character App Password',
+    recommended_daily_limit: 500,
+  },
+  {
+    name: 'Google Workspace',
+    smtp_host: 'smtp.gmail.com',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: 'imap.gmail.com',
+    imap_port: 993,
+    imap_secure: true,
+    domains: [],
+    username_hint: 'Your workspace email',
+    password_hint: '16-character App Password',
+    recommended_daily_limit: 2000,
   },
   {
     name: 'Outlook / Microsoft 365',
@@ -91,6 +118,10 @@ export const SMTP_PRESETS: SmtpPreset[] = [
     imap_host: 'outlook.office365.com',
     imap_port: 993,
     imap_secure: true,
+    domains: ['outlook.com', 'hotmail.com', 'live.com'],
+    username_hint: 'Your full email address',
+    password_hint: 'Your account password',
+    recommended_daily_limit: 300,
   },
   {
     name: 'Yahoo Mail',
@@ -100,5 +131,120 @@ export const SMTP_PRESETS: SmtpPreset[] = [
     imap_host: 'imap.mail.yahoo.com',
     imap_port: 993,
     imap_secure: true,
+    domains: ['yahoo.com', 'yahoo.co.uk'],
+    username_hint: 'Your full Yahoo email',
+    password_hint: 'App-specific password',
+    recommended_daily_limit: 200,
+  },
+  {
+    name: 'Zoho Mail',
+    smtp_host: 'smtp.zoho.com',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: 'imap.zoho.com',
+    imap_port: 993,
+    imap_secure: true,
+    domains: ['zoho.com', 'zohomail.com'],
+    username_hint: 'Your full Zoho email',
+    password_hint: 'App-specific password',
+    recommended_daily_limit: 200,
+  },
+  {
+    name: 'SendGrid',
+    smtp_host: 'smtp.sendgrid.net',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: '',
+    imap_port: 993,
+    imap_secure: true,
+    domains: [],
+    username_hint: 'Always use "apikey"',
+    password_hint: 'Your SendGrid API key',
+    requires_domain_setup: true,
+    recommended_daily_limit: 10000,
+  },
+  {
+    name: 'Mailgun',
+    smtp_host: 'smtp.mailgun.org',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: '',
+    imap_port: 993,
+    imap_secure: true,
+    domains: [],
+    username_hint: 'postmaster@your-domain.com',
+    password_hint: 'SMTP password from Mailgun dashboard',
+    requires_domain_setup: true,
+    recommended_daily_limit: 10000,
+  },
+  {
+    name: 'Amazon SES',
+    smtp_host: 'email-smtp.us-east-1.amazonaws.com',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: '',
+    imap_port: 993,
+    imap_secure: true,
+    domains: [],
+    username_hint: 'SMTP IAM username',
+    password_hint: 'SMTP IAM password (not AWS secret key)',
+    requires_domain_setup: true,
+    recommended_daily_limit: 50000,
+  },
+  {
+    name: 'Fastmail',
+    smtp_host: 'smtp.fastmail.com',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: 'imap.fastmail.com',
+    imap_port: 993,
+    imap_secure: true,
+    domains: ['fastmail.com', 'fastmail.fm'],
+    username_hint: 'Your full Fastmail email',
+    password_hint: 'App-specific password',
+    recommended_daily_limit: 300,
+  },
+  {
+    name: 'iCloud Mail',
+    smtp_host: 'smtp.mail.me.com',
+    smtp_port: 587,
+    smtp_secure: false,
+    imap_host: 'imap.mail.me.com',
+    imap_port: 993,
+    imap_secure: true,
+    domains: ['icloud.com', 'me.com', 'mac.com'],
+    username_hint: 'Your Apple ID email',
+    password_hint: 'App-specific password',
+    recommended_daily_limit: 200,
+  },
+  {
+    name: 'ProtonMail Bridge',
+    smtp_host: '127.0.0.1',
+    smtp_port: 1025,
+    smtp_secure: false,
+    imap_host: '127.0.0.1',
+    imap_port: 1143,
+    imap_secure: false,
+    domains: ['protonmail.com', 'proton.me', 'pm.me'],
+    username_hint: 'Your ProtonMail address',
+    password_hint: 'Bridge-generated password',
+    recommended_daily_limit: 150,
   },
 ];
+
+/** Auto-detect SMTP preset from email domain */
+export function detectPresetFromEmail(email: string): SmtpPreset | null {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return null;
+
+  // Check exact domain match first
+  for (const preset of SMTP_PRESETS) {
+    if (preset.domains?.includes(domain)) {
+      return preset;
+    }
+  }
+
+  // For custom domains, suggest Google Workspace if MX points to google
+  // (this is a hint — actual detection would need DNS lookup)
+  return null;
+}

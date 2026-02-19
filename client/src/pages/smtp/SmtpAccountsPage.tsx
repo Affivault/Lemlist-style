@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { smtpApi } from '../../api/smtp.api';
@@ -21,10 +21,12 @@ import {
   ArrowRight,
   Settings,
   ExternalLink,
+  Globe,
+  Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { SmtpAccount, CreateSmtpAccountInput } from '@lemlist/shared';
-import { SMTP_PRESETS } from '@lemlist/shared';
+import type { SmtpAccount, CreateSmtpAccountInput, SmtpPreset } from '@lemlist/shared';
+import { SMTP_PRESETS, detectPresetFromEmail } from '@lemlist/shared';
 
 const emptyForm: CreateSmtpAccountInput = {
   label: '',
@@ -37,31 +39,89 @@ const emptyForm: CreateSmtpAccountInput = {
   daily_send_limit: 200,
 };
 
-const GMAIL_FORM: CreateSmtpAccountInput = {
-  label: 'Gmail',
-  email_address: '',
-  smtp_host: 'smtp.gmail.com',
-  smtp_port: 587,
-  smtp_secure: false,
-  smtp_user: '',
-  smtp_pass: '',
-  imap_host: 'imap.gmail.com',
-  imap_port: 993,
-  imap_secure: true,
-  daily_send_limit: 200,
-};
+interface QuickConnectProvider {
+  preset: SmtpPreset;
+  icon: React.ReactNode;
+  description: string;
+}
+
+const QUICK_PROVIDERS: QuickConnectProvider[] = [
+  {
+    preset: SMTP_PRESETS.find(p => p.name === 'Gmail')!,
+    icon: (
+      <svg className="h-5 w-5" viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+      </svg>
+    ),
+    description: 'Gmail or Google Workspace',
+  },
+  {
+    preset: SMTP_PRESETS.find(p => p.name === 'Outlook / Microsoft 365')!,
+    icon: (
+      <svg className="h-5 w-5" viewBox="0 0 24 24">
+        <path d="M24 7.387v10.478c0 .23-.08.424-.238.576a.806.806 0 0 1-.587.234h-8.55V6.576h8.55c.229 0 .424.078.587.234A.772.772 0 0 1 24 7.387z" fill="#0078D4" />
+        <path d="M14.625 6.576v12.1L0 16.75V3.45l14.625 3.126z" fill="#0364B8" />
+        <path d="M9.875 9.45c-.5-.3-1.075-.45-1.725-.45-.725 0-1.325.2-1.8.6-.475.4-.712.912-.712 1.537 0 .625.237 1.137.712 1.538.475.4 1.075.6 1.8.6.65 0 1.225-.15 1.725-.45v1.4c-.55.25-1.175.375-1.875.375-1.1 0-2-.35-2.7-1.05-.7-.7-1.05-1.55-1.05-2.55 0-.95.363-1.763 1.088-2.438C5.963 7.688 6.838 7.35 7.863 7.35c.737 0 1.387.137 1.95.412L9.875 9.45z" fill="white" />
+      </svg>
+    ),
+    description: 'Outlook, Hotmail, or Microsoft 365',
+  },
+  {
+    preset: SMTP_PRESETS.find(p => p.name === 'SendGrid')!,
+    icon: (
+      <div className="flex items-center justify-center w-5 h-5 rounded bg-blue-600 text-white text-xs font-bold">SG</div>
+    ),
+    description: 'Transactional email with API key',
+  },
+  {
+    preset: SMTP_PRESETS.find(p => p.name === 'Zoho Mail')!,
+    icon: (
+      <div className="flex items-center justify-center w-5 h-5 rounded bg-green-600 text-white text-xs font-bold">Z</div>
+    ),
+    description: 'Zoho Mail or Zoho Workplace',
+  },
+];
+
+function presetToForm(preset: SmtpPreset): CreateSmtpAccountInput {
+  return {
+    label: preset.name,
+    email_address: '',
+    smtp_host: preset.smtp_host,
+    smtp_port: preset.smtp_port,
+    smtp_secure: preset.smtp_secure,
+    smtp_user: '',
+    smtp_pass: '',
+    imap_host: preset.imap_host || undefined,
+    imap_port: preset.imap_port || undefined,
+    imap_secure: preset.imap_secure || undefined,
+    daily_send_limit: preset.recommended_daily_limit || 200,
+  };
+}
 
 export function SmtpAccountsPage() {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
-  const [showGmailGuide, setShowGmailGuide] = useState(false);
+  const [activePreset, setActivePreset] = useState<SmtpPreset | null>(null);
   const [form, setForm] = useState<CreateSmtpAccountInput>({ ...emptyForm });
   const [editId, setEditId] = useState<string | null>(null);
+  const [autoDetected, setAutoDetected] = useState(false);
 
-  const handleQuickConnect = () => {
-    setForm({ ...GMAIL_FORM });
+  const handleQuickConnect = (provider: QuickConnectProvider) => {
+    setForm(presetToForm(provider.preset));
+    setActivePreset(provider.preset);
+    setAutoDetected(false);
     setEditId(null);
-    setShowGmailGuide(true);
+    setShowModal(true);
+  };
+
+  const handleAddCustom = () => {
+    setForm({ ...emptyForm });
+    setActivePreset(null);
+    setAutoDetected(false);
+    setEditId(null);
     setShowModal(true);
   };
 
@@ -109,14 +169,16 @@ export function SmtpAccountsPage() {
 
   const closeModal = () => {
     setShowModal(false);
-    setShowGmailGuide(false);
+    setActivePreset(null);
+    setAutoDetected(false);
     setEditId(null);
     setForm({ ...emptyForm });
   };
 
   const openEdit = (account: SmtpAccount) => {
     setEditId(account.id);
-    setShowGmailGuide(false);
+    setActivePreset(null);
+    setAutoDetected(false);
     setForm({
       label: account.label,
       email_address: account.email_address,
@@ -136,21 +198,55 @@ export function SmtpAccountsPage() {
   const applyPreset = (presetName: string) => {
     const preset = SMTP_PRESETS.find((p) => p.name === presetName);
     if (preset) {
+      setActivePreset(preset);
       setForm((prev) => ({
         ...prev,
         smtp_host: preset.smtp_host,
         smtp_port: preset.smtp_port,
         smtp_secure: preset.smtp_secure,
-        imap_host: preset.imap_host,
-        imap_port: preset.imap_port,
-        imap_secure: preset.imap_secure,
+        imap_host: preset.imap_host || undefined,
+        imap_port: preset.imap_port || undefined,
+        imap_secure: preset.imap_secure || undefined,
+        daily_send_limit: preset.recommended_daily_limit || prev.daily_send_limit,
       }));
+    } else {
+      setActivePreset(null);
     }
   };
 
+  /** Auto-detect provider from email as user types */
+  const handleEmailChange = useCallback((email: string) => {
+    setForm((prev) => ({ ...prev, email_address: email, smtp_user: email }));
+
+    // Only auto-detect if user hasn't already selected a preset manually
+    if (!activePreset || autoDetected) {
+      const detected = detectPresetFromEmail(email);
+      if (detected) {
+        setActivePreset(detected);
+        setAutoDetected(true);
+        setForm((prev) => ({
+          ...prev,
+          email_address: email,
+          smtp_user: email,
+          label: prev.label || detected.name,
+          smtp_host: detected.smtp_host,
+          smtp_port: detected.smtp_port,
+          smtp_secure: detected.smtp_secure,
+          imap_host: detected.imap_host || undefined,
+          imap_port: detected.imap_port || undefined,
+          imap_secure: detected.imap_secure || undefined,
+          daily_send_limit: detected.recommended_daily_limit || prev.daily_send_limit,
+        }));
+      } else if (autoDetected) {
+        // Clear auto-detection if email changed away from a known domain
+        setActivePreset(null);
+        setAutoDetected(false);
+      }
+    }
+  }, [activePreset, autoDetected]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Auto-fill smtp_user from email_address if empty
     const submitForm = {
       ...form,
       smtp_user: form.smtp_user || form.email_address,
@@ -170,6 +266,10 @@ export function SmtpAccountsPage() {
     );
   }
 
+  const isQuickMode = activePreset && !editId;
+  const passwordLabel = activePreset?.password_hint || 'Password';
+  const passwordPlaceholder = activePreset?.password_hint || (editId ? 'Leave blank to keep current' : 'Enter password or app key');
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -186,7 +286,7 @@ export function SmtpAccountsPage() {
             <HelpCircle className="h-4 w-4" />
             Setup Guide
           </Link>
-          <Button variant="primary" onClick={() => { setShowGmailGuide(false); setShowModal(true); }}>
+          <Button variant="primary" onClick={handleAddCustom}>
             <Plus className="h-4 w-4" />
             Add Account
           </Button>
@@ -197,32 +297,37 @@ export function SmtpAccountsPage() {
       <div className="rounded-lg border border-subtle bg-surface p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-medium text-primary">Quick Connect</h2>
-            <p className="text-sm text-secondary mt-0.5">Connect your Gmail in under 2 minutes</p>
+            <h2 className="text-sm font-medium text-primary flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Quick Connect
+            </h2>
+            <p className="text-sm text-secondary mt-0.5">Pre-configured settings for popular providers</p>
           </div>
-          <span className="px-2 py-0.5 text-xs font-medium text-primary bg-elevated rounded">
-            Recommended
-          </span>
         </div>
 
-        <button
-          onClick={handleQuickConnect}
-          className="group w-full flex items-center gap-4 p-4 rounded-md border border-default hover:bg-hover transition-colors"
-        >
-          <div className="flex items-center justify-center w-10 h-10 rounded-md bg-surface border border-subtle">
-            <svg className="h-5 w-5" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-            </svg>
-          </div>
-          <div className="flex-1 text-left">
-            <p className="text-sm font-medium text-primary">Connect Gmail</p>
-            <p className="text-sm text-secondary">Use Google Workspace or Gmail with App Password</p>
-          </div>
-          <ArrowRight className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors" />
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          {QUICK_PROVIDERS.map((provider) => (
+            <button
+              key={provider.preset.name}
+              onClick={() => handleQuickConnect(provider)}
+              className="group flex items-center gap-3 p-3 rounded-md border border-default hover:bg-hover transition-colors text-left"
+            >
+              <div className="flex items-center justify-center w-10 h-10 rounded-md bg-surface border border-subtle shrink-0">
+                {provider.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-primary truncate">{provider.preset.name}</p>
+                <p className="text-xs text-secondary truncate">{provider.description}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-tertiary group-hover:text-secondary transition-colors shrink-0" />
+            </button>
+          ))}
+        </div>
+
+        <p className="text-xs text-tertiary mt-3 flex items-center gap-1">
+          <Globe className="h-3 w-3" />
+          {SMTP_PRESETS.length} providers supported &mdash; or type any email to auto-detect
+        </p>
       </div>
 
       {/* Stats */}
@@ -263,7 +368,7 @@ export function SmtpAccountsPage() {
           title="No SMTP accounts"
           description="Connect your email provider to start sending campaigns."
           actionLabel="Add Account"
-          onAction={() => setShowModal(true)}
+          onAction={handleAddCustom}
         />
       ) : (
         <div className="space-y-3">
@@ -358,44 +463,52 @@ export function SmtpAccountsPage() {
       )}
 
       {/* Modal */}
-      <Modal isOpen={showModal} onClose={closeModal} title={editId ? 'Edit SMTP Account' : showGmailGuide ? 'Connect Gmail' : 'Add SMTP Account'} size="lg">
+      <Modal
+        isOpen={showModal}
+        onClose={closeModal}
+        title={editId ? 'Edit SMTP Account' : isQuickMode ? `Connect ${activePreset.name}` : 'Add SMTP Account'}
+        size="lg"
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Gmail Guide Banner */}
-          {showGmailGuide && !editId && (
+          {/* Provider guide banner for quick-connect mode */}
+          {isQuickMode && (
             <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <svg className="h-5 w-5 mt-0.5 shrink-0" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
+                <div className="mt-0.5 shrink-0">
+                  {QUICK_PROVIDERS.find(p => p.preset.name === activePreset.name)?.icon || (
+                    <Server className="h-5 w-5 text-secondary" />
+                  )}
+                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[var(--text-primary)]">Gmail App Password Setup</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{activePreset.name} Setup</p>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">
-                    SMTP settings are pre-filled. You just need to:
+                    SMTP settings are pre-filled. You just need to enter your email and password.
                   </p>
-                  <ol className="text-sm text-[var(--text-secondary)] mt-2 space-y-1.5 list-decimal list-inside">
-                    <li>Enter your Gmail address below</li>
-                    <li>
-                      <a
-                        href="https://myaccount.google.com/apppasswords"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[var(--text-primary)] underline underline-offset-2 inline-flex items-center gap-1"
-                      >
-                        Generate a Google App Password
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                      {' '}(select "Mail" as the app)
-                    </li>
-                    <li>Paste the 16-character app password below</li>
-                  </ol>
-                  <p className="text-xs text-[var(--text-tertiary)] mt-2">
-                    Requires 2-Step Verification enabled on your Google account.
-                  </p>
+                  {activePreset.password_hint && (
+                    <div className="mt-2 text-xs text-[var(--text-tertiary)] flex items-center gap-1">
+                      <HelpCircle className="h-3 w-3 shrink-0" />
+                      Password: {activePreset.password_hint}
+                    </div>
+                  )}
+                  {activePreset.requires_domain_setup && (
+                    <div className="mt-2 text-xs text-amber-500 flex items-center gap-1">
+                      <Globe className="h-3 w-3 shrink-0" />
+                      This provider requires DNS records on your domain.{' '}
+                      <Link to="/smtp-accounts/guide" className="underline underline-offset-2">
+                        See guide
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Auto-detected banner */}
+          {autoDetected && activePreset && !editId && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+              Auto-detected: <span className="font-medium text-[var(--text-primary)]">{activePreset.name}</span> &mdash; settings pre-filled
             </div>
           )}
 
@@ -404,62 +517,57 @@ export function SmtpAccountsPage() {
               label="Label"
               value={form.label}
               onChange={(e) => updateField('label', e.target.value)}
-              placeholder="e.g., Work Gmail"
+              placeholder="e.g., Work Email"
               required
             />
             <Input
               label="Email Address"
               type="email"
               value={form.email_address}
-              onChange={(e) => {
-                updateField('email_address', e.target.value);
-                // Auto-fill smtp_user when in gmail guide mode
-                if (showGmailGuide) {
-                  updateField('smtp_user', e.target.value);
-                }
-              }}
-              placeholder="you@gmail.com"
+              onChange={(e) => handleEmailChange(e.target.value)}
+              placeholder={activePreset?.username_hint || 'you@example.com'}
               required
             />
           </div>
 
-          {/* Only show password field prominently in Gmail guide mode */}
-          {showGmailGuide && !editId && (
+          {/* Show password prominently in quick-connect mode */}
+          {isQuickMode && (
             <Input
-              label="App Password"
+              label={passwordLabel}
               type="password"
               value={form.smtp_pass}
               onChange={(e) => updateField('smtp_pass', e.target.value)}
-              placeholder="Paste your 16-character app password"
+              placeholder={passwordPlaceholder}
               required
             />
           )}
 
-          {/* Provider preset - hide in gmail guide mode */}
-          {!showGmailGuide && (
+          {/* Provider preset selector - only in custom/edit mode */}
+          {!isQuickMode && (
             <Select
               label="Provider Preset"
               options={[
                 { value: '', label: 'Custom Configuration' },
                 ...SMTP_PRESETS.map((p) => ({ value: p.name, label: p.name })),
               ]}
+              value={activePreset?.name || ''}
               onChange={(e) => applyPreset(e.target.value)}
             />
           )}
 
-          {/* SMTP Settings - collapsed by default in gmail mode */}
-          {showGmailGuide && !editId ? (
+          {/* SMTP Settings - collapsed in quick mode, expanded otherwise */}
+          {isQuickMode ? (
             <details className="border-t border-subtle pt-3">
               <summary className="text-sm font-medium text-secondary cursor-pointer hover:text-primary transition-colors">
-                Advanced SMTP settings (pre-filled for Gmail)
+                Advanced SMTP settings (pre-filled for {activePreset.name})
               </summary>
               <div className="mt-3 space-y-3">
                 <div className="grid grid-cols-3 gap-4">
                   <Input
-                    label="Host"
+                    label="SMTP Host"
                     value={form.smtp_host}
                     onChange={(e) => updateField('smtp_host', e.target.value)}
-                    placeholder="smtp.gmail.com"
+                    placeholder="smtp.example.com"
                     required
                   />
                   <Input
@@ -473,7 +581,7 @@ export function SmtpAccountsPage() {
                     label="Username"
                     value={form.smtp_user}
                     onChange={(e) => updateField('smtp_user', e.target.value)}
-                    placeholder="you@gmail.com"
+                    placeholder={activePreset.username_hint || 'Email or username'}
                     required
                   />
                 </div>
@@ -482,7 +590,7 @@ export function SmtpAccountsPage() {
                     label="IMAP Host"
                     value={form.imap_host || ''}
                     onChange={(e) => updateField('imap_host', e.target.value)}
-                    placeholder="imap.gmail.com"
+                    placeholder="imap.example.com"
                   />
                   <Input
                     label="IMAP Port"
@@ -523,17 +631,17 @@ export function SmtpAccountsPage() {
                     label="Username"
                     value={form.smtp_user}
                     onChange={(e) => updateField('smtp_user', e.target.value)}
-                    placeholder="Email or username"
+                    placeholder={activePreset?.username_hint || 'Email or username'}
                     required
                   />
                 </div>
                 <div className="mt-4">
                   <Input
-                    label="Password"
+                    label={passwordLabel}
                     type="password"
                     value={form.smtp_pass}
                     onChange={(e) => updateField('smtp_pass', e.target.value)}
-                    placeholder={editId ? 'Leave blank to keep current' : 'Enter password or app key'}
+                    placeholder={passwordPlaceholder}
                     required={!editId}
                   />
                 </div>
@@ -566,13 +674,22 @@ export function SmtpAccountsPage() {
             </>
           )}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-subtle">
-            <Button variant="secondary" type="button" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Connecting...' : editId ? 'Update Account' : showGmailGuide ? 'Connect Gmail' : 'Create Account'}
-            </Button>
+          <div className="flex items-center justify-between pt-4 border-t border-subtle">
+            <Link
+              to="/smtp-accounts/guide"
+              className="text-xs text-tertiary hover:text-secondary transition-colors flex items-center gap-1"
+            >
+              <HelpCircle className="h-3 w-3" />
+              Need help? View setup guide
+            </Link>
+            <div className="flex gap-3">
+              <Button variant="secondary" type="button" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending ? 'Connecting...' : editId ? 'Update Account' : `Connect ${activePreset?.name || 'Account'}`}
+              </Button>
+            </div>
           </div>
         </form>
       </Modal>

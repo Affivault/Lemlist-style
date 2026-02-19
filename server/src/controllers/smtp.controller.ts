@@ -1,9 +1,15 @@
 import { Response, NextFunction } from 'express';
+import dns from 'dns';
+import { promisify } from 'util';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import { smtpService } from '../services/smtp.service.js';
 import { supabaseAdmin } from '../config/supabase.js';
 import { decrypt } from '../utils/encryption.js';
 import { sendViaSmtp } from '../services/email-sender.service.js';
+
+const resolveTxt = promisify(dns.resolveTxt);
+const resolveMx = promisify(dns.resolveMx);
+const resolveCname = promisify(dns.resolveCname);
 
 export const smtpController = {
   async list(req: AuthRequest, res: Response, next: NextFunction) {
@@ -111,6 +117,113 @@ export const smtpController = {
     } catch (err: any) {
       console.error('[TestEmail] Send error:', err.message);
       res.status(500).json({ success: false, error: `Send failed: ${err.message}` });
+    }
+  },
+
+  /**
+   * POST /smtp-accounts/check-domain
+   * Check DNS records (SPF, DKIM, DMARC, MX) for a domain.
+   */
+  async checkDomain(req: AuthRequest, res: Response, _next: NextFunction) {
+    try {
+      const { domain } = req.body;
+      if (!domain) return res.status(400).json({ error: 'domain is required' });
+
+      const cleanDomain = domain.replace(/^@/, '').toLowerCase().trim();
+      const results: {
+        domain: string;
+        mx: { found: boolean; records: Array<{ exchange: string; priority: number }> };
+        spf: { found: boolean; record: string | null; valid: boolean };
+        dkim: { found: boolean; note: string };
+        dmarc: { found: boolean; record: string | null; policy: string | null };
+        provider_hint: string | null;
+      } = {
+        domain: cleanDomain,
+        mx: { found: false, records: [] },
+        spf: { found: false, record: null, valid: false },
+        dkim: { found: false, note: 'DKIM selectors are provider-specific. Check your provider dashboard.' },
+        dmarc: { found: false, record: null, policy: null },
+        provider_hint: null,
+      };
+
+      // MX records
+      try {
+        const mxRecords = await resolveMx(cleanDomain);
+        results.mx.found = mxRecords.length > 0;
+        results.mx.records = mxRecords
+          .sort((a, b) => a.priority - b.priority)
+          .map((r) => ({ exchange: r.exchange, priority: r.priority }));
+
+        // Detect provider from MX
+        const mxStr = mxRecords.map((r) => r.exchange.toLowerCase()).join(' ');
+        if (mxStr.includes('google') || mxStr.includes('gmail')) results.provider_hint = 'Google Workspace';
+        else if (mxStr.includes('outlook') || mxStr.includes('microsoft')) results.provider_hint = 'Microsoft 365';
+        else if (mxStr.includes('zoho')) results.provider_hint = 'Zoho Mail';
+        else if (mxStr.includes('fastmail')) results.provider_hint = 'Fastmail';
+        else if (mxStr.includes('protonmail') || mxStr.includes('proton')) results.provider_hint = 'ProtonMail';
+        else if (mxStr.includes('yahoo')) results.provider_hint = 'Yahoo Mail';
+      } catch { /* no MX records */ }
+
+      // SPF record
+      try {
+        const txtRecords = await resolveTxt(cleanDomain);
+        for (const record of txtRecords) {
+          const joined = record.join('');
+          if (joined.startsWith('v=spf1')) {
+            results.spf.found = true;
+            results.spf.record = joined;
+            results.spf.valid = joined.includes('include:') || joined.includes('ip4:') || joined.includes('a ') || joined.includes('mx ');
+            break;
+          }
+        }
+      } catch { /* no TXT records */ }
+
+      // DMARC record
+      try {
+        const dmarcRecords = await resolveTxt(`_dmarc.${cleanDomain}`);
+        for (const record of dmarcRecords) {
+          const joined = record.join('');
+          if (joined.startsWith('v=DMARC1')) {
+            results.dmarc.found = true;
+            results.dmarc.record = joined;
+            const policyMatch = joined.match(/p=(\w+)/);
+            results.dmarc.policy = policyMatch ? policyMatch[1] : null;
+            break;
+          }
+        }
+      } catch { /* no DMARC record */ }
+
+      // Try common DKIM selectors
+      const dkimSelectors = ['google', 'selector1', 'selector2', 'default', 'dkim', 'k1', 's1', 'mail'];
+      for (const selector of dkimSelectors) {
+        try {
+          const dkimRecords = await resolveTxt(`${selector}._domainkey.${cleanDomain}`);
+          if (dkimRecords.length > 0) {
+            const joined = dkimRecords[0].join('');
+            if (joined.includes('v=DKIM1') || joined.includes('p=')) {
+              results.dkim.found = true;
+              results.dkim.note = `Found DKIM with selector "${selector}"`;
+              break;
+            }
+          }
+        } catch { /* try next selector */ }
+      }
+
+      // Also check for CNAME-based DKIM
+      if (!results.dkim.found) {
+        for (const selector of dkimSelectors) {
+          try {
+            await resolveCname(`${selector}._domainkey.${cleanDomain}`);
+            results.dkim.found = true;
+            results.dkim.note = `Found DKIM CNAME with selector "${selector}"`;
+            break;
+          } catch { /* try next */ }
+        }
+      }
+
+      res.json(results);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   },
 };
