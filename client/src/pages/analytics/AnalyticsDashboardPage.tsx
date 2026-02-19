@@ -6,6 +6,7 @@ import { campaignsApi } from '../../api/campaigns.api';
 import { apiClient } from '../../api/client';
 import { Spinner } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useTheme } from '../../context/ThemeContext';
 import {
   BarChart,
@@ -30,11 +31,23 @@ import {
   Calendar,
   Target,
   Users,
-  TrendingUp,
-  TrendingDown,
   ChevronDown,
   Download,
 } from 'lucide-react';
+
+/** Safe number formatting — never throws on null/undefined/NaN */
+function safeNum(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function fmtNum(v: unknown): string {
+  return safeNum(v).toLocaleString();
+}
+
+function fmtRate(v: unknown): string {
+  return safeNum(v).toFixed(1);
+}
 
 /* Monochrome palette for charts — separate light and dark palettes */
 const LIGHT_COLORS = ['#0A0A0B', '#6B6B76', '#9B9BA5', '#CDCDD6'];
@@ -86,12 +99,12 @@ function StatCard({
       </div>
 
       <div className="relative">
-        <p className="stat-value">{value.toLocaleString()}</p>
+        <p className="stat-value">{fmtNum(value)}</p>
         <div className="flex items-center justify-between mt-1">
           <p className="stat-label">{label}</p>
-          {rate !== undefined && (
+          {rate !== undefined && rate !== null && (
             <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[var(--bg-elevated)] text-[var(--text-tertiary)]">
-              {rate.toFixed(1)}%
+              {fmtRate(rate)}%
             </span>
           )}
         </div>
@@ -101,7 +114,7 @@ function StatCard({
 }
 
 function EngagementRing({ data, colors }: { data: { name: string; value: number }[]; colors: string[] }) {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const total = data.reduce((sum, item) => sum + safeNum(item.value), 0);
   return (
     <div
       className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 transition-all duration-300 hover:border-[var(--border-default)]"
@@ -110,30 +123,32 @@ function EngagementRing({ data, colors }: { data: { name: string; value: number 
       <h3 className="text-heading-sm text-[var(--text-primary)] mb-5">Engagement Breakdown</h3>
       <div className="flex items-center gap-6">
         <div className="w-44 h-44 flex-shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={48}
-                outerRadius={68}
-                paddingAngle={4}
-                dataKey="value"
-                strokeWidth={0}
-              >
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number) => [value.toLocaleString(), 'Count']}
-                contentStyle={tooltipStyle}
-                itemStyle={tooltipItemStyle}
-                labelStyle={tooltipLabelStyle}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-xs text-[var(--text-tertiary)]">Chart unavailable</div>}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={48}
+                  outerRadius={68}
+                  paddingAngle={4}
+                  dataKey="value"
+                  strokeWidth={0}
+                >
+                  {data.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) => [fmtNum(value), 'Count']}
+                  contentStyle={tooltipStyle}
+                  itemStyle={tooltipItemStyle}
+                  labelStyle={tooltipLabelStyle}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </ErrorBoundary>
         </div>
         <div className="flex-1 space-y-3">
           {data.map((item, index) => (
@@ -153,10 +168,10 @@ function EngagementRing({ data, colors }: { data: { name: string; value: number 
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {item.value.toLocaleString()}
+                  {fmtNum(item.value)}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-tertiary)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">
-                  {total > 0 ? ((item.value / total) * 100).toFixed(1) : 0}%
+                  {total > 0 ? ((safeNum(item.value) / total) * 100).toFixed(1) : 0}%
                 </span>
               </div>
             </div>
@@ -192,7 +207,7 @@ export function AnalyticsDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
   const days = DATE_RANGE_MAP[dateRange];
 
-  const { data: overview, isLoading: overviewLoading } = useQuery({
+  const { data: overview, isLoading: overviewLoading, error: overviewError } = useQuery({
     queryKey: ['analytics', 'overview', days],
     queryFn: () => analyticsApi.overview(days),
   });
@@ -227,21 +242,43 @@ export function AnalyticsDashboardPage() {
     );
   }
 
-  const campaigns = campaignsData?.data || [];
+  if (overviewError) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div>
+          <h1 className="text-heading-lg text-[var(--text-primary)]">Analytics</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1.5">
+            Monitor performance, engagement, and delivery metrics across all your campaigns.
+          </p>
+        </div>
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-12 text-center" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center mb-4 border border-[var(--border-subtle)]">
+            <AlertTriangle className="h-6 w-6 text-[var(--text-tertiary)]" />
+          </div>
+          <h3 className="font-semibold text-[var(--text-primary)] mb-1.5">Unable to load analytics</h3>
+          <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
+            There was a problem loading your analytics data. Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const campaigns = Array.isArray(campaignsData?.data) ? campaignsData.data : [];
 
   const chartData = useMemo(() => campaignAnalytics
     ? [
-        { name: 'Sent', value: campaignAnalytics.sent, fill: COLORS[0] },
-        { name: 'Opened', value: campaignAnalytics.opened, fill: COLORS[1] },
-        { name: 'Clicked', value: campaignAnalytics.clicked, fill: COLORS[2] },
-        { name: 'Replied', value: campaignAnalytics.replied, fill: COLORS[3] },
-        { name: 'Bounced', value: campaignAnalytics.bounced, fill: theme === 'dark' ? '#24242A' : '#E4E4E7' },
+        { name: 'Sent', value: safeNum(campaignAnalytics.sent), fill: COLORS[0] },
+        { name: 'Opened', value: safeNum(campaignAnalytics.opened), fill: COLORS[1] },
+        { name: 'Clicked', value: safeNum(campaignAnalytics.clicked), fill: COLORS[2] },
+        { name: 'Replied', value: safeNum(campaignAnalytics.replied), fill: COLORS[3] },
+        { name: 'Bounced', value: safeNum(campaignAnalytics.bounced), fill: theme === 'dark' ? '#24242A' : '#E4E4E7' },
       ]
     : [], [campaignAnalytics, COLORS, theme]);
 
-  // Format trend data for the chart - show date labels
+  // Format trend data for the chart — safely handles non-array responses
   const formattedTrend = useMemo(() => {
-    if (!trendData || trendData.length === 0) return [];
+    if (!Array.isArray(trendData) || trendData.length === 0) return [];
     return trendData.map((d: TrendDataPoint) => ({
       ...d,
       label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', {
@@ -253,10 +290,10 @@ export function AnalyticsDashboardPage() {
 
   const pieData = overview
     ? [
-        { name: 'Opened', value: overview.total_opened },
-        { name: 'Clicked', value: overview.total_clicked },
-        { name: 'Replied', value: overview.total_replied },
-        { name: 'No engagement', value: Math.max(0, overview.total_sent - overview.total_opened) },
+        { name: 'Opened', value: safeNum(overview.total_opened) },
+        { name: 'Clicked', value: safeNum(overview.total_clicked) },
+        { name: 'Replied', value: safeNum(overview.total_replied) },
+        { name: 'No engagement', value: Math.max(0, safeNum(overview.total_sent) - safeNum(overview.total_opened)) },
       ].filter((d) => d.value > 0)
     : [];
 
@@ -316,30 +353,30 @@ export function AnalyticsDashboardPage() {
           <StatCard
             icon={Send}
             label="Total Sent"
-            value={overview.total_sent}
+            value={safeNum(overview.total_sent)}
           />
           <StatCard
             icon={Mail}
             label="Opened"
-            value={overview.total_opened}
-            rate={overview.avg_open_rate}
+            value={safeNum(overview.total_opened)}
+            rate={safeNum(overview.avg_open_rate)}
           />
           <StatCard
             icon={MousePointerClick}
             label="Clicked"
-            value={overview.total_clicked}
-            rate={overview.avg_click_rate}
+            value={safeNum(overview.total_clicked)}
+            rate={safeNum(overview.avg_click_rate)}
           />
           <StatCard
             icon={MessageSquare}
             label="Replied"
-            value={overview.total_replied}
-            rate={overview.avg_reply_rate}
+            value={safeNum(overview.total_replied)}
+            rate={safeNum(overview.avg_reply_rate)}
           />
           <StatCard
             icon={Target}
             label="Campaigns"
-            value={overview.total_campaigns}
+            value={safeNum(overview.total_campaigns)}
           />
         </div>
       )}
@@ -371,61 +408,63 @@ export function AnalyticsDashboardPage() {
           </div>
           <div className="h-60">
             {formattedTrend.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={formattedTrend}>
-                  <defs>
-                    <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={primaryChartColor} stopOpacity={0.15} />
-                      <stop offset="95%" stopColor={primaryChartColor} stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={secondaryChartColor} stopOpacity={0.15} />
-                      <stop offset="95%" stopColor={secondaryChartColor} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
-                    dy={8}
-                    interval={days <= 7 ? 0 : days <= 30 ? 4 : 13}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
-                    dx={-8}
-                  />
-                  <Tooltip
-                    contentStyle={tooltipStyle}
-                    itemStyle={tooltipItemStyle}
-                    labelStyle={tooltipLabelStyle}
-                    cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="sent"
-                    stroke={primaryChartColor}
-                    strokeWidth={2.5}
-                    fill="url(#colorSent)"
-                    name="Sent"
-                    dot={false}
-                    activeDot={{ r: 5, fill: primaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="opened"
-                    stroke={secondaryChartColor}
-                    strokeWidth={2.5}
-                    fill="url(#colorOpened)"
-                    name="Opened"
-                    dot={false}
-                    activeDot={{ r: 5, fill: secondaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={formattedTrend}>
+                    <defs>
+                      <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={primaryChartColor} stopOpacity={0.15} />
+                        <stop offset="95%" stopColor={primaryChartColor} stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={secondaryChartColor} stopOpacity={0.15} />
+                        <stop offset="95%" stopColor={secondaryChartColor} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
+                      dy={8}
+                      interval={days <= 7 ? 0 : days <= 30 ? 4 : 13}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
+                      dx={-8}
+                    />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      itemStyle={tooltipItemStyle}
+                      labelStyle={tooltipLabelStyle}
+                      cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="sent"
+                      stroke={primaryChartColor}
+                      strokeWidth={2.5}
+                      fill="url(#colorSent)"
+                      name="Sent"
+                      dot={false}
+                      activeDot={{ r: 5, fill: primaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="opened"
+                      stroke={secondaryChartColor}
+                      strokeWidth={2.5}
+                      fill="url(#colorOpened)"
+                      name="Opened"
+                      dot={false}
+                      activeDot={{ r: 5, fill: secondaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ErrorBoundary>
             ) : (
               <div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">
                 No activity data for this period
@@ -500,7 +539,7 @@ export function AnalyticsDashboardPage() {
                   </div>
                   <span className="text-sm font-medium text-[var(--text-primary)]">Sent</span>
                 </div>
-                <p className="stat-value">{campaignAnalytics.sent}</p>
+                <p className="stat-value">{fmtNum(campaignAnalytics.sent)}</p>
               </div>
 
               <div className="relative overflow-hidden p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all duration-200 hover:border-[var(--border-default)] group">
@@ -510,9 +549,9 @@ export function AnalyticsDashboardPage() {
                   </div>
                   <span className="text-sm font-medium text-[var(--text-primary)]">Opened</span>
                 </div>
-                <p className="stat-value">{campaignAnalytics.opened}</p>
+                <p className="stat-value">{fmtNum(campaignAnalytics.opened)}</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">
-                  {campaignAnalytics.open_rate?.toFixed(1)}% rate
+                  {fmtRate(campaignAnalytics.open_rate)}% rate
                 </p>
               </div>
 
@@ -523,9 +562,9 @@ export function AnalyticsDashboardPage() {
                   </div>
                   <span className="text-sm font-medium text-[var(--text-primary)]">Clicked</span>
                 </div>
-                <p className="stat-value">{campaignAnalytics.clicked}</p>
+                <p className="stat-value">{fmtNum(campaignAnalytics.clicked)}</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">
-                  {campaignAnalytics.click_rate?.toFixed(1)}% rate
+                  {fmtRate(campaignAnalytics.click_rate)}% rate
                 </p>
               </div>
 
@@ -536,9 +575,9 @@ export function AnalyticsDashboardPage() {
                   </div>
                   <span className="text-sm font-medium text-[var(--text-primary)]">Bounced</span>
                 </div>
-                <p className="stat-value">{campaignAnalytics.bounced}</p>
+                <p className="stat-value">{fmtNum(campaignAnalytics.bounced)}</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">
-                  {campaignAnalytics.bounce_rate?.toFixed(1)}% rate
+                  {fmtRate(campaignAnalytics.bounce_rate)}% rate
                 </p>
               </div>
             </div>
@@ -550,35 +589,37 @@ export function AnalyticsDashboardPage() {
                   Campaign Funnel
                 </h4>
                 <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} barSize={40}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
-                        dy={8}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
-                        dx={-8}
-                      />
-                      <Tooltip
-                        contentStyle={tooltipStyle}
-                        itemStyle={tooltipItemStyle}
-                        labelStyle={tooltipLabelStyle}
-                        cursor={{ fill: 'var(--bg-hover)', radius: 8 }}
-                      />
-                      <Bar dataKey="value" radius={[8, 8, 0, 0]} name="Count">
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData} barSize={40}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
+                          dy={8}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
+                          dx={-8}
+                        />
+                        <Tooltip
+                          contentStyle={tooltipStyle}
+                          itemStyle={tooltipItemStyle}
+                          labelStyle={tooltipLabelStyle}
+                          cursor={{ fill: 'var(--bg-hover)', radius: 8 }}
+                        />
+                        <Bar dataKey="value" radius={[8, 8, 0, 0]} name="Count">
+                          {chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ErrorBoundary>
                 </div>
               </div>
             )}
@@ -596,7 +637,7 @@ export function AnalyticsDashboardPage() {
         )}
 
         {/* Contact breakdown table */}
-        {campaignContacts && campaignContacts.contacts.length > 0 && (
+        {campaignContacts && Array.isArray(campaignContacts.contacts) && campaignContacts.contacts.length > 0 && (
           <div className="p-6 border-t border-[var(--border-subtle)]">
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-[var(--bg-elevated)]">
@@ -625,11 +666,11 @@ export function AnalyticsDashboardPage() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] text-xs font-semibold border border-[var(--border-subtle)]">
-                            {(c.first_name?.[0] || c.email[0]).toUpperCase()}
+                            {(c.first_name?.[0] || c.email?.[0] || '?').toUpperCase()}
                           </div>
                           <div>
                             <span className="font-medium text-[var(--text-primary)]">
-                              {[c.first_name, c.last_name].filter(Boolean).join(' ') || c.email}
+                              {[c.first_name, c.last_name].filter(Boolean).join(' ') || c.email || 'Unknown'}
                             </span>
                             {(c.first_name || c.last_name) && (
                               <p className="text-xs text-[var(--text-tertiary)]">{c.email}</p>
@@ -646,17 +687,17 @@ export function AnalyticsDashboardPage() {
                             'default'
                           }
                         >
-                          {c.status}
+                          {c.status || 'pending'}
                         </Badge>
                       </td>
                       <td className="py-3.5 px-4 text-center text-[var(--text-secondary)] font-medium">
-                        {c.sent}
+                        {fmtNum(c.sent)}
                       </td>
                       <td className="py-3.5 px-4 text-center text-[var(--text-secondary)] font-medium">
-                        {c.opened}
+                        {fmtNum(c.opened)}
                       </td>
                       <td className="py-3.5 px-4 text-center text-[var(--text-secondary)] font-medium">
-                        {c.clicked}
+                        {fmtNum(c.clicked)}
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         {c.replied ? (

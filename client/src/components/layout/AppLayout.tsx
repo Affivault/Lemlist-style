@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { ErrorBoundary } from '../ErrorBoundary';
 import { ThemeProvider } from '../../context/ThemeContext';
 import { SidebarProvider, useSidebar } from '../../context/SidebarContext';
 import { cn } from '../../lib/utils';
@@ -17,7 +18,9 @@ function AppContent() {
       )}>
         <Header />
         <main className="px-8 py-6">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>
