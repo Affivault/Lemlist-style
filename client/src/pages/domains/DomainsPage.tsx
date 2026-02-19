@@ -1,0 +1,473 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { domainApi } from '../../api/domain.api';
+import { Spinner } from '../../components/ui/Spinner';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Modal } from '../../components/ui/Modal';
+import { EmptyState } from '../../components/shared/EmptyState';
+import {
+  Globe,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Shield,
+  Mail,
+  HelpCircle,
+  ExternalLink,
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import type { SendingDomain, DomainVerifyResponse, DnsRecordInstruction } from '@lemlist/shared';
+
+function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium rounded ${
+      ok
+        ? 'bg-green-500/10 text-green-500'
+        : 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)]'
+    }`}>
+      {ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+      {label}
+    </span>
+  );
+}
+
+function CopyableRecord({ record }: { record: DnsRecordInstruction }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const statusColor =
+    record.status === 'verified' ? 'border-green-500/30 bg-green-500/5' :
+    record.status === 'warning' ? 'border-amber-500/30 bg-amber-500/5' :
+    'border-red-500/30 bg-red-500/5';
+
+  const statusIcon =
+    record.status === 'verified' ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
+    record.status === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-500" /> :
+    <XCircle className="h-4 w-4 text-red-400" />;
+
+  return (
+    <div className={`rounded-lg border ${statusColor} p-4 space-y-2`}>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          {statusIcon}
+          <span className="text-sm font-medium text-[var(--text-primary)]">
+            {record.type} Record
+          </span>
+          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+            record.status === 'verified' ? 'bg-green-500/10 text-green-500' :
+            record.status === 'warning' ? 'bg-amber-500/10 text-amber-500' :
+            'bg-red-500/10 text-red-400'
+          }`}>
+            {record.status === 'verified' ? 'Configured' : record.status === 'warning' ? 'Needs attention' : 'Not found'}
+          </span>
+        </div>
+      </div>
+
+      <p className="text-xs text-[var(--text-secondary)]">{record.purpose}</p>
+
+      {/* Host */}
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Host / Name</label>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 text-xs font-mono text-[var(--text-primary)] bg-[var(--bg-elevated)] px-3 py-2 rounded border border-[var(--border-subtle)] break-all">
+            {record.host}
+          </code>
+          <button
+            onClick={() => handleCopy(record.host)}
+            className="shrink-0 p-2 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            title="Copy host"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Value */}
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Value / Content</label>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 text-xs font-mono text-[var(--text-primary)] bg-[var(--bg-elevated)] px-3 py-2 rounded border border-[var(--border-subtle)] break-all">
+            {record.value}
+          </code>
+          <button
+            onClick={() => handleCopy(record.value)}
+            className="shrink-0 p-2 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            title="Copy value"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DomainDetailPanel({
+  domain,
+  onClose,
+}: {
+  domain: SendingDomain;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+
+  const { data: recordsData, isLoading: loadingRecords } = useQuery({
+    queryKey: ['domain-records', domain.id],
+    queryFn: () => domainApi.getRecords(domain.id),
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: () => domainApi.verify(domain.id),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['domains'] });
+      queryClient.invalidateQueries({ queryKey: ['domain-records', domain.id] });
+      if (result.domain.is_verified) {
+        toast.success(`${domain.domain} verified successfully!`);
+      } else {
+        toast('DNS records checked. Some records are still missing.', { icon: '!' });
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || 'Verification failed');
+    },
+  });
+
+  return (
+    <div className="space-y-5">
+      {/* Domain header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">{domain.domain}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <StatusBadge ok={domain.txt_verified} label="Ownership" />
+            <StatusBadge ok={domain.spf_ok} label="SPF" />
+            <StatusBadge ok={domain.dkim_ok} label="DKIM" />
+            <StatusBadge ok={domain.dmarc_ok} label="DMARC" />
+          </div>
+        </div>
+        <Button
+          variant="primary"
+          onClick={() => verifyMutation.mutate()}
+          disabled={verifyMutation.isPending}
+        >
+          <RefreshCw className={`h-4 w-4 ${verifyMutation.isPending ? 'animate-spin' : ''}`} />
+          {verifyMutation.isPending ? 'Checking...' : 'Verify DNS'}
+        </Button>
+      </div>
+
+      {/* Provider detection */}
+      {domain.detected_provider && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
+          <Mail className="h-3.5 w-3.5 shrink-0" />
+          Email provider detected: <span className="font-medium text-[var(--text-primary)]">{domain.detected_provider}</span>
+        </div>
+      )}
+
+      {/* Instructions */}
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4 space-y-2">
+        <div className="flex items-start gap-2">
+          <HelpCircle className="h-4 w-4 text-[var(--text-secondary)] mt-0.5 shrink-0" />
+          <div className="text-sm text-[var(--text-secondary)]">
+            <p className="font-medium text-[var(--text-primary)]">How to set up your domain</p>
+            <ol className="mt-2 space-y-1 list-decimal list-inside text-xs">
+              <li>Copy each DNS record below and add it to your domain's DNS settings</li>
+              <li>DNS changes can take up to 48 hours to propagate (usually 5-15 minutes)</li>
+              <li>Click <strong>Verify DNS</strong> to check if your records are detected</li>
+              <li>Once the ownership TXT record is verified, your domain is ready to use</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      {/* DNS Records */}
+      {loadingRecords ? (
+        <div className="flex justify-center py-8">
+          <Spinner size="md" />
+        </div>
+      ) : recordsData ? (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            DNS Records to Configure
+          </h4>
+          {recordsData.records.map((record, idx) => (
+            <CopyableRecord key={idx} record={record} />
+          ))}
+        </div>
+      ) : null}
+
+      {/* Last checked */}
+      {domain.last_checked_at && (
+        <p className="text-xs text-[var(--text-tertiary)]">
+          Last checked: {new Date(domain.last_checked_at).toLocaleString()}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function DomainsPage() {
+  const queryClient = useQueryClient();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newDomain, setNewDomain] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [addResult, setAddResult] = useState<DomainVerifyResponse | null>(null);
+
+  const { data: domains, isLoading } = useQuery({
+    queryKey: ['domains'],
+    queryFn: domainApi.list,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (domain: string) => domainApi.create(domain),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['domains'] });
+      setAddResult(result);
+      toast.success(`Domain ${result.domain.domain} added`);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || 'Failed to add domain');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: domainApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['domains'] });
+      toast.success('Domain removed');
+      setExpandedId(null);
+    },
+  });
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDomain.trim()) return;
+    createMutation.mutate(newDomain.trim());
+  };
+
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setNewDomain('');
+    setAddResult(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-primary">Sending Domains</h1>
+          <p className="text-sm text-secondary mt-1">Verify your domains to improve email deliverability</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/smtp-accounts/guide"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-secondary border border-default rounded-md hover:bg-hover hover:text-primary transition-colors"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Setup Guide
+          </Link>
+          <Button variant="primary" onClick={() => setShowAddModal(true)}>
+            <Plus className="h-4 w-4" />
+            Add Domain
+          </Button>
+        </div>
+      </div>
+
+      {/* Info banner */}
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
+        <div className="flex items-start gap-3">
+          <Shield className="h-5 w-5 text-[var(--text-secondary)] mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-[var(--text-primary)]">Why verify your domain?</p>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              Domain verification (SPF, DKIM, DMARC) tells email providers that you've authorized SkySend to send emails from your domain.
+              This dramatically improves deliverability and prevents your emails from landing in spam.
+            </p>
+            <div className="flex items-center gap-4 mt-3 text-xs text-[var(--text-tertiary)]">
+              <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-500" /> Better inbox placement</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-500" /> Prevent spoofing</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-500" /> Build sender reputation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Domain list or empty state */}
+      {(!domains || domains.length === 0) ? (
+        <EmptyState
+          icon={Globe}
+          title="No domains added"
+          description="Add your sending domain to verify DNS records and improve deliverability."
+          actionLabel="Add Domain"
+          onAction={() => setShowAddModal(true)}
+        />
+      ) : (
+        <div className="space-y-3">
+          {domains.map((domain: SendingDomain) => (
+            <div key={domain.id} className="rounded-lg border border-subtle bg-surface overflow-hidden">
+              {/* Domain row */}
+              <button
+                onClick={() => setExpandedId(expandedId === domain.id ? null : domain.id)}
+                className="w-full flex items-center justify-between p-5 hover:bg-hover transition-colors text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-md ${
+                    domain.is_verified
+                      ? 'bg-green-500/10'
+                      : 'bg-[var(--bg-elevated)]'
+                  }`}>
+                    {domain.is_verified ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <Globe className="h-5 w-5 text-[var(--text-secondary)]" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-primary">{domain.domain}</h3>
+                      {domain.is_verified ? (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-green-500/10 text-green-500 rounded">
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-500 rounded">
+                          Pending verification
+                        </span>
+                      )}
+                      {domain.detected_provider && (
+                        <span className="text-xs text-tertiary">{domain.detected_provider}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge ok={domain.txt_verified} label="TXT" />
+                      <StatusBadge ok={domain.spf_ok} label="SPF" />
+                      <StatusBadge ok={domain.dkim_ok} label="DKIM" />
+                      <StatusBadge ok={domain.dmarc_ok} label="DMARC" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Remove ${domain.domain}?`)) deleteMutation.mutate(domain.id);
+                    }}
+                    className="p-2 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  {expandedId === domain.id ? (
+                    <ChevronDown className="h-4 w-4 text-tertiary" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-tertiary" />
+                  )}
+                </div>
+              </button>
+
+              {/* Expanded detail */}
+              {expandedId === domain.id && (
+                <div className="border-t border-subtle p-5 bg-[var(--bg-primary)]">
+                  <DomainDetailPanel domain={domain} onClose={() => setExpandedId(null)} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add domain modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={closeAddModal}
+        title={addResult ? `Set Up ${addResult.domain.domain}` : 'Add Sending Domain'}
+        size="lg"
+      >
+        {!addResult ? (
+          <form onSubmit={handleAdd} className="space-y-4">
+            <p className="text-sm text-[var(--text-secondary)]">
+              Enter the domain you want to send emails from. We'll generate the DNS records you need to add.
+            </p>
+            <Input
+              label="Domain"
+              value={newDomain}
+              onChange={(e) => setNewDomain(e.target.value)}
+              placeholder="example.com"
+              required
+            />
+            <p className="text-xs text-[var(--text-tertiary)]">
+              Enter the root domain (e.g., <code className="bg-[var(--bg-elevated)] px-1 py-0.5 rounded">example.com</code>),
+              not a subdomain or full email address.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" type="button" onClick={closeAddModal}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending ? 'Adding...' : 'Add Domain'}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-5">
+            <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">Domain added successfully</p>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">
+                    Now add these DNS records to your domain registrar (GoDaddy, Cloudflare, Namecheap, etc.)
+                    and click <strong>Verify</strong> when done.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {addResult.records.map((record, idx) => (
+                <CopyableRecord key={idx} record={record} />
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" onClick={closeAddModal}>
+                Done — I'll verify later
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  closeAddModal();
+                  setExpandedId(addResult.domain.id);
+                }}
+              >
+                View Domain Details
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}

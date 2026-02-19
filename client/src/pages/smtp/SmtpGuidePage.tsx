@@ -376,6 +376,15 @@ export function SmtpGuidePage() {
                 <p><strong className="text-primary">DKIM</strong> — Adds a digital signature proving emails haven't been tampered with. Set up through your email provider.</p>
                 <p><strong className="text-primary">DMARC</strong> — Tells receivers what to do with emails that fail SPF/DKIM. Start with <code className="px-1 py-0.5 bg-surface rounded text-xs">p=none</code> to monitor.</p>
               </div>
+              <div className="mt-3 pt-3 border-t border-subtle">
+                <Link
+                  to="/domains"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-2"
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Set up and verify your domain records
+                </Link>
+              </div>
             </div>
           </div>
         )}

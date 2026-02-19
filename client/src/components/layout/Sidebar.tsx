@@ -10,6 +10,7 @@ import {
   Layers,
   Webhook,
   Send,
+  Globe,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
@@ -34,6 +35,7 @@ const toolsNav = [
 
 const settingsNav = [
   { name: 'SMTP Accounts', href: '/smtp-accounts', icon: Send },
+  { name: 'Domains', href: '/domains', icon: Globe },
   { name: 'Assets', href: '/assets', icon: Layers },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

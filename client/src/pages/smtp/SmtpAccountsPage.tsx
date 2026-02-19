@@ -330,6 +330,28 @@ export function SmtpAccountsPage() {
         </p>
       </div>
 
+      {/* Domain verification prompt */}
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-3">
+            <Globe className="h-5 w-5 text-[var(--text-secondary)] mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-[var(--text-primary)]">Sending from your own domain?</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Set up SPF, DKIM &amp; DMARC records to improve deliverability and prevent emails from going to spam.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/domains"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] rounded-md hover:bg-[var(--bg-hover)] transition-colors"
+          >
+            Verify Domain
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+
       {/* Stats */}
       {accounts && accounts.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
