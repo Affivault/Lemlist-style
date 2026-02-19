@@ -13,8 +13,15 @@ CREATE TABLE IF NOT EXISTS email_templates (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ensure columns exist (safe for re-runs)
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS is_preset BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS usage_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE email_templates ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'custom';
+
 ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own email templates" ON email_templates;
 CREATE POLICY "Users can manage their own email templates" ON email_templates
   FOR ALL USING (auth.uid() = user_id OR is_preset = true);
 
@@ -36,8 +43,16 @@ CREATE TABLE IF NOT EXISTS sequence_templates (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ensure columns exist (safe for re-runs)
+ALTER TABLE sequence_templates ADD COLUMN IF NOT EXISTS is_preset BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE sequence_templates ADD COLUMN IF NOT EXISTS usage_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE sequence_templates ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE sequence_templates ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'custom';
+ALTER TABLE sequence_templates ADD COLUMN IF NOT EXISTS steps JSONB NOT NULL DEFAULT '[]';
+
 ALTER TABLE sequence_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their own sequence templates" ON sequence_templates;
 CREATE POLICY "Users can manage their own sequence templates" ON sequence_templates
   FOR ALL USING (auth.uid() = user_id OR is_preset = true);
 
