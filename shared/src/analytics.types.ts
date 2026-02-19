@@ -49,23 +49,3 @@ export interface ContactActivityItem {
   occurred_at: string;
 }
 
-export interface EmailTemplate {
-  id: string;
-  user_id: string;
-  name: string;
-  subject: string | null;
-  body_html: string | null;
-  body_text: string | null;
-  category: string;
-  is_shared: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateTemplateInput {
-  name: string;
-  subject?: string;
-  body_html?: string;
-  body_text?: string;
-  category?: string;
-}
