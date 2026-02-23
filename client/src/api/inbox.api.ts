@@ -2,7 +2,15 @@ import { apiClient } from './client';
 import type { InboxMessageWithContext, PaginatedResponse } from '@lemlist/shared';
 
 export const inboxApi = {
-  list: async (params?: { page?: number; limit?: number; is_read?: boolean }) => {
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    is_read?: boolean;
+    is_starred?: boolean;
+    folder?: string;
+    sara_status?: string;
+    search?: string;
+  }) => {
     const { data } = await apiClient.get<PaginatedResponse<InboxMessageWithContext>>('/inbox', { params });
     return data;
   },
@@ -12,11 +20,48 @@ export const inboxApi = {
     return data;
   },
 
+  getThread: async (id: string) => {
+    const { data } = await apiClient.get<InboxMessageWithContext[]>(`/inbox/${id}/thread`);
+    return data;
+  },
+
   markRead: async (id: string) => {
     await apiClient.put(`/inbox/${id}/read`);
   },
 
+  markUnread: async (id: string) => {
+    await apiClient.put(`/inbox/${id}/unread`);
+  },
+
   markAllRead: async () => {
     await apiClient.put('/inbox/mark-all-read');
+  },
+
+  toggleStar: async (id: string) => {
+    const { data } = await apiClient.put<{ is_starred: boolean }>(`/inbox/${id}/star`);
+    return data;
+  },
+
+  archive: async (id: string) => {
+    await apiClient.put(`/inbox/${id}/archive`);
+  },
+
+  unarchive: async (id: string) => {
+    await apiClient.put(`/inbox/${id}/unarchive`);
+  },
+
+  reply: async (id: string, body: string) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/reply`, { body });
+    return data;
+  },
+
+  forward: async (id: string, to: string, note?: string) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/forward`, { to, note });
+    return data;
+  },
+
+  compose: async (input: { to: string; subject: string; body: string }) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string }>('/inbox/compose', input);
+    return data;
   },
 };

@@ -1,18 +1,56 @@
+import crypto from 'node:crypto';
 import { supabaseAdmin } from '../config/supabase.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
+import { decrypt } from '../utils/encryption.js';
+import { sendViaSmtp } from './email-sender.service.js';
 
 export const inboxService = {
-  async list(userId: string, params: { page?: number; limit?: number; is_read?: boolean }) {
+  async list(userId: string, params: {
+    page?: number;
+    limit?: number;
+    is_read?: boolean;
+    is_starred?: boolean;
+    is_archived?: boolean;
+    sara_status?: string;
+    search?: string;
+    folder?: string;
+  }) {
     const { page, limit, from, to } = getPagination(params);
 
     let query = supabaseAdmin
       .from('inbox_messages')
-      .select('*, contacts(first_name, last_name), campaigns(name)', { count: 'exact' })
+      .select('*, contacts(first_name, last_name, email), campaigns(name)', { count: 'exact' })
       .eq('user_id', userId);
+
+    // Folder-based filtering
+    const folder = params.folder || 'inbox';
+    if (folder === 'inbox') {
+      query = query.or('is_archived.is.null,is_archived.eq.false');
+    } else if (folder === 'starred') {
+      query = query.eq('is_starred', true);
+    } else if (folder === 'archived') {
+      query = query.eq('is_archived', true);
+    } else if (folder === 'sent') {
+      query = query.eq('direction', 'outbound');
+    }
 
     if (params.is_read !== undefined) {
       query = query.eq('is_read', params.is_read);
+    }
+
+    if (params.is_starred !== undefined) {
+      query = query.eq('is_starred', params.is_starred);
+    }
+
+    if (params.sara_status) {
+      query = query.eq('sara_status', params.sara_status);
+    }
+
+    if (params.search) {
+      query = query.or(
+        `subject.ilike.%${params.search}%,from_email.ilike.%${params.search}%,body_text.ilike.%${params.search}%`
+      );
     }
 
     query = query.order('received_at', { ascending: false }).range(from, to);
@@ -25,6 +63,7 @@ export const inboxService = {
       contact_name: m.contacts
         ? [m.contacts.first_name, m.contacts.last_name].filter(Boolean).join(' ') || null
         : null,
+      contact_email: m.contacts?.email || null,
       campaign_name: m.campaigns?.name || null,
       contacts: undefined,
       campaigns: undefined,
@@ -36,7 +75,7 @@ export const inboxService = {
   async get(userId: string, id: string) {
     const { data, error } = await supabaseAdmin
       .from('inbox_messages')
-      .select('*, contacts(first_name, last_name), campaigns(name)')
+      .select('*, contacts(first_name, last_name, email), campaigns(name)')
       .eq('id', id)
       .eq('user_id', userId)
       .single();
@@ -49,10 +88,48 @@ export const inboxService = {
       contact_name: data.contacts
         ? [data.contacts.first_name, data.contacts.last_name].filter(Boolean).join(' ') || null
         : null,
+      contact_email: data.contacts?.email || null,
       campaign_name: data.campaigns?.name || null,
       contacts: undefined,
       campaigns: undefined,
     };
+  },
+
+  async getThread(userId: string, messageId: string) {
+    const { data: message } = await supabaseAdmin
+      .from('inbox_messages')
+      .select('thread_id, subject, in_reply_to, message_id')
+      .eq('id', messageId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!message) throw new AppError('Message not found', 404);
+
+    const normalizedSubject = (message.subject || '').replace(/^(Re|Fwd|Fw):\s*/gi, '').trim();
+
+    let query = supabaseAdmin
+      .from('inbox_messages')
+      .select('*, contacts(first_name, last_name, email)')
+      .eq('user_id', userId)
+      .order('received_at', { ascending: true });
+
+    if (message.thread_id) {
+      query = query.eq('thread_id', message.thread_id);
+    } else {
+      query = query.or(`subject.ilike.%${normalizedSubject}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new AppError(error.message, 500);
+
+    return (data || []).map((m: any) => ({
+      ...m,
+      contact_name: m.contacts
+        ? [m.contacts.first_name, m.contacts.last_name].filter(Boolean).join(' ') || null
+        : null,
+      contact_email: m.contacts?.email || null,
+      contacts: undefined,
+    }));
   },
 
   async markRead(userId: string, id: string) {
@@ -61,7 +138,15 @@ export const inboxService = {
       .update({ is_read: true })
       .eq('id', id)
       .eq('user_id', userId);
+    if (error) throw new AppError(error.message, 500);
+  },
 
+  async markUnread(userId: string, id: string) {
+    const { error } = await supabaseAdmin
+      .from('inbox_messages')
+      .update({ is_read: false })
+      .eq('id', id)
+      .eq('user_id', userId);
     if (error) throw new AppError(error.message, 500);
   },
 
@@ -71,7 +156,227 @@ export const inboxService = {
       .update({ is_read: true })
       .eq('user_id', userId)
       .eq('is_read', false);
-
     if (error) throw new AppError(error.message, 500);
   },
+
+  async toggleStar(userId: string, id: string) {
+    const { data: msg } = await supabaseAdmin
+      .from('inbox_messages')
+      .select('is_starred')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+    if (!msg) throw new AppError('Message not found', 404);
+
+    const newVal = !msg.is_starred;
+    const { error } = await supabaseAdmin
+      .from('inbox_messages')
+      .update({ is_starred: newVal })
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw new AppError(error.message, 500);
+    return { is_starred: newVal };
+  },
+
+  async archive(userId: string, id: string) {
+    const { error } = await supabaseAdmin
+      .from('inbox_messages')
+      .update({ is_archived: true })
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw new AppError(error.message, 500);
+  },
+
+  async unarchive(userId: string, id: string) {
+    const { error } = await supabaseAdmin
+      .from('inbox_messages')
+      .update({ is_archived: false })
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw new AppError(error.message, 500);
+  },
+
+  async reply(userId: string, messageId: string, body: string) {
+    const { data: original } = await supabaseAdmin
+      .from('inbox_messages')
+      .select('*')
+      .eq('id', messageId)
+      .eq('user_id', userId)
+      .single();
+    if (!original) throw new AppError('Message not found', 404);
+
+    const smtpAccount = await findSmtpAccount(userId, original.smtp_account_id);
+    const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
+    const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
+    const newMessageId = `<${crypto.randomUUID()}@${domain}>`;
+
+    const subject = original.subject?.startsWith('Re:')
+      ? original.subject
+      : `Re: ${original.subject || '(no subject)'}`;
+
+    const htmlBody = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${body.replace(/\n/g, '<br/>')}</div>
+<br/>
+<div style="padding-left:12px;border-left:2px solid #e0e0e0;margin-top:16px;color:#666;">
+  <p style="margin:0 0 4px;font-size:12px;color:#999;">On ${new Date(original.received_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}, ${original.from_email} wrote:</p>
+  ${original.body_html || `<p>${original.body_text || ''}</p>`}
+</div>`;
+
+    await sendViaSmtp({
+      smtpHost: smtpAccount.smtp_host,
+      smtpPort: smtpAccount.smtp_port,
+      smtpSecure: smtpAccount.smtp_secure,
+      smtpUser: smtpAccount.smtp_user,
+      smtpPass: smtpPassword,
+      from: smtpAccount.email_address,
+      to: original.from_email,
+      subject,
+      html: htmlBody,
+      text: body,
+      messageId: newMessageId,
+      headers: original.message_id ? { 'In-Reply-To': original.message_id, 'References': original.message_id } : {},
+    });
+
+    await supabaseAdmin.from('inbox_messages').insert({
+      user_id: userId,
+      campaign_id: original.campaign_id,
+      contact_id: original.contact_id,
+      smtp_account_id: smtpAccount.id,
+      from_email: smtpAccount.email_address,
+      to_email: original.from_email,
+      subject,
+      body_html: htmlBody,
+      body_text: body,
+      in_reply_to: original.message_id,
+      message_id: newMessageId,
+      is_read: true,
+      direction: 'outbound',
+      thread_id: original.thread_id || original.message_id,
+      received_at: new Date().toISOString(),
+    });
+
+    return { success: true, message_id: newMessageId };
+  },
+
+  async forward(userId: string, messageId: string, toEmail: string, note?: string) {
+    const { data: original } = await supabaseAdmin
+      .from('inbox_messages')
+      .select('*')
+      .eq('id', messageId)
+      .eq('user_id', userId)
+      .single();
+    if (!original) throw new AppError('Message not found', 404);
+
+    const smtpAccount = await findSmtpAccount(userId, original.smtp_account_id);
+    const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
+    const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
+    const newMessageId = `<${crypto.randomUUID()}@${domain}>`;
+    const subject = `Fwd: ${(original.subject || '(no subject)').replace(/^Fwd:\s*/i, '')}`;
+
+    const noteHtml = note
+      ? `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;margin-bottom:16px;">${note.replace(/\n/g, '<br/>')}</div><hr style="border:none;border-top:1px solid #e0e0e0;margin:16px 0;"/>`
+      : '';
+
+    const htmlBody = `${noteHtml}
+<p style="margin:0 0 8px;font-size:12px;color:#999;">---------- Forwarded message ----------</p>
+<p style="margin:0 0 4px;font-size:12px;color:#999;">From: ${original.from_email}<br/>Date: ${new Date(original.received_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}<br/>Subject: ${original.subject || '(no subject)'}<br/>To: ${original.to_email}</p>
+<br/>
+${original.body_html || `<p>${original.body_text || ''}</p>`}`;
+
+    await sendViaSmtp({
+      smtpHost: smtpAccount.smtp_host,
+      smtpPort: smtpAccount.smtp_port,
+      smtpSecure: smtpAccount.smtp_secure,
+      smtpUser: smtpAccount.smtp_user,
+      smtpPass: smtpPassword,
+      from: smtpAccount.email_address,
+      to: toEmail,
+      subject,
+      html: htmlBody,
+      text: `${note || ''}\n\n---------- Forwarded message ----------\nFrom: ${original.from_email}\nDate: ${original.received_at}\nSubject: ${original.subject}\n\n${original.body_text || ''}`,
+      messageId: newMessageId,
+    });
+
+    await supabaseAdmin.from('inbox_messages').insert({
+      user_id: userId,
+      smtp_account_id: smtpAccount.id,
+      from_email: smtpAccount.email_address,
+      to_email: toEmail,
+      subject,
+      body_html: htmlBody,
+      body_text: `${note || ''}\n\n${original.body_text || ''}`,
+      message_id: newMessageId,
+      is_read: true,
+      direction: 'outbound',
+      received_at: new Date().toISOString(),
+    });
+
+    return { success: true, message_id: newMessageId };
+  },
+
+  async compose(userId: string, input: { to: string; subject: string; body: string }) {
+    const { data: smtpAccount } = await supabaseAdmin
+      .from('smtp_accounts')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+    if (!smtpAccount) throw new AppError('No SMTP account available. Add one in SMTP Accounts settings.', 400);
+
+    const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
+    const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
+    const messageId = `<${crypto.randomUUID()}@${domain}>`;
+    const htmlBody = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${input.body.replace(/\n/g, '<br/>')}</div>`;
+
+    await sendViaSmtp({
+      smtpHost: smtpAccount.smtp_host,
+      smtpPort: smtpAccount.smtp_port,
+      smtpSecure: smtpAccount.smtp_secure,
+      smtpUser: smtpAccount.smtp_user,
+      smtpPass: smtpPassword,
+      from: smtpAccount.email_address,
+      to: input.to,
+      subject: input.subject,
+      html: htmlBody,
+      text: input.body,
+      messageId,
+    });
+
+    await supabaseAdmin.from('inbox_messages').insert({
+      user_id: userId,
+      smtp_account_id: smtpAccount.id,
+      from_email: smtpAccount.email_address,
+      to_email: input.to,
+      subject: input.subject,
+      body_html: htmlBody,
+      body_text: input.body,
+      message_id: messageId,
+      is_read: true,
+      direction: 'outbound',
+      received_at: new Date().toISOString(),
+    });
+
+    return { success: true, message_id: messageId };
+  },
 };
+
+async function findSmtpAccount(userId: string, preferredId?: string | null): Promise<any> {
+  if (preferredId) {
+    const { data } = await supabaseAdmin
+      .from('smtp_accounts')
+      .select('*')
+      .eq('id', preferredId)
+      .eq('user_id', userId)
+      .single();
+    if (data) return data;
+  }
+  const { data } = await supabaseAdmin
+    .from('smtp_accounts')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .limit(1)
+    .single();
+  if (!data) throw new AppError('No SMTP account available. Add one in SMTP Accounts settings.', 400);
+  return data;
+}
