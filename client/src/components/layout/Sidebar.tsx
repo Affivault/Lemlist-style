@@ -6,7 +6,6 @@ import {
   Inbox,
   BarChart3,
   Settings,
-  Bot,
   FileText,
   Webhook,
   Send,
@@ -30,7 +29,6 @@ const mainNav = [
 ];
 
 const toolsNav = [
-  { name: 'SARA AI', href: '/sara', icon: Bot },
   { name: 'Webhooks', href: '/developer', icon: Webhook },
 ];
 

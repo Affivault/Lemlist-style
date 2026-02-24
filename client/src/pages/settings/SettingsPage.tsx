@@ -18,9 +18,13 @@ import {
   Sun,
   Moon,
   Monitor,
+  Bot,
+  Zap,
+  SlidersHorizontal,
+  Info,
 } from 'lucide-react';
 
-type Tab = 'profile' | 'account' | 'notifications' | 'preferences';
+type Tab = 'profile' | 'account' | 'notifications' | 'preferences' | 'sara';
 
 interface TabConfig {
   id: Tab;
@@ -33,6 +37,7 @@ const tabs: TabConfig[] = [
   { id: 'account', label: 'Account', icon: Shield },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'preferences', label: 'Preferences', icon: Palette },
+  { id: 'sara', label: 'SARA AI', icon: Bot },
 ];
 
 export function SettingsPage() {
@@ -53,6 +58,15 @@ export function SettingsPage() {
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
   const [defaultSignature, setDefaultSignature] = useState('');
+
+  // SARA AI settings
+  const [saraEnabled, setSaraEnabled] = useState(true);
+  const [saraAutoClassify, setSaraAutoClassify] = useState(true);
+  const [saraAutoExecute, setSaraAutoExecute] = useState(true);
+  const [saraConfidenceThreshold, setSaraConfidenceThreshold] = useState(85);
+  const [saraAutoUnsubscribe, setSaraAutoUnsubscribe] = useState(true);
+  const [saraAutoBounce, setSaraAutoBounce] = useState(true);
+  const [saraDraftReplies, setSaraDraftReplies] = useState(true);
 
   const handleSave = async () => {
     setSaving(true);
@@ -362,6 +376,152 @@ export function SettingsPage() {
                     Use {'{{signature}}'} in emails to insert this
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* SARA AI Tab */}
+            {activeTab === 'sara' && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">SARA AI Settings</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">
+                    Configure your SkySend Autonomous Reply Agent
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-[var(--accent)]/5 border border-[var(--accent)]/20">
+                  <div className="flex items-start gap-3">
+                    <Bot className="h-5 w-5 text-[var(--accent)] mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">What is SARA?</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+                        SARA automatically classifies incoming replies by intent (interested, meeting request,
+                        objection, unsubscribe, bounce, out-of-office) and drafts context-aware responses.
+                        Review classifications in the SARA panel within your Inbox.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <ToggleSetting
+                  label="Enable SARA AI"
+                  description="Turn on/off automatic reply classification and draft generation"
+                  checked={saraEnabled}
+                  onChange={setSaraEnabled}
+                />
+
+                {saraEnabled && (
+                  <>
+                    <div className="space-y-3">
+                      <div className="px-1">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                          <Zap className="h-4 w-4 text-[var(--text-tertiary)]" />
+                          Automation
+                        </h3>
+                      </div>
+
+                      <ToggleSetting
+                        label="Auto-classify new replies"
+                        description="Automatically analyze incoming replies as they arrive"
+                        checked={saraAutoClassify}
+                        onChange={setSaraAutoClassify}
+                      />
+                      <ToggleSetting
+                        label="Draft reply suggestions"
+                        description="Generate draft replies for classified messages"
+                        checked={saraDraftReplies}
+                        onChange={setSaraDraftReplies}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="px-1">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                          <SlidersHorizontal className="h-4 w-4 text-[var(--text-tertiary)]" />
+                          Confidence & Thresholds
+                        </h3>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="text-sm font-medium text-[var(--text-primary)]">
+                              Confidence Threshold
+                            </p>
+                            <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
+                              Minimum confidence score to show classification in inbox
+                            </p>
+                          </div>
+                          <span className="text-sm font-semibold text-[var(--accent)] tabular-nums">
+                            {saraConfidenceThreshold}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={50}
+                          max={99}
+                          value={saraConfidenceThreshold}
+                          onChange={(e) => setSaraConfidenceThreshold(Number(e.target.value))}
+                          className="w-full accent-[var(--accent)]"
+                        />
+                        <div className="flex justify-between mt-1">
+                          <span className="text-[10px] text-[var(--text-tertiary)]">50% (More results)</span>
+                          <span className="text-[10px] text-[var(--text-tertiary)]">99% (Higher accuracy)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="px-1">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                          <Zap className="h-4 w-4 text-[var(--text-tertiary)]" />
+                          Auto-Execute Actions
+                        </h3>
+                        <p className="text-xs text-[var(--text-tertiary)] mt-1 px-0">
+                          High-confidence actions that SARA can execute without manual approval
+                        </p>
+                      </div>
+
+                      <ToggleSetting
+                        label="Auto-execute enabled"
+                        description="Allow SARA to automatically perform high-confidence actions"
+                        checked={saraAutoExecute}
+                        onChange={setSaraAutoExecute}
+                      />
+
+                      {saraAutoExecute && (
+                        <>
+                          <ToggleSetting
+                            label="Auto-unsubscribe"
+                            description="Automatically unsubscribe contacts who request removal (>90% confidence)"
+                            checked={saraAutoUnsubscribe}
+                            onChange={setSaraAutoUnsubscribe}
+                          />
+                          <ToggleSetting
+                            label="Auto-handle bounces"
+                            description="Automatically mark bounced contacts and stop sequences (>90% confidence)"
+                            checked={saraAutoBounce}
+                            onChange={setSaraAutoBounce}
+                          />
+                        </>
+                      )}
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-4 w-4 text-[var(--text-tertiary)] mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                            SARA uses pattern-based classification to detect reply intent.
+                            Review all classifications in the SARA panel within your Inbox —
+                            click the <Bot className="inline h-3 w-3" /> icon on any message
+                            to view and manage SARA suggestions.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
