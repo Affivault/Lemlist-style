@@ -15,7 +15,6 @@ import { SmtpGuidePage } from './pages/smtp/SmtpGuidePage';
 import { AnalyticsDashboardPage } from './pages/analytics/AnalyticsDashboardPage';
 import { InboxPage } from './pages/inbox/InboxPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
-import { SaraQueuePage } from './pages/sara/SaraQueuePage';
 import { SseDashboardPage } from './pages/sse/SseDashboardPage';
 import { AssetBuilderPage } from './pages/assets/AssetBuilderPage';
 import { TemplatesPage } from './pages/templates/TemplatesPage';
@@ -106,7 +105,7 @@ export default function App() {
         <Route path="/domains" element={<DomainsPage />} />
         <Route path="/analytics" element={<AnalyticsDashboardPage />} />
         <Route path="/inbox" element={<InboxPage />} />
-        <Route path="/sara" element={<SaraQueuePage />} />
+        <Route path="/sara" element={<Navigate to="/inbox" replace />} />
         <Route path="/sse" element={<SseDashboardPage />} />
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/assets" element={<AssetBuilderPage />} />
