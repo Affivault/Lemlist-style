@@ -22,10 +22,10 @@ import { SkySendLogo, SkySendLogoMark } from '../SkySendLogo';
 const mainNav = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
-  { name: 'Templates', href: '/templates', icon: FileText },
-  { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Inbox', href: '/inbox', icon: Inbox },
+  { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Templates', href: '/templates', icon: FileText },
 ];
 
 const toolsNav = [
