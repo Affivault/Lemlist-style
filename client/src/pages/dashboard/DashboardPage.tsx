@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../../api/analytics.api';
 import { campaignsApi } from '../../api/campaigns.api';
+import { inboxApi } from '../../api/inbox.api';
+import { templateApi } from '../../api/template.api';
 import { Spinner } from '../../components/ui/Spinner';
 import {
   Plus,
@@ -11,6 +13,9 @@ import {
   MousePointer,
   ArrowRight,
   Send,
+  Inbox,
+  Star,
+  FileText,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
@@ -119,6 +124,17 @@ function MetricCard({
   );
 }
 
+function timeAgo(date: string): string {
+  const d = new Date(date);
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 const quickActions = [
   { to: '/campaigns/new', icon: Megaphone, title: 'New Campaign', description: 'Create email sequence' },
   { to: '/contacts', icon: Users, title: 'Import Contacts', description: 'Upload CSV file' },
@@ -137,6 +153,16 @@ export function DashboardPage() {
   const { data: campaigns, isLoading: campaignsLoading } = useQuery({
     queryKey: ['campaigns'],
     queryFn: () => campaignsApi.list({ limit: 5 }),
+  });
+
+  const { data: inboxData } = useQuery({
+    queryKey: ['inbox', 'dashboard'],
+    queryFn: () => inboxApi.list({ limit: 5, folder: 'inbox' }),
+  });
+
+  const { data: emailTemplates } = useQuery({
+    queryKey: ['templates', 'emails', 'dashboard'],
+    queryFn: () => templateApi.listEmails(),
   });
 
   const isLoading = analyticsLoading || campaignsLoading;
@@ -163,6 +189,8 @@ export function DashboardPage() {
   };
 
   const recentCampaigns = campaigns?.data || [];
+  const recentMessages = Array.isArray(inboxData?.data) ? inboxData.data : [];
+  const templates = Array.isArray(emailTemplates) ? emailTemplates : [];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -186,8 +214,9 @@ export function DashboardPage() {
         <StatCard label="Active Now" value={stats.active_campaigns} icon={ArrowUpRight} />
       </div>
 
-      {/* Content */}
+      {/* ── TOP: Campaigns + Inbox ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Campaigns */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">Recent Campaigns</h2>
@@ -214,46 +243,140 @@ export function DashboardPage() {
           </div>
         </div>
 
+        {/* Recent Inbox Messages */}
         <div>
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Engagement</h2>
-          <div className="space-y-3">
-            <MetricCard
-              label="Open Rate"
-              value={`${stats.avg_open_rate}%`}
-              subtext={`${stats.total_opened.toLocaleString()} emails opened`}
-              percentage={stats.avg_open_rate}
-            />
-            <MetricCard
-              label="Click Rate"
-              value={`${stats.avg_click_rate}%`}
-              subtext={`${stats.total_clicked.toLocaleString()} links clicked`}
-              percentage={stats.avg_click_rate}
-            />
-            <MetricCard
-              label="Reply Rate"
-              value={`${stats.avg_reply_rate}%`}
-              subtext={`${stats.total_replied.toLocaleString()} total replies`}
-              percentage={stats.avg_reply_rate}
-            />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Inbox</h2>
+            <Link to="/inbox" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1">
+              Open <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="border border-[var(--border-subtle)] rounded-xl bg-[var(--bg-surface)] overflow-hidden">
+            {recentMessages.length > 0 ? (
+              recentMessages.slice(0, 5).map((msg: any) => (
+                <Link
+                  key={msg.id}
+                  to="/inbox"
+                  className="flex items-start gap-3 py-3 px-4 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0"
+                >
+                  <div className="relative flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center">
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">
+                        {(msg.contact_name || msg.from_email || '?')[0].toUpperCase()}
+                      </span>
+                    </div>
+                    {!msg.is_read && (
+                      <div className="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 rounded-full bg-[var(--accent)] border-2 border-[var(--bg-surface)]" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-xs truncate ${msg.is_read ? 'text-[var(--text-secondary)]' : 'font-semibold text-[var(--text-primary)]'}`}>
+                        {msg.contact_name || msg.from_email?.split('@')[0] || 'Unknown'}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-tertiary)] flex-shrink-0">{timeAgo(msg.received_at)}</span>
+                    </div>
+                    <p className={`text-[11px] truncate mt-0.5 ${msg.is_read ? 'text-[var(--text-tertiary)]' : 'text-[var(--text-secondary)]'}`}>
+                      {msg.subject || '(no subject)'}
+                    </p>
+                  </div>
+                  {msg.is_starred && <Star className="h-3 w-3 text-amber-400 fill-amber-400 flex-shrink-0 mt-1" />}
+                </Link>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <Inbox className="h-5 w-5 text-[var(--text-tertiary)] mx-auto mb-2" strokeWidth={1.5} />
+                <p className="text-xs text-[var(--text-tertiary)]">No messages yet</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* ── MIDDLE: Analytics / Engagement ── */}
       <div>
-        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {quickActions.map((action) => (
-            <Link
-              key={action.to}
-              to={action.to}
-              className="p-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--border-default)] transition-colors group"
-            >
-              <action.icon className="h-4 w-4 text-[var(--text-tertiary)] mb-3 group-hover:text-[var(--text-primary)] transition-colors" strokeWidth={1.5} />
-              <div className="text-sm font-medium text-[var(--text-primary)]">{action.title}</div>
-              <div className="text-xs text-[var(--text-tertiary)] mt-0.5">{action.description}</div>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Engagement</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <MetricCard
+            label="Open Rate"
+            value={`${stats.avg_open_rate}%`}
+            subtext={`${stats.total_opened.toLocaleString()} emails opened`}
+            percentage={stats.avg_open_rate}
+          />
+          <MetricCard
+            label="Click Rate"
+            value={`${stats.avg_click_rate}%`}
+            subtext={`${stats.total_clicked.toLocaleString()} links clicked`}
+            percentage={stats.avg_click_rate}
+          />
+          <MetricCard
+            label="Reply Rate"
+            value={`${stats.avg_reply_rate}%`}
+            subtext={`${stats.total_replied.toLocaleString()} total replies`}
+            percentage={stats.avg_reply_rate}
+          />
+        </div>
+      </div>
+
+      {/* ── BOTTOM: Templates + Quick Actions ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Templates */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Recent Templates</h2>
+            <Link to="/templates" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1">
+              View all <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          ))}
+          </div>
+          <div className="border border-[var(--border-subtle)] rounded-xl bg-[var(--bg-surface)] overflow-hidden">
+            {templates.length > 0 ? (
+              templates.slice(0, 4).map((tmpl: any) => (
+                <Link
+                  key={tmpl.id}
+                  to="/templates"
+                  className="flex items-center justify-between py-3.5 px-5 hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-subtle)] last:border-b-0 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-[var(--text-tertiary)]" strokeWidth={1.5} />
+                    <div>
+                      <span className="block text-sm font-medium text-[var(--text-primary)]">{tmpl.name}</span>
+                      <span className="block text-xs text-[var(--text-tertiary)] mt-0.5 truncate max-w-[300px]">{tmpl.subject || 'No subject'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {tmpl.category && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)] capitalize">{tmpl.category}</span>
+                    )}
+                    <ArrowRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)] transition-colors" />
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <FileText className="h-6 w-6 text-[var(--text-tertiary)] mx-auto mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">No templates yet</p>
+                <p className="text-xs text-[var(--text-tertiary)]">Create templates to speed up your campaigns</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 gap-3">
+            {quickActions.map((action) => (
+              <Link
+                key={action.to}
+                to={action.to}
+                className="p-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--border-default)] transition-colors group"
+              >
+                <action.icon className="h-4 w-4 text-[var(--text-tertiary)] mb-2 group-hover:text-[var(--text-primary)] transition-colors" strokeWidth={1.5} />
+                <div className="text-sm font-medium text-[var(--text-primary)]">{action.title}</div>
+                <div className="text-xs text-[var(--text-tertiary)] mt-0.5">{action.description}</div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>

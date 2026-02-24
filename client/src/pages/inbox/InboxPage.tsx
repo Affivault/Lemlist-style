@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inboxApi } from '../../api/inbox.api';
 import { saraApi } from '../../api/sara.api';
@@ -9,6 +9,7 @@ import {
   Search,
   Star,
   Archive,
+  ArchiveRestore,
   Reply,
   Forward,
   Send,
@@ -93,9 +94,24 @@ function senderName(msg: Message): string {
   return msg.contact_name || msg.from_email?.split('@')[0] || 'Unknown';
 }
 
+/** Strip HTML tags and decode common entities for plain-text snippet */
+function stripHtml(str: string): string {
+  return str
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function msgSnippet(msg: Message): string {
-  const text = msg.body_text || '';
-  return text.slice(0, 120).replace(/\s+/g, ' ').trim() || '(no content)';
+  const raw = msg.body_text || msg.body_html || '';
+  const text = stripHtml(raw);
+  return text.slice(0, 120).trim() || '(no content)';
 }
 
 const INTENT_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -114,46 +130,85 @@ function EmailBody({ html, text }: { html: string | null; text: string | null })
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(200);
 
+  // Build the full HTML document for the iframe
+  const srcDoc = useMemo(() => {
+    let bodyContent: string;
+    if (html) {
+      bodyContent = html;
+    } else {
+      const escaped = (text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      bodyContent = `<div style="white-space:pre-wrap;">${escaped}</div>`;
+    }
+
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #1a1a1a;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: #1a73e8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #dadce0; color: #5f6368; }
+pre { white-space: pre-wrap; font-size: 13px; background: #f8f9fa; padding: 12px; border-radius: 8px; }
+table { border-collapse: collapse; max-width: 100%; }
+hr { border: none; border-top: 1px solid #e0e0e0; margin: 16px 0; }
+p { margin: 0 0 12px; }
+h1, h2, h3, h4 { margin: 0 0 8px; }
+</style></head><body>${bodyContent}</body></html>`;
+  }, [html, text]);
+
+  // Auto-resize iframe to fit content
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    const content = html || `<pre style="white-space:pre-wrap;font-family:inherit;margin:0;">${(text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
-    const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>
-      body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1a1a1a; word-wrap: break-word; overflow-wrap: break-word; }
-      img { max-width: 100%; height: auto; }
-      a { color: #2563eb; }
-      blockquote { margin: 8px 0; padding-left: 12px; border-left: 2px solid #e0e0e0; color: #666; }
-      pre { white-space: pre-wrap; font-size: 13px; }
-      table { max-width: 100%; }
-    </style></head><body>${content}</body></html>`;
-
-    iframe.srcdoc = doc;
-
-    const handleLoad = () => {
+    const resize = () => {
       try {
-        const body = iframe.contentDocument?.body;
-        if (body) setHeight(Math.max(body.scrollHeight + 20, 100));
-      } catch { /* cross-origin */ }
+        const doc = iframe.contentDocument;
+        if (doc?.body) {
+          const h = doc.body.scrollHeight;
+          if (h > 0) setHeight(h + 32);
+        }
+      } catch { /* cross-origin safety */ }
     };
 
-    iframe.addEventListener('load', handleLoad);
-    return () => iframe.removeEventListener('load', handleLoad);
-  }, [html, text]);
+    iframe.addEventListener('load', resize);
+    const timer = setTimeout(resize, 500);
+
+    return () => {
+      iframe.removeEventListener('load', resize);
+      clearTimeout(timer);
+    };
+  }, [srcDoc]);
 
   return (
     <iframe
       ref={iframeRef}
+      srcDoc={srcDoc}
       sandbox="allow-same-origin"
       className="w-full border-0"
-      style={{ height: `${height}px`, minHeight: '100px' }}
+      style={{ height: `${height}px`, minHeight: '80px' }}
       title="Email content"
     />
   );
 }
 
 /* ─── Compose Modal ───────────────────────────────── */
-function ComposeModal({ onClose, onSend }: { onClose: () => void; onSend: (data: { to: string; subject: string; body: string }) => void }) {
+function ComposeModal({ onClose, onSend, sending }: {
+  onClose: () => void;
+  onSend: (data: { to: string; subject: string; body: string }) => void;
+  sending?: boolean;
+}) {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -184,11 +239,11 @@ function ComposeModal({ onClose, onSend }: { onClose: () => void; onSend: (data:
         <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
           <button
             onClick={() => { if (to && subject && body) onSend({ to, subject, body }); }}
-            disabled={!to || !subject || !body}
+            disabled={!to || !subject || !body || sending}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
           >
             <Send className="h-3.5 w-3.5" />
-            Send
+            {sending ? 'Sending...' : 'Send'}
           </button>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">
             <Trash2 className="h-4 w-4" />
@@ -361,9 +416,11 @@ export function InboxPage() {
   const [replyMode, setReplyMode] = useState<'reply' | 'forward' | null>(null);
   const [replyBody, setReplyBody] = useState('');
   const [forwardTo, setForwardTo] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: messagesData, isLoading } = useQuery({
+  /* ── Queries ── */
+  const { data: messagesData, isLoading, isFetching } = useQuery({
     queryKey: ['inbox', folder, saraFilter, search],
     queryFn: () => inboxApi.list({
       limit: 50,
@@ -386,18 +443,97 @@ export function InboxPage() {
     queryFn: () => saraApi.getStats(),
   });
 
+  /* ── Invalidation ── */
   const invalidate = useCallback(() => {
     qc.invalidateQueries({ queryKey: ['inbox'] });
     qc.invalidateQueries({ queryKey: ['sara'] });
   }, [qc]);
 
-  const markReadMut = useMutation({ mutationFn: inboxApi.markRead, onSuccess: invalidate });
-  const markUnreadMut = useMutation({ mutationFn: inboxApi.markUnread, onSuccess: invalidate });
-  const markAllReadMut = useMutation({ mutationFn: inboxApi.markAllRead, onSuccess: invalidate });
-  const toggleStarMut = useMutation({ mutationFn: inboxApi.toggleStar, onSuccess: invalidate });
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await qc.invalidateQueries({ queryKey: ['inbox'] });
+    await qc.invalidateQueries({ queryKey: ['sara'] });
+    setIsRefreshing(false);
+  }, [qc]);
+
+  /* ── Select next message after removal ── */
+  const selectNextMessage = useCallback((removedId: string) => {
+    const idx = messages.findIndex(m => m.id === removedId);
+    if (idx >= 0 && messages.length > 1) {
+      const next = messages[idx + 1] || messages[idx - 1];
+      setSelectedId(next?.id || null);
+    } else {
+      setSelectedId(null);
+    }
+  }, [messages]);
+
+  /* ── Mutations ── */
+  const markReadMut = useMutation({
+    mutationFn: inboxApi.markRead,
+    onSuccess: invalidate,
+  });
+
+  const markUnreadMut = useMutation({
+    mutationFn: inboxApi.markUnread,
+    onSuccess: invalidate,
+  });
+
+  const markAllReadMut = useMutation({
+    mutationFn: inboxApi.markAllRead,
+    onSuccess: () => {
+      invalidate();
+      toast.success('All marked as read');
+    },
+  });
+
+  const toggleStarMut = useMutation({
+    mutationFn: inboxApi.toggleStar,
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ['inbox'] });
+      const prevList = qc.getQueryData(['inbox', folder, saraFilter, search]);
+      qc.setQueryData(['inbox', folder, saraFilter, search], (old: any) => {
+        if (!old?.data) return old;
+        return {
+          ...old,
+          data: old.data.map((m: Message) =>
+            m.id === id ? { ...m, is_starred: !m.is_starred } : m
+          ),
+        };
+      });
+      const prevDetail = qc.getQueryData(['inbox', 'detail', id]);
+      if (prevDetail) {
+        qc.setQueryData(['inbox', 'detail', id], (old: any) =>
+          old ? { ...old, is_starred: !old.is_starred } : old
+        );
+      }
+      return { prevList, prevDetail };
+    },
+    onError: (_err, id, context) => {
+      if (context?.prevList) qc.setQueryData(['inbox', folder, saraFilter, search], context.prevList);
+      if (context?.prevDetail) qc.setQueryData(['inbox', 'detail', id], context.prevDetail);
+      toast.error('Failed to toggle star');
+    },
+    onSettled: () => invalidate(),
+  });
+
   const archiveMut = useMutation({
     mutationFn: inboxApi.archive,
-    onSuccess: () => { invalidate(); setSelectedId(null); toast.success('Archived'); },
+    onSuccess: (_data, id) => {
+      selectNextMessage(id);
+      invalidate();
+      toast.success('Archived');
+    },
+    onError: () => toast.error('Failed to archive'),
+  });
+
+  const unarchiveMut = useMutation({
+    mutationFn: inboxApi.unarchive,
+    onSuccess: (_data, id) => {
+      selectNextMessage(id);
+      invalidate();
+      toast.success('Moved to Inbox');
+    },
+    onError: () => toast.error('Failed to unarchive'),
   });
 
   const replyMut = useMutation({
@@ -418,10 +554,25 @@ export function InboxPage() {
     onError: () => toast.error('Failed to send'),
   });
 
-  const classifyMut = useMutation({ mutationFn: saraApi.classify, onSuccess: () => { invalidate(); toast.success('Classified'); } });
-  const approveMut = useMutation({ mutationFn: ({ id, editedReply }: { id: string; editedReply?: string }) => saraApi.approve(id, editedReply), onSuccess: () => { invalidate(); toast.success('Approved & queued'); } });
-  const dismissMut = useMutation({ mutationFn: saraApi.dismiss, onSuccess: () => { invalidate(); toast.success('Dismissed'); } });
+  const classifyMut = useMutation({
+    mutationFn: saraApi.classify,
+    onSuccess: () => { invalidate(); toast.success('Classified'); },
+    onError: () => toast.error('Classification failed'),
+  });
 
+  const approveMut = useMutation({
+    mutationFn: ({ id, editedReply }: { id: string; editedReply?: string }) => saraApi.approve(id, editedReply),
+    onSuccess: () => { invalidate(); toast.success('Approved & queued'); },
+    onError: () => toast.error('Failed to approve'),
+  });
+
+  const dismissMut = useMutation({
+    mutationFn: saraApi.dismiss,
+    onSuccess: () => { invalidate(); toast.success('Dismissed'); },
+    onError: () => toast.error('Failed to dismiss'),
+  });
+
+  /* ── Handlers ── */
   const selectMessage = useCallback((msg: Message) => {
     setSelectedId(msg.id);
     setReplyMode(null);
@@ -432,7 +583,16 @@ export function InboxPage() {
   const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setSearch(searchInput);
+    setSelectedId(null);
   }, [searchInput]);
+
+  const handleArchiveToggle = useCallback((msg: Message) => {
+    if (folder === 'archived' || msg.is_archived) {
+      unarchiveMut.mutate(msg.id);
+    } else {
+      archiveMut.mutate(msg.id);
+    }
+  }, [folder, archiveMut, unarchiveMut]);
 
   useEffect(() => {
     if (replyMode && replyRef.current) replyRef.current.focus();
@@ -441,6 +601,10 @@ export function InboxPage() {
   const currentMsg: Message | null = (selectedMsg as Message) || messages.find(m => m.id === selectedId) || null;
   const unreadCount = messages.filter(m => !m.is_read).length;
   const pendingCount = saraStats?.pending_review || 0;
+
+  const isInArchived = folder === 'archived';
+  const archiveLabel = isInArchived ? 'Move to Inbox' : 'Archive';
+  const ArchiveIcon = isInArchived ? ArchiveRestore : Archive;
 
   const folders: { id: Folder; label: string; icon: React.ElementType; count?: number }[] = [
     { id: 'inbox', label: 'Inbox', icon: Inbox, count: unreadCount || undefined },
@@ -462,11 +626,21 @@ export function InboxPage() {
               Compose
             </button>
             <div className="flex-1" />
-            <button onClick={() => markAllReadMut.mutate()} title="Mark all read" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+            <button
+              onClick={() => markAllReadMut.mutate()}
+              disabled={markAllReadMut.isPending}
+              title="Mark all read"
+              className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+            >
               <CheckCheck className="h-4 w-4" />
             </button>
-            <button onClick={() => invalidate()} title="Refresh" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
-              <RefreshCw className="h-4 w-4" />
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing || isFetching}
+              title="Refresh"
+              className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+            >
+              <RefreshCw className={`h-4 w-4 ${(isRefreshing || isFetching) ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
@@ -486,18 +660,18 @@ export function InboxPage() {
           {/* Folders */}
           <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
             {folders.map(f => {
-              const Icon = f.icon;
+              const FolderIcon = f.icon;
               return (
                 <button
                   key={f.id}
-                  onClick={() => { setFolder(f.id); setSelectedId(null); }}
+                  onClick={() => { setFolder(f.id); setSelectedId(null); setSaraFilter('all'); }}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                     folder === f.id
                       ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm'
                       : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <FolderIcon className="h-3.5 w-3.5" />
                   {f.label}
                   {f.count ? <span className="ml-0.5 text-[10px] bg-[var(--text-primary)] text-[var(--bg-app)] rounded-full px-1.5 py-px font-bold">{f.count}</span> : null}
                 </button>
@@ -589,16 +763,37 @@ export function InboxPage() {
         <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-surface)]">
           {currentMsg ? (
             <>
+              {/* Toolbar */}
               <div className="flex items-center gap-1 px-4 py-2 border-b border-[var(--border-subtle)]">
                 <button onClick={() => setSelectedId(null)} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors lg:hidden">
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div className="flex-1" />
-                <button onClick={() => { setReplyMode('reply'); setReplyBody(''); }} title="Reply" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"><Reply className="h-4 w-4" /></button>
-                <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); }} title="Forward" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"><Forward className="h-4 w-4" /></button>
-                <button onClick={() => toggleStarMut.mutate(currentMsg.id)} title="Star" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"><Star className={`h-4 w-4 ${currentMsg.is_starred ? 'text-amber-400 fill-amber-400' : ''}`} /></button>
-                <button onClick={() => archiveMut.mutate(currentMsg.id)} title="Archive" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"><Archive className="h-4 w-4" /></button>
-                <button onClick={() => currentMsg.is_read ? markUnreadMut.mutate(currentMsg.id) : markReadMut.mutate(currentMsg.id)} title={currentMsg.is_read ? 'Mark unread' : 'Mark read'} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                <button onClick={() => { setReplyMode('reply'); setReplyBody(''); }} title="Reply" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                  <Reply className="h-4 w-4" />
+                </button>
+                <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); }} title="Forward" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                  <Forward className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => toggleStarMut.mutate(currentMsg.id)}
+                  title={currentMsg.is_starred ? 'Unstar' : 'Star'}
+                  className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <Star className={`h-4 w-4 ${currentMsg.is_starred ? 'text-amber-400 fill-amber-400' : ''}`} />
+                </button>
+                <button
+                  onClick={() => handleArchiveToggle(currentMsg)}
+                  title={archiveLabel}
+                  className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <ArchiveIcon className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => currentMsg.is_read ? markUnreadMut.mutate(currentMsg.id) : markReadMut.mutate(currentMsg.id)}
+                  title={currentMsg.is_read ? 'Mark unread' : 'Mark read'}
+                  className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                >
                   {currentMsg.is_read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
                 <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
@@ -607,8 +802,10 @@ export function InboxPage() {
                 </button>
               </div>
 
+              {/* Email content */}
               <div className="flex-1 overflow-y-auto">
                 <div className="max-w-3xl mx-auto px-6 py-6">
+                  {/* Subject line */}
                   <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-4 leading-tight">{currentMsg.subject || '(no subject)'}</h1>
 
                   {/* SARA banner */}
@@ -631,6 +828,7 @@ export function InboxPage() {
 
                   {/* Email message card */}
                   <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
+                    {/* Sender header */}
                     <div className="flex items-start gap-3 p-4 border-b border-[var(--border-subtle)]">
                       <div className="w-10 h-10 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
                         <span className="text-sm font-semibold text-[var(--text-primary)]">{senderInitial(currentMsg)}</span>
@@ -657,8 +855,14 @@ export function InboxPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="p-4">
-                      <ErrorBoundary fallback={<div className="p-4 text-sm text-[var(--text-secondary)]"><p>{currentMsg.body_text || '(Unable to render email content)'}</p></div>}>
+
+                    {/* Email body - rendered in sandboxed iframe */}
+                    <div className="p-0">
+                      <ErrorBoundary fallback={
+                        <div className="p-6 text-sm text-[var(--text-secondary)]">
+                          <p>{currentMsg.body_text ? stripHtml(currentMsg.body_text) : '(Unable to render email content)'}</p>
+                        </div>
+                      }>
                         <EmailBody html={currentMsg.body_html} text={currentMsg.body_text} />
                       </ErrorBoundary>
                     </div>
@@ -688,11 +892,13 @@ export function InboxPage() {
                             if (replyMode === 'reply' && replyBody.trim()) replyMut.mutate({ id: currentMsg.id, body: replyBody });
                             else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyBody || undefined });
                           }}
-                          disabled={replyMode === 'reply' ? !replyBody.trim() : !forwardTo.trim()}
+                          disabled={
+                            (replyMode === 'reply' ? !replyBody.trim() || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
+                          }
                           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
                         >
                           <Send className="h-3.5 w-3.5" />
-                          {replyMode === 'reply' ? 'Send Reply' : 'Forward'}
+                          {replyMut.isPending || forwardMut.isPending ? 'Sending...' : replyMode === 'reply' ? 'Send Reply' : 'Forward'}
                         </button>
                         <button onClick={() => setReplyMode(null)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">Discard</button>
                       </div>
@@ -740,7 +946,13 @@ export function InboxPage() {
         )}
       </div>
 
-      {showCompose && <ComposeModal onClose={() => setShowCompose(false)} onSend={data => composeMut.mutate(data)} />}
+      {showCompose && (
+        <ComposeModal
+          onClose={() => setShowCompose(false)}
+          onSend={data => composeMut.mutate(data)}
+          sending={composeMut.isPending}
+        />
+      )}
     </div>
   );
 }
