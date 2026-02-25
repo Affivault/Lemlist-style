@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { settingsApi, type UserSettings } from '../../api/settings.api';
 import { Button } from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 import {
@@ -22,6 +24,10 @@ import {
   Zap,
   SlidersHorizontal,
   Info,
+  Loader2,
+  Trash2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 type Tab = 'profile' | 'account' | 'notifications' | 'preferences' | 'sara';
@@ -43,9 +49,10 @@ const tabs: TabConfig[] = [
 export function SettingsPage() {
   const { user, signOut } = useAuth();
   const { mode: themeMode, setMode: setThemeMode } = useTheme();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
-  const [saving, setSaving] = useState(false);
 
+  // Form state
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [company, setCompany] = useState('');
@@ -68,17 +75,155 @@ export function SettingsPage() {
   const [saraAutoBounce, setSaraAutoBounce] = useState(true);
   const [saraDraftReplies, setSaraDraftReplies] = useState(true);
 
-  const handleSave = async () => {
-    setSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success('Settings saved');
-    setSaving(false);
+  // Password change
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Delete account
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+
+  // Track if form has unsaved changes
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // ── Fetch settings from backend ──
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['settings'],
+    queryFn: settingsApi.get,
+  });
+
+  // Populate form when settings load
+  useEffect(() => {
+    if (settings) {
+      setFirstName(settings.first_name || '');
+      setLastName(settings.last_name || '');
+      setCompany(settings.company || '');
+      setJobTitle(settings.job_title || '');
+      setTimezone(settings.timezone || 'America/New_York');
+      setEmailNotifications(settings.email_notifications ?? true);
+      setCampaignAlerts(settings.campaign_alerts ?? true);
+      setReplyNotifications(settings.reply_notifications ?? true);
+      setWeeklyDigest(settings.weekly_digest ?? false);
+      setDefaultSignature(settings.default_signature || '');
+      setSaraEnabled(settings.sara_enabled ?? true);
+      setSaraAutoClassify(settings.sara_auto_classify ?? true);
+      setSaraAutoExecute(settings.sara_auto_execute ?? true);
+      setSaraConfidenceThreshold(settings.sara_confidence_threshold ?? 85);
+      setSaraAutoUnsubscribe(settings.sara_auto_unsubscribe ?? true);
+      setSaraAutoBounce(settings.sara_auto_bounce ?? true);
+      setSaraDraftReplies(settings.sara_draft_replies ?? true);
+      if (settings.theme && settings.theme !== themeMode) {
+        setThemeMode(settings.theme as 'light' | 'dark' | 'system');
+      }
+      setHasChanges(false);
+    }
+  }, [settings]);
+
+  // Track changes
+  const markChanged = () => setHasChanges(true);
+
+  // ── Save settings mutation ──
+  const saveMutation = useMutation({
+    mutationFn: (updates: Partial<UserSettings>) => settingsApi.update(updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      toast.success('Settings saved');
+      setHasChanges(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || 'Failed to save settings');
+    },
+  });
+
+  const handleSave = () => {
+    saveMutation.mutate({
+      first_name: firstName,
+      last_name: lastName,
+      company,
+      job_title: jobTitle,
+      timezone,
+      email_notifications: emailNotifications,
+      campaign_alerts: campaignAlerts,
+      reply_notifications: replyNotifications,
+      weekly_digest: weeklyDigest,
+      default_signature: defaultSignature,
+      theme: themeMode,
+      sara_enabled: saraEnabled,
+      sara_auto_classify: saraAutoClassify,
+      sara_auto_execute: saraAutoExecute,
+      sara_confidence_threshold: saraConfidenceThreshold,
+      sara_auto_unsubscribe: saraAutoUnsubscribe,
+      sara_auto_bounce: saraAutoBounce,
+      sara_draft_replies: saraDraftReplies,
+    });
+  };
+
+  // ── Change password mutation ──
+  const changePasswordMutation = useMutation({
+    mutationFn: (password: string) => settingsApi.changePassword(password),
+    onSuccess: () => {
+      toast.success('Password updated successfully');
+      setShowPasswordModal(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || 'Failed to update password');
+    },
+  });
+
+  const handleChangePassword = () => {
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    changePasswordMutation.mutate(newPassword);
+  };
+
+  // ── Delete account mutation ──
+  const deleteAccountMutation = useMutation({
+    mutationFn: (confirmation: string) => settingsApi.deleteAccount(confirmation),
+    onSuccess: async () => {
+      toast.success('Account deleted');
+      await signOut();
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || 'Failed to delete account');
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    if (deleteConfirmation !== 'DELETE') {
+      toast.error('Please type DELETE to confirm');
+      return;
+    }
+    deleteAccountMutation.mutate(deleteConfirmation);
   };
 
   const handleSignOut = async () => {
     await signOut();
     toast.success('Signed out');
   };
+
+  // Helper to handle theme change — also marks form as changed
+  const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
+    setThemeMode(value);
+    markChanged();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -125,7 +270,7 @@ export function SettingsPage() {
         {/* Content */}
         <div className="flex-1">
           <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 shadow-card">
-            {/* Profile Tab */}
+            {/* ═══ Profile Tab ═══ */}
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 <div>
@@ -135,11 +280,13 @@ export function SettingsPage() {
 
                 <div className="flex items-center gap-4 p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
                   <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] text-lg font-semibold">
-                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    {(firstName || user?.email || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[var(--text-primary)]">Profile Photo</p>
-                    <p className="text-xs text-[var(--text-tertiary)] mt-0.5">JPG, PNG or GIF. Max 2MB</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      {firstName && lastName ? `${firstName} ${lastName}` : 'Profile Photo'}
+                    </p>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-0.5">{user?.email}</p>
                   </div>
                 </div>
 
@@ -149,7 +296,7 @@ export function SettingsPage() {
                     <input
                       type="text"
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      onChange={(e) => { setFirstName(e.target.value); markChanged(); }}
                       placeholder="John"
                       className="input-field"
                     />
@@ -159,7 +306,7 @@ export function SettingsPage() {
                     <input
                       type="text"
                       value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      onChange={(e) => { setLastName(e.target.value); markChanged(); }}
                       placeholder="Doe"
                       className="input-field"
                     />
@@ -172,7 +319,7 @@ export function SettingsPage() {
                     <input
                       type="text"
                       value={company}
-                      onChange={(e) => setCompany(e.target.value)}
+                      onChange={(e) => { setCompany(e.target.value); markChanged(); }}
                       placeholder="Acme Inc."
                       className="input-field"
                     />
@@ -182,7 +329,7 @@ export function SettingsPage() {
                     <input
                       type="text"
                       value={jobTitle}
-                      onChange={(e) => setJobTitle(e.target.value)}
+                      onChange={(e) => { setJobTitle(e.target.value); markChanged(); }}
                       placeholder="Sales Manager"
                       className="input-field"
                     />
@@ -210,7 +357,7 @@ export function SettingsPage() {
                   </label>
                   <select
                     value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
+                    onChange={(e) => { setTimezone(e.target.value); markChanged(); }}
                     className="input-field"
                   >
                     <option value="America/New_York">Eastern Time (ET)</option>
@@ -219,12 +366,17 @@ export function SettingsPage() {
                     <option value="America/Los_Angeles">Pacific Time (PT)</option>
                     <option value="Europe/London">London (GMT)</option>
                     <option value="Europe/Paris">Paris (CET)</option>
+                    <option value="Europe/Berlin">Berlin (CET)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Asia/Shanghai">Shanghai (CST)</option>
+                    <option value="Australia/Sydney">Sydney (AEST)</option>
+                    <option value="UTC">UTC</option>
                   </select>
                 </div>
               </div>
             )}
 
-            {/* Account Tab */}
+            {/* ═══ Account Tab ═══ */}
             {activeTab === 'account' && (
               <div className="space-y-6">
                 <div>
@@ -232,23 +384,87 @@ export function SettingsPage() {
                   <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your password and security settings</p>
                 </div>
 
+                {/* Change Password */}
                 <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center">
                       <Key className="h-5 w-5 text-[var(--text-primary)]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">Password</p>
-                      <p className="text-xs text-[var(--text-tertiary)]">Last changed 30 days ago</p>
+                      <p className="text-xs text-[var(--text-tertiary)]">Update your account password</p>
                     </div>
                   </div>
-                  <Button variant="secondary" size="sm">Change Password</Button>
+                  <Button variant="secondary" size="sm" onClick={() => setShowPasswordModal(true)}>
+                    Change Password
+                  </Button>
                 </div>
 
+                {/* Password Modal */}
+                {showPasswordModal && (
+                  <div className="p-5 rounded-xl border-2 border-[var(--accent)]/30 bg-[var(--bg-surface)] space-y-4">
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">Change Password</h3>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Min. 6 characters"
+                          className="input-field pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Confirm Password</label>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-enter password"
+                        className="input-field"
+                      />
+                      {confirmPassword && newPassword !== confirmPassword && (
+                        <p className="text-xs text-[var(--error)] mt-1">Passwords do not match</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleChangePassword}
+                        disabled={changePasswordMutation.isPending || !newPassword || newPassword !== confirmPassword}
+                      >
+                        {changePasswordMutation.isPending ? (
+                          <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating...</>
+                        ) : (
+                          'Update Password'
+                        )}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => { setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2FA placeholder */}
                 <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center">
                         <Shield className="h-5 w-5 text-[var(--text-primary)]" />
                       </div>
                       <div>
@@ -258,12 +474,12 @@ export function SettingsPage() {
                     </div>
                     <span className="flex items-center gap-1.5 text-xs text-[var(--warning)] bg-[var(--warning-bg)] px-3 py-1.5 rounded-full font-medium">
                       <AlertCircle className="h-3 w-3" />
-                      Not enabled
+                      Coming soon
                     </span>
                   </div>
-                  <Button variant="secondary" size="sm">Enable 2FA</Button>
                 </div>
 
+                {/* Connected accounts */}
                 <div className="pt-6 border-t border-[var(--border-subtle)]">
                   <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Connected Accounts</h3>
                   <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
@@ -276,23 +492,64 @@ export function SettingsPage() {
                       </svg>
                       <span className="text-sm font-medium text-[var(--text-primary)]">Google</span>
                     </div>
-                    <Button variant="secondary" size="sm">Connect</Button>
+                    <span className="text-xs text-[var(--text-tertiary)]">Managed via Supabase Auth</span>
                   </div>
                 </div>
 
+                {/* Danger Zone */}
                 <div className="pt-6 border-t border-[var(--border-subtle)]">
                   <h3 className="text-sm font-semibold text-[var(--error)] mb-4">Danger Zone</h3>
                   <div className="p-5 border border-[var(--error)]/20 rounded-xl bg-[var(--error-bg)]">
                     <p className="text-sm text-[var(--text-secondary)] mb-4">
-                      Once you delete your account, there is no going back. All your data will be permanently removed.
+                      Once you delete your account, there is no going back. All your campaigns, contacts, SMTP accounts, and data will be permanently removed.
                     </p>
-                    <Button variant="danger" size="sm">Delete Account</Button>
+                    {!showDeleteModal ? (
+                      <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete Account
+                      </Button>
+                    ) : (
+                      <div className="space-y-3 p-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--error)]/30">
+                        <p className="text-xs font-medium text-[var(--error)]">
+                          Type <span className="font-bold">DELETE</span> to confirm permanent account deletion:
+                        </p>
+                        <input
+                          type="text"
+                          value={deleteConfirmation}
+                          onChange={(e) => setDeleteConfirmation(e.target.value)}
+                          placeholder="Type DELETE"
+                          className="input-field text-sm"
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleDeleteAccount}
+                            disabled={deleteAccountMutation.isPending || deleteConfirmation !== 'DELETE'}
+                          >
+                            {deleteAccountMutation.isPending ? (
+                              <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Deleting...</>
+                            ) : (
+                              'Permanently Delete Account'
+                            )}
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => { setShowDeleteModal(false); setDeleteConfirmation(''); }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Notifications Tab */}
+            {/* ═══ Notifications Tab ═══ */}
             {activeTab === 'notifications' && (
               <div className="space-y-6">
                 <div>
@@ -305,31 +562,31 @@ export function SettingsPage() {
                     label="Email Notifications"
                     description="Receive email notifications for important updates"
                     checked={emailNotifications}
-                    onChange={setEmailNotifications}
+                    onChange={(v) => { setEmailNotifications(v); markChanged(); }}
                   />
                   <ToggleSetting
                     label="Campaign Alerts"
                     description="Get notified when campaigns start, pause, or complete"
                     checked={campaignAlerts}
-                    onChange={setCampaignAlerts}
+                    onChange={(v) => { setCampaignAlerts(v); markChanged(); }}
                   />
                   <ToggleSetting
                     label="Reply Notifications"
                     description="Receive instant notifications when contacts reply"
                     checked={replyNotifications}
-                    onChange={setReplyNotifications}
+                    onChange={(v) => { setReplyNotifications(v); markChanged(); }}
                   />
                   <ToggleSetting
                     label="Weekly Digest"
                     description="Receive a weekly summary of your campaign performance"
                     checked={weeklyDigest}
-                    onChange={setWeeklyDigest}
+                    onChange={(v) => { setWeeklyDigest(v); markChanged(); }}
                   />
                 </div>
               </div>
             )}
 
-            {/* Preferences Tab */}
+            {/* ═══ Preferences Tab ═══ */}
             {activeTab === 'preferences' && (
               <div className="space-y-6">
                 <div>
@@ -347,7 +604,7 @@ export function SettingsPage() {
                     ]).map(({ value, label, icon: Icon }) => (
                       <button
                         key={value}
-                        onClick={() => setThemeMode(value)}
+                        onClick={() => handleThemeChange(value)}
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 border ${
                           themeMode === value
                             ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--text-primary)]'
@@ -367,7 +624,7 @@ export function SettingsPage() {
                   </label>
                   <textarea
                     value={defaultSignature}
-                    onChange={(e) => setDefaultSignature(e.target.value)}
+                    onChange={(e) => { setDefaultSignature(e.target.value); markChanged(); }}
                     placeholder="Best regards,&#10;John Doe"
                     rows={4}
                     className="input-field resize-none"
@@ -379,7 +636,7 @@ export function SettingsPage() {
               </div>
             )}
 
-            {/* SARA AI Tab */}
+            {/* ═══ SARA AI Tab ═══ */}
             {activeTab === 'sara' && (
               <div className="space-y-6">
                 <div>
@@ -407,7 +664,7 @@ export function SettingsPage() {
                   label="Enable SARA AI"
                   description="Turn on/off automatic reply classification and draft generation"
                   checked={saraEnabled}
-                  onChange={setSaraEnabled}
+                  onChange={(v) => { setSaraEnabled(v); markChanged(); }}
                 />
 
                 {saraEnabled && (
@@ -424,13 +681,13 @@ export function SettingsPage() {
                         label="Auto-classify new replies"
                         description="Automatically analyze incoming replies as they arrive"
                         checked={saraAutoClassify}
-                        onChange={setSaraAutoClassify}
+                        onChange={(v) => { setSaraAutoClassify(v); markChanged(); }}
                       />
                       <ToggleSetting
                         label="Draft reply suggestions"
                         description="Generate draft replies for classified messages"
                         checked={saraDraftReplies}
-                        onChange={setSaraDraftReplies}
+                        onChange={(v) => { setSaraDraftReplies(v); markChanged(); }}
                       />
                     </div>
 
@@ -461,7 +718,7 @@ export function SettingsPage() {
                           min={50}
                           max={99}
                           value={saraConfidenceThreshold}
-                          onChange={(e) => setSaraConfidenceThreshold(Number(e.target.value))}
+                          onChange={(e) => { setSaraConfidenceThreshold(Number(e.target.value)); markChanged(); }}
                           className="w-full accent-[var(--accent)]"
                         />
                         <div className="flex justify-between mt-1">
@@ -486,7 +743,7 @@ export function SettingsPage() {
                         label="Auto-execute enabled"
                         description="Allow SARA to automatically perform high-confidence actions"
                         checked={saraAutoExecute}
-                        onChange={setSaraAutoExecute}
+                        onChange={(v) => { setSaraAutoExecute(v); markChanged(); }}
                       />
 
                       {saraAutoExecute && (
@@ -495,13 +752,13 @@ export function SettingsPage() {
                             label="Auto-unsubscribe"
                             description="Automatically unsubscribe contacts who request removal (>90% confidence)"
                             checked={saraAutoUnsubscribe}
-                            onChange={setSaraAutoUnsubscribe}
+                            onChange={(v) => { setSaraAutoUnsubscribe(v); markChanged(); }}
                           />
                           <ToggleSetting
                             label="Auto-handle bounces"
                             description="Automatically mark bounced contacts and stop sequences (>90% confidence)"
                             checked={saraAutoBounce}
-                            onChange={setSaraAutoBounce}
+                            onChange={(v) => { setSaraAutoBounce(v); markChanged(); }}
                           />
                         </>
                       )}
@@ -525,10 +782,25 @@ export function SettingsPage() {
               </div>
             )}
 
-            {/* Save button */}
-            <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex justify-end">
-              <button onClick={handleSave} disabled={saving} className="btn-primary rounded-lg px-6 py-2.5">
-                {saving ? 'Saving...' : (
+            {/* ═══ Save button ═══ */}
+            <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex items-center justify-between">
+              {hasChanges && (
+                <p className="text-xs text-[var(--warning)] flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  You have unsaved changes
+                </p>
+              )}
+              {!hasChanges && <div />}
+              <button
+                onClick={handleSave}
+                disabled={saveMutation.isPending || !hasChanges}
+                className={`btn-primary rounded-lg px-6 py-2.5 flex items-center gap-2 ${
+                  !hasChanges ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {saveMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
+                ) : (
                   <>
                     <Save className="h-4 w-4" />
                     Save Changes

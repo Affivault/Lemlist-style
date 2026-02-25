@@ -17,6 +17,7 @@ import { webhookRoutes } from './webhook.routes.js';
 import { apikeyRoutes } from './apikey.routes.js';
 import { domainRoutes } from './domain.routes.js';
 import { templateRoutes } from './template.routes.js';
+import { settingsRoutes } from './settings.routes.js';
 
 export const routes = Router();
 
@@ -41,3 +42,4 @@ routes.use('/webhooks', webhookRoutes);
 routes.use('/api-keys', apikeyRoutes);
 routes.use('/domains', domainRoutes);
 routes.use('/templates', templateRoutes);
+routes.use('/settings', settingsRoutes);
