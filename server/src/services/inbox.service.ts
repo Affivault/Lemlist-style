@@ -202,7 +202,7 @@ export const inboxService = {
     if (error) throw new AppError(error.message, 500);
   },
 
-  async reply(userId: string, messageId: string, body: string, smtpAccountId?: string) {
+  async reply(userId: string, messageId: string, body: string, smtpAccountId?: string, bodyHtml?: string) {
     const { data: original } = await supabaseAdmin
       .from('inbox_messages')
       .select('*')
@@ -220,7 +220,9 @@ export const inboxService = {
       ? original.subject
       : `Re: ${original.subject || '(no subject)'}`;
 
-    const htmlBody = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${body.replace(/\n/g, '<br/>')}</div>
+    // Use rich HTML from editor if provided, otherwise convert plain text
+    const userHtml = bodyHtml || `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${body.replace(/\n/g, '<br/>')}</div>`;
+    const htmlBody = `${userHtml}
 <br/>
 <div style="padding-left:12px;border-left:2px solid #e0e0e0;margin-top:16px;color:#666;">
   <p style="margin:0 0 4px;font-size:12px;color:#999;">On ${new Date(original.received_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}, ${original.from_email} wrote:</p>
@@ -263,7 +265,7 @@ export const inboxService = {
     return { success: true, message_id: newMessageId };
   },
 
-  async forward(userId: string, messageId: string, toEmail: string, note?: string, smtpAccountId?: string) {
+  async forward(userId: string, messageId: string, toEmail: string, note?: string, smtpAccountId?: string, noteHtmlRaw?: string) {
     const { data: original } = await supabaseAdmin
       .from('inbox_messages')
       .select('*')
@@ -278,9 +280,12 @@ export const inboxService = {
     const newMessageId = `<${crypto.randomUUID()}@${domain}>`;
     const subject = `Fwd: ${(original.subject || '(no subject)').replace(/^Fwd:\s*/i, '')}`;
 
-    const noteHtml = note
-      ? `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;margin-bottom:16px;">${note.replace(/\n/g, '<br/>')}</div><hr style="border:none;border-top:1px solid #e0e0e0;margin:16px 0;"/>`
-      : '';
+    // Use rich HTML from editor if provided, otherwise convert plain text
+    const noteHtml = noteHtmlRaw
+      ? `${noteHtmlRaw}<hr style="border:none;border-top:1px solid #e0e0e0;margin:16px 0;"/>`
+      : note
+        ? `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;margin-bottom:16px;">${note.replace(/\n/g, '<br/>')}</div><hr style="border:none;border-top:1px solid #e0e0e0;margin:16px 0;"/>`
+        : '';
 
     const htmlBody = `${noteHtml}
 <p style="margin:0 0 8px;font-size:12px;color:#999;">---------- Forwarded message ----------</p>
@@ -319,13 +324,14 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
     return { success: true, message_id: newMessageId };
   },
 
-  async compose(userId: string, input: { to: string; subject: string; body: string; smtp_account_id?: string }) {
+  async compose(userId: string, input: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string }) {
     const smtpAccount = await findSmtpAccount(userId, input.smtp_account_id);
 
     const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
     const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
     const messageId = `<${crypto.randomUUID()}@${domain}>`;
-    const htmlBody = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${input.body.replace(/\n/g, '<br/>')}</div>`;
+    // Use rich HTML from editor if provided, otherwise convert plain text
+    const htmlBody = input.body_html || `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${input.body.replace(/\n/g, '<br/>')}</div>`;
 
     await sendViaSmtp({
       smtpHost: smtpAccount.smtp_host,
