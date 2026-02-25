@@ -135,7 +135,7 @@ export function DashboardPage() {
   /* ── Data Queries ── */
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['analytics', 'overview'],
-    queryFn: analyticsApi.overview,
+    queryFn: () => analyticsApi.overview(),
   });
 
   const { data: trendData } = useQuery({
