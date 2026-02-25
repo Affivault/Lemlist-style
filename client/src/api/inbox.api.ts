@@ -50,17 +50,17 @@ export const inboxApi = {
     await apiClient.put(`/inbox/${id}/unarchive`);
   },
 
-  reply: async (id: string, body: string, smtp_account_id?: string) => {
-    const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/reply`, { body, smtp_account_id });
+  reply: async (id: string, body: string, smtp_account_id?: string, body_html?: string) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/reply`, { body, body_html, smtp_account_id });
     return data;
   },
 
-  forward: async (id: string, to: string, note?: string, smtp_account_id?: string) => {
-    const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/forward`, { to, note, smtp_account_id });
+  forward: async (id: string, to: string, note?: string, smtp_account_id?: string, body_html?: string) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/forward`, { to, note, body_html, smtp_account_id });
     return data;
   },
 
-  compose: async (input: { to: string; subject: string; body: string; smtp_account_id?: string }) => {
+  compose: async (input: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string }) => {
     const { data } = await apiClient.post<{ success: boolean; message_id: string }>('/inbox/compose', input);
     return data;
   },

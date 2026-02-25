@@ -3,8 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inboxApi } from '../../api/inbox.api';
 import { saraApi } from '../../api/sara.api';
 import { smtpApi } from '../../api/smtp.api';
+import { templateApi } from '../../api/template.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { RichTextEditor, useRichTextEditorRef } from '../../components/ui/RichTextEditor';
 import toast from 'react-hot-toast';
 import {
   Search,
@@ -256,21 +258,22 @@ function SenderSelect({ accounts, value, onChange }: {
 }
 
 /* ─── Compose Modal ───────────────────────────────── */
-function ComposeModal({ onClose, onSend, sending, smtpAccounts }: {
+function ComposeModal({ onClose, onSend, sending, smtpAccounts, templates }: {
   onClose: () => void;
-  onSend: (data: { to: string; subject: string; body: string; smtp_account_id?: string }) => void;
+  onSend: (data: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string }) => void;
   sending?: boolean;
   smtpAccounts: SmtpAccount[];
+  templates?: { id: string; name: string; subject: string; body_html: string }[];
 }) {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
   const [senderId, setSenderId] = useState(smtpAccounts[0]?.id || '');
+  const editor = useRichTextEditorRef();
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-6">
       <div className="fixed inset-0 bg-black/20" onClick={onClose} />
-      <div className="relative w-[560px] bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-2xl flex flex-col max-h-[80vh]" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+      <div className="relative w-[620px] bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-2xl flex flex-col max-h-[85vh]" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)] rounded-t-xl">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">New Message</h3>
           <button onClick={onClose} className="p-1 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">
@@ -278,7 +281,6 @@ function ComposeModal({ onClose, onSend, sending, smtpAccounts }: {
           </button>
         </div>
         <div className="border-b border-[var(--border-subtle)]">
-          {/* Sender row */}
           <div className="flex items-center px-4 py-2 border-b border-[var(--border-subtle)]">
             <span className="text-xs font-medium text-[var(--text-tertiary)] w-12">From</span>
             <SenderSelect accounts={smtpAccounts} value={senderId} onChange={setSenderId} />
@@ -292,13 +294,23 @@ function ComposeModal({ onClose, onSend, sending, smtpAccounts }: {
             <input value={subject} onChange={e => setSubject(e.target.value)} className="flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none" placeholder="Subject" />
           </div>
         </div>
-        <div className="flex-1 min-h-0">
-          <textarea value={body} onChange={e => setBody(e.target.value)} className="w-full h-full min-h-[200px] p-4 bg-transparent text-sm text-[var(--text-primary)] outline-none resize-none" placeholder="Write your message..." />
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <RichTextEditor
+            placeholder="Write your message..."
+            onChange={editor.handleChange}
+            templates={templates}
+            minHeight="200px"
+            autoFocus
+          />
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
           <button
-            onClick={() => { if (to && subject && body) onSend({ to, subject, body, smtp_account_id: senderId || undefined }); }}
-            disabled={!to || !subject || !body || sending || smtpAccounts.length === 0}
+            onClick={() => {
+              if (to && subject && !editor.isEmpty) {
+                onSend({ to, subject, body: editor.text, body_html: editor.html, smtp_account_id: senderId || undefined });
+              }
+            }}
+            disabled={!to || !subject || editor.isEmpty || sending || smtpAccounts.length === 0}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
           >
             <Send className="h-3.5 w-3.5" />
@@ -473,11 +485,10 @@ export function InboxPage() {
   const [showCompose, setShowCompose] = useState(false);
   const [showSara, setShowSara] = useState(true);
   const [replyMode, setReplyMode] = useState<'reply' | 'forward' | null>(null);
-  const [replyBody, setReplyBody] = useState('');
   const [forwardTo, setForwardTo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [replySenderId, setReplySenderId] = useState('');
-  const replyRef = useRef<HTMLTextAreaElement>(null);
+  const replyEditor = useRichTextEditorRef();
 
   /* ── SMTP accounts for sender selection ── */
   const { data: smtpAccountsRaw } = useQuery({
@@ -485,6 +496,18 @@ export function InboxPage() {
     queryFn: smtpApi.list,
   });
   const smtpAccounts: SmtpAccount[] = (smtpAccountsRaw || []).filter((a: any) => a.is_active);
+
+  /* ── Email templates for insertion ── */
+  const { data: emailTemplates } = useQuery({
+    queryKey: ['templates', 'emails'],
+    queryFn: () => templateApi.listEmails(),
+  });
+  const templates = (emailTemplates || []).map((t: any) => ({
+    id: t.id,
+    name: t.name,
+    subject: t.subject,
+    body_html: t.body_html,
+  }));
 
   /* ── Queries ── */
   const { data: messagesData, isLoading, isFetching } = useQuery({
@@ -604,14 +627,14 @@ export function InboxPage() {
   });
 
   const replyMut = useMutation({
-    mutationFn: ({ id, body, smtp_account_id }: { id: string; body: string; smtp_account_id?: string }) => inboxApi.reply(id, body, smtp_account_id),
-    onSuccess: () => { invalidate(); setReplyMode(null); setReplyBody(''); setReplySenderId(''); toast.success('Reply sent'); },
+    mutationFn: ({ id, body, smtp_account_id, body_html }: { id: string; body: string; smtp_account_id?: string; body_html?: string }) => inboxApi.reply(id, body, smtp_account_id, body_html),
+    onSuccess: () => { invalidate(); setReplyMode(null); setReplySenderId(''); toast.success('Reply sent'); },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to send reply'),
   });
 
   const forwardMut = useMutation({
-    mutationFn: ({ id, to, note, smtp_account_id }: { id: string; to: string; note?: string; smtp_account_id?: string }) => inboxApi.forward(id, to, note, smtp_account_id),
-    onSuccess: () => { invalidate(); setReplyMode(null); setReplyBody(''); setForwardTo(''); setReplySenderId(''); toast.success('Forwarded'); },
+    mutationFn: ({ id, to, note, smtp_account_id, body_html }: { id: string; to: string; note?: string; smtp_account_id?: string; body_html?: string }) => inboxApi.forward(id, to, note, smtp_account_id, body_html),
+    onSuccess: () => { invalidate(); setReplyMode(null); setForwardTo(''); setReplySenderId(''); toast.success('Forwarded'); },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to forward'),
   });
 
@@ -643,7 +666,6 @@ export function InboxPage() {
   const selectMessage = useCallback((msg: Message) => {
     setSelectedId(msg.id);
     setReplyMode(null);
-    setReplyBody('');
     // Auto-select the correct SMTP account for replies
     setReplySenderId(msg.smtp_account_id || smtpAccounts[0]?.id || '');
     if (!msg.is_read) markReadMut.mutate(msg.id);
@@ -663,8 +685,9 @@ export function InboxPage() {
     }
   }, [folder, archiveMut, unarchiveMut]);
 
+  // Reset forward to field when switching modes
   useEffect(() => {
-    if (replyMode && replyRef.current) replyRef.current.focus();
+    if (!replyMode) setForwardTo('');
   }, [replyMode]);
 
   const currentMsg: Message | null = (selectedMsg as Message) || messages.find(m => m.id === selectedId) || null;
@@ -843,10 +866,10 @@ export function InboxPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div className="flex-1" />
-                <button onClick={() => { setReplyMode('reply'); setReplyBody(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} title="Reply" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                <button onClick={() => { setReplyMode('reply'); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} title="Reply" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
                   <Reply className="h-4 w-4" />
                 </button>
-                <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} title="Forward" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                <button onClick={() => { setReplyMode('forward'); setForwardTo(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} title="Forward" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
                   <Forward className="h-4 w-4" />
                 </button>
                 <button
@@ -973,16 +996,22 @@ export function InboxPage() {
                           <input value={forwardTo} onChange={e => setForwardTo(e.target.value)} className="flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none" placeholder="recipient@example.com" />
                         </div>
                       )}
-                      <textarea ref={replyRef} value={replyBody} onChange={e => setReplyBody(e.target.value)} rows={6} className="w-full p-4 bg-transparent text-sm text-[var(--text-primary)] outline-none resize-none" placeholder={replyMode === 'reply' ? 'Write your reply...' : 'Add a note (optional)...'} />
+                      <RichTextEditor
+                        placeholder={replyMode === 'reply' ? 'Write your reply...' : 'Add a note (optional)...'}
+                        onChange={replyEditor.handleChange}
+                        templates={templates}
+                        minHeight="140px"
+                        autoFocus
+                      />
                       <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
                         <button
                           onClick={() => {
                             const sid = replySenderId || undefined;
-                            if (replyMode === 'reply' && replyBody.trim()) replyMut.mutate({ id: currentMsg.id, body: replyBody, smtp_account_id: sid });
-                            else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyBody || undefined, smtp_account_id: sid });
+                            if (replyMode === 'reply' && !replyEditor.isEmpty) replyMut.mutate({ id: currentMsg.id, body: replyEditor.text, body_html: replyEditor.html, smtp_account_id: sid });
+                            else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyEditor.text || undefined, body_html: replyEditor.html || undefined, smtp_account_id: sid });
                           }}
                           disabled={
-                            (replyMode === 'reply' ? !replyBody.trim() || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
+                            (replyMode === 'reply' ? replyEditor.isEmpty || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
                           }
                           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
                         >
@@ -997,10 +1026,10 @@ export function InboxPage() {
                   {/* Quick action buttons */}
                   {!replyMode && (
                     <div className="mt-4 flex items-center gap-2">
-                      <button onClick={() => { setReplyMode('reply'); setReplyBody(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
+                      <button onClick={() => { setReplyMode('reply'); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
                         <Reply className="h-4 w-4" />Reply
                       </button>
-                      <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
+                      <button onClick={() => { setReplyMode('forward'); setForwardTo(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
                         <Forward className="h-4 w-4" />Forward
                       </button>
                     </div>
@@ -1041,6 +1070,7 @@ export function InboxPage() {
           onSend={data => composeMut.mutate(data)}
           sending={composeMut.isPending}
           smtpAccounts={smtpAccounts}
+          templates={templates}
         />
       )}
     </div>

@@ -1,5 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { ImapFlow } from 'imapflow';
+import { simpleParser, ParsedMail } from 'mailparser';
 import { redisConnection } from '../../config/redis.js';
 import { supabaseAdmin } from '../../config/supabase.js';
 import { decrypt } from '../../utils/encryption.js';
@@ -16,34 +17,21 @@ interface InboxSyncJobData {
 }
 
 /**
- * Extract plain text body from raw email source.
+ * Parse raw email source using mailparser for proper MIME handling
+ * (base64, quoted-printable, nested multipart, etc.)
  */
-function extractTextBody(source: string): string {
-  // Try to find text/plain section
-  const textMatch = source.match(
-    /Content-Type:\s*text\/plain[^\r\n]*\r\n(?:Content-Transfer-Encoding:[^\r\n]*\r\n)?\r\n([\s\S]*?)(?:\r\n--|\r\n\.\r\n|$)/i
-  );
-  if (textMatch) return textMatch[1].trim();
-
-  // Fallback: strip HTML
-  const htmlMatch = source.match(
-    /Content-Type:\s*text\/html[^\r\n]*\r\n(?:Content-Transfer-Encoding:[^\r\n]*\r\n)?\r\n([\s\S]*?)(?:\r\n--|\r\n\.\r\n|$)/i
-  );
-  if (htmlMatch) return htmlMatch[1].replace(/<[^>]*>/g, '').trim();
-
-  // Last resort: after headers
-  const bodyStart = source.indexOf('\r\n\r\n');
-  return bodyStart !== -1 ? source.slice(bodyStart + 4).trim() : '';
-}
-
-/**
- * Extract HTML body from raw email source for proper rendering.
- */
-function extractHtmlBody(source: string): string | null {
-  const htmlMatch = source.match(
-    /Content-Type:\s*text\/html[^\r\n]*\r\n(?:Content-Transfer-Encoding:[^\r\n]*\r\n)?\r\n([\s\S]*?)(?:\r\n--|\r\n\.\r\n|$)/i
-  );
-  return htmlMatch ? htmlMatch[1].trim() : null;
+async function parseEmailSource(source: Buffer | string): Promise<{ text: string; html: string | null }> {
+  try {
+    const parsed: ParsedMail = await simpleParser(source);
+    const text = parsed.text || '';
+    const html = parsed.html || null;
+    return { text, html };
+  } catch {
+    // Fallback: treat entire source as plain text
+    const str = typeof source === 'string' ? source : source.toString();
+    const bodyStart = str.indexOf('\r\n\r\n');
+    return { text: bodyStart !== -1 ? str.slice(bodyStart + 4).trim() : '', html: null };
+  }
 }
 
 export function startInboxWorker() {
@@ -118,9 +106,8 @@ export function startInboxWorker() {
           const subject = envelope.subject || '';
           const messageId = envelope.messageId || '';
           const inReplyTo = envelope.inReplyTo || '';
-          const source = msg.source?.toString() || '';
-          const bodyText = extractTextBody(source);
-          const bodyHtml = extractHtmlBody(source);
+          const rawSource = msg.source || '';
+          const { text: bodyText, html: bodyHtml } = await parseEmailSource(rawSource);
 
           // 4. Skip if already stored (deduplicate by message_id)
           if (messageId) {
