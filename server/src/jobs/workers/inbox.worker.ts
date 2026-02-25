@@ -36,6 +36,16 @@ function extractTextBody(source: string): string {
   return bodyStart !== -1 ? source.slice(bodyStart + 4).trim() : '';
 }
 
+/**
+ * Extract HTML body from raw email source for proper rendering.
+ */
+function extractHtmlBody(source: string): string | null {
+  const htmlMatch = source.match(
+    /Content-Type:\s*text\/html[^\r\n]*\r\n(?:Content-Transfer-Encoding:[^\r\n]*\r\n)?\r\n([\s\S]*?)(?:\r\n--|\r\n\.\r\n|$)/i
+  );
+  return htmlMatch ? htmlMatch[1].trim() : null;
+}
+
 export function startInboxWorker() {
   if (!redisConnection) {
     console.log('Inbox worker skipped — no Redis connection');
@@ -110,6 +120,7 @@ export function startInboxWorker() {
           const inReplyTo = envelope.inReplyTo || '';
           const source = msg.source?.toString() || '';
           const bodyText = extractTextBody(source);
+          const bodyHtml = extractHtmlBody(source);
 
           // 4. Skip if already stored (deduplicate by message_id)
           if (messageId) {
@@ -166,12 +177,15 @@ export function startInboxWorker() {
           // 6. Store in inbox_messages
           const inboxRow: any = {
             user_id: userId,
+            smtp_account_id: smtpAccountId,
             from_email: fromEmail,
             to_email: toEmail,
             subject,
             body_text: bodyText,
+            body_html: bodyHtml || undefined,
             message_id: messageId || undefined,
             in_reply_to: inReplyTo || undefined,
+            direction: 'inbound',
             is_read: false,
             received_at: envelope.date || new Date().toISOString(),
           };

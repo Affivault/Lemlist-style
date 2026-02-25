@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inboxApi } from '../../api/inbox.api';
 import { saraApi } from '../../api/sara.api';
+import { smtpApi } from '../../api/smtp.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import toast from 'react-hot-toast';
@@ -30,11 +31,21 @@ import {
   CheckCheck,
   Eye,
   EyeOff,
+  ChevronDown,
+  AtSign,
 } from 'lucide-react';
 
 /* ─── Types ────────────────────────────────────────── */
 type Folder = 'inbox' | 'starred' | 'sent' | 'archived';
 type SaraFilter = 'all' | 'pending_review' | 'approved' | 'dismissed';
+
+interface SmtpAccount {
+  id: string;
+  email_address: string;
+  label?: string;
+  is_active: boolean;
+  is_verified: boolean;
+}
 
 interface Message {
   id: string;
@@ -52,6 +63,9 @@ interface Message {
   contact_email?: string | null;
   campaign_name: string | null;
   campaign_id: string | null;
+  smtp_account_id?: string | null;
+  smtp_email?: string | null;
+  smtp_label?: string | null;
   sara_intent: string | null;
   sara_confidence: number | null;
   sara_draft_reply: string | null;
@@ -203,15 +217,55 @@ h1, h2, h3, h4 { margin: 0 0 8px; }
   );
 }
 
+/* ─── Sender Dropdown ─────────────────────────────── */
+function SenderSelect({ accounts, value, onChange }: {
+  accounts: SmtpAccount[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  if (accounts.length === 0) {
+    return (
+      <div className="text-xs text-[var(--error)]">No SMTP accounts configured</div>
+    );
+  }
+  if (accounts.length === 1) {
+    return (
+      <div className="flex items-center gap-1.5 text-sm text-[var(--text-primary)]">
+        <AtSign className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+        <span>{accounts[0].label || accounts[0].email_address}</span>
+        <span className="text-xs text-[var(--text-tertiary)]">&lt;{accounts[0].email_address}&gt;</span>
+      </div>
+    );
+  }
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="appearance-none bg-transparent text-sm text-[var(--text-primary)] outline-none pr-6 cursor-pointer w-full"
+      >
+        {accounts.map(a => (
+          <option key={a.id} value={a.id}>
+            {a.label ? `${a.label} (${a.email_address})` : a.email_address}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)] pointer-events-none" />
+    </div>
+  );
+}
+
 /* ─── Compose Modal ───────────────────────────────── */
-function ComposeModal({ onClose, onSend, sending }: {
+function ComposeModal({ onClose, onSend, sending, smtpAccounts }: {
   onClose: () => void;
-  onSend: (data: { to: string; subject: string; body: string }) => void;
+  onSend: (data: { to: string; subject: string; body: string; smtp_account_id?: string }) => void;
   sending?: boolean;
+  smtpAccounts: SmtpAccount[];
 }) {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [senderId, setSenderId] = useState(smtpAccounts[0]?.id || '');
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-6">
@@ -224,6 +278,11 @@ function ComposeModal({ onClose, onSend, sending }: {
           </button>
         </div>
         <div className="border-b border-[var(--border-subtle)]">
+          {/* Sender row */}
+          <div className="flex items-center px-4 py-2 border-b border-[var(--border-subtle)]">
+            <span className="text-xs font-medium text-[var(--text-tertiary)] w-12">From</span>
+            <SenderSelect accounts={smtpAccounts} value={senderId} onChange={setSenderId} />
+          </div>
           <div className="flex items-center px-4 py-2 border-b border-[var(--border-subtle)]">
             <span className="text-xs font-medium text-[var(--text-tertiary)] w-12">To</span>
             <input value={to} onChange={e => setTo(e.target.value)} className="flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none" placeholder="recipient@example.com" />
@@ -238,8 +297,8 @@ function ComposeModal({ onClose, onSend, sending }: {
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
           <button
-            onClick={() => { if (to && subject && body) onSend({ to, subject, body }); }}
-            disabled={!to || !subject || !body || sending}
+            onClick={() => { if (to && subject && body) onSend({ to, subject, body, smtp_account_id: senderId || undefined }); }}
+            disabled={!to || !subject || !body || sending || smtpAccounts.length === 0}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
           >
             <Send className="h-3.5 w-3.5" />
@@ -417,7 +476,15 @@ export function InboxPage() {
   const [replyBody, setReplyBody] = useState('');
   const [forwardTo, setForwardTo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [replySenderId, setReplySenderId] = useState('');
   const replyRef = useRef<HTMLTextAreaElement>(null);
+
+  /* ── SMTP accounts for sender selection ── */
+  const { data: smtpAccountsRaw } = useQuery({
+    queryKey: ['smtp-accounts'],
+    queryFn: smtpApi.list,
+  });
+  const smtpAccounts: SmtpAccount[] = (smtpAccountsRaw || []).filter((a: any) => a.is_active);
 
   /* ── Queries ── */
   const { data: messagesData, isLoading, isFetching } = useQuery({
@@ -537,21 +604,21 @@ export function InboxPage() {
   });
 
   const replyMut = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: string }) => inboxApi.reply(id, body),
-    onSuccess: () => { invalidate(); setReplyMode(null); setReplyBody(''); toast.success('Reply sent'); },
-    onError: () => toast.error('Failed to send reply'),
+    mutationFn: ({ id, body, smtp_account_id }: { id: string; body: string; smtp_account_id?: string }) => inboxApi.reply(id, body, smtp_account_id),
+    onSuccess: () => { invalidate(); setReplyMode(null); setReplyBody(''); setReplySenderId(''); toast.success('Reply sent'); },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to send reply'),
   });
 
   const forwardMut = useMutation({
-    mutationFn: ({ id, to, note }: { id: string; to: string; note?: string }) => inboxApi.forward(id, to, note),
-    onSuccess: () => { invalidate(); setReplyMode(null); setReplyBody(''); setForwardTo(''); toast.success('Forwarded'); },
-    onError: () => toast.error('Failed to forward'),
+    mutationFn: ({ id, to, note, smtp_account_id }: { id: string; to: string; note?: string; smtp_account_id?: string }) => inboxApi.forward(id, to, note, smtp_account_id),
+    onSuccess: () => { invalidate(); setReplyMode(null); setReplyBody(''); setForwardTo(''); setReplySenderId(''); toast.success('Forwarded'); },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to forward'),
   });
 
   const composeMut = useMutation({
     mutationFn: inboxApi.compose,
     onSuccess: () => { invalidate(); setShowCompose(false); toast.success('Message sent'); },
-    onError: () => toast.error('Failed to send'),
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to send — check your SMTP accounts'),
   });
 
   const classifyMut = useMutation({
@@ -577,8 +644,10 @@ export function InboxPage() {
     setSelectedId(msg.id);
     setReplyMode(null);
     setReplyBody('');
+    // Auto-select the correct SMTP account for replies
+    setReplySenderId(msg.smtp_account_id || smtpAccounts[0]?.id || '');
     if (!msg.is_read) markReadMut.mutate(msg.id);
-  }, [markReadMut]);
+  }, [markReadMut, smtpAccounts]);
 
   const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -741,6 +810,11 @@ export function InboxPage() {
                         </p>
                         <div className="flex items-center gap-1.5">
                           <p className="text-[11px] text-[var(--text-tertiary)] truncate flex-1">{msgSnippet(msg)}</p>
+                          {msg.smtp_email && !isOutbound && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 flex-shrink-0 max-w-[100px] truncate" title={`Delivered to ${msg.smtp_email}`}>
+                              {msg.smtp_label || msg.smtp_email.split('@')[0]}
+                            </span>
+                          )}
                           {msg.sara_intent && (
                             <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).bg} ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).text}`}>
                               {(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).label}
@@ -769,10 +843,10 @@ export function InboxPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div className="flex-1" />
-                <button onClick={() => { setReplyMode('reply'); setReplyBody(''); }} title="Reply" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                <button onClick={() => { setReplyMode('reply'); setReplyBody(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} title="Reply" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
                   <Reply className="h-4 w-4" />
                 </button>
-                <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); }} title="Forward" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} title="Forward" className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
                   <Forward className="h-4 w-4" />
                 </button>
                 <button
@@ -838,8 +912,17 @@ export function InboxPage() {
                           <span className="text-sm font-semibold text-[var(--text-primary)]">{senderName(currentMsg)}</span>
                           <span className="text-xs text-[var(--text-tertiary)]">&lt;{currentMsg.from_email}&gt;</span>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-xs text-[var(--text-tertiary)]">to {currentMsg.to_email?.split('@')[0]}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-xs text-[var(--text-tertiary)]">to {currentMsg.to_email}</span>
+                          {currentMsg.smtp_email && currentMsg.direction !== 'outbound' && (
+                            <>
+                              <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
+                              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600" title={`Delivered to ${currentMsg.smtp_email}`}>
+                                <AtSign className="inline h-2.5 w-2.5 mr-0.5" />
+                                {currentMsg.smtp_label || currentMsg.smtp_email}
+                              </span>
+                            </>
+                          )}
                           {currentMsg.campaign_name && (
                             <>
                               <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
@@ -879,6 +962,11 @@ export function InboxPage() {
                         </div>
                         <button onClick={() => setReplyMode(null)} className="p-1 rounded hover:bg-[var(--bg-hover)]"><X className="h-4 w-4 text-[var(--text-tertiary)]" /></button>
                       </div>
+                      {/* Sender selection */}
+                      <div className="flex items-center px-4 py-2 border-b border-[var(--border-subtle)]">
+                        <span className="text-xs font-medium text-[var(--text-tertiary)] w-12">From</span>
+                        <SenderSelect accounts={smtpAccounts} value={replySenderId} onChange={setReplySenderId} />
+                      </div>
                       {replyMode === 'forward' && (
                         <div className="flex items-center px-4 py-2 border-b border-[var(--border-subtle)]">
                           <span className="text-xs font-medium text-[var(--text-tertiary)] w-12">To</span>
@@ -889,8 +977,9 @@ export function InboxPage() {
                       <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
                         <button
                           onClick={() => {
-                            if (replyMode === 'reply' && replyBody.trim()) replyMut.mutate({ id: currentMsg.id, body: replyBody });
-                            else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyBody || undefined });
+                            const sid = replySenderId || undefined;
+                            if (replyMode === 'reply' && replyBody.trim()) replyMut.mutate({ id: currentMsg.id, body: replyBody, smtp_account_id: sid });
+                            else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyBody || undefined, smtp_account_id: sid });
                           }}
                           disabled={
                             (replyMode === 'reply' ? !replyBody.trim() || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
@@ -908,10 +997,10 @@ export function InboxPage() {
                   {/* Quick action buttons */}
                   {!replyMode && (
                     <div className="mt-4 flex items-center gap-2">
-                      <button onClick={() => { setReplyMode('reply'); setReplyBody(''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
+                      <button onClick={() => { setReplyMode('reply'); setReplyBody(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
                         <Reply className="h-4 w-4" />Reply
                       </button>
-                      <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
+                      <button onClick={() => { setReplyMode('forward'); setReplyBody(''); setForwardTo(''); setReplySenderId(currentMsg.smtp_account_id || smtpAccounts[0]?.id || ''); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors">
                         <Forward className="h-4 w-4" />Forward
                       </button>
                     </div>
@@ -951,6 +1040,7 @@ export function InboxPage() {
           onClose={() => setShowCompose(false)}
           onSend={data => composeMut.mutate(data)}
           sending={composeMut.isPending}
+          smtpAccounts={smtpAccounts}
         />
       )}
     </div>

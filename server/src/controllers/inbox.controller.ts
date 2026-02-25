@@ -68,27 +68,27 @@ export const inboxController = {
 
   async reply(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { body: replyBody } = req.body;
+      const { body: replyBody, smtp_account_id } = req.body;
       if (!replyBody) return res.status(400).json({ error: 'Reply body is required' });
-      const result = await inboxService.reply(req.userId!, req.params.id, replyBody);
+      const result = await inboxService.reply(req.userId!, req.params.id, replyBody, smtp_account_id);
       res.json(result);
     } catch (err) { next(err); }
   },
 
   async forward(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { to, note } = req.body;
+      const { to, note, smtp_account_id } = req.body;
       if (!to) return res.status(400).json({ error: 'Recipient email is required' });
-      const result = await inboxService.forward(req.userId!, req.params.id, to, note);
+      const result = await inboxService.forward(req.userId!, req.params.id, to, note, smtp_account_id);
       res.json(result);
     } catch (err) { next(err); }
   },
 
   async compose(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { to, subject, body: composeBody } = req.body;
+      const { to, subject, body: composeBody, smtp_account_id } = req.body;
       if (!to || !subject || !composeBody) return res.status(400).json({ error: 'To, subject, and body are required' });
-      const result = await inboxService.compose(req.userId!, { to, subject, body: composeBody });
+      const result = await inboxService.compose(req.userId!, { to, subject, body: composeBody, smtp_account_id });
       res.json(result);
     } catch (err) { next(err); }
   },

@@ -20,7 +20,7 @@ export const inboxService = {
 
     let query = supabaseAdmin
       .from('inbox_messages')
-      .select('*, contacts(first_name, last_name, email), campaigns(name)', { count: 'exact' })
+      .select('*, contacts(first_name, last_name, email), campaigns(name), smtp_accounts(id, email_address, label)', { count: 'exact' })
       .eq('user_id', userId);
 
     // Folder-based filtering
@@ -65,8 +65,11 @@ export const inboxService = {
         : null,
       contact_email: m.contacts?.email || null,
       campaign_name: m.campaigns?.name || null,
+      smtp_email: m.smtp_accounts?.email_address || null,
+      smtp_label: m.smtp_accounts?.label || null,
       contacts: undefined,
       campaigns: undefined,
+      smtp_accounts: undefined,
     }));
 
     return formatPaginatedResponse(messages, count || 0, page, limit);
@@ -75,7 +78,7 @@ export const inboxService = {
   async get(userId: string, id: string) {
     const { data, error } = await supabaseAdmin
       .from('inbox_messages')
-      .select('*, contacts(first_name, last_name, email), campaigns(name)')
+      .select('*, contacts(first_name, last_name, email), campaigns(name), smtp_accounts(id, email_address, label)')
       .eq('id', id)
       .eq('user_id', userId)
       .single();
@@ -90,8 +93,11 @@ export const inboxService = {
         : null,
       contact_email: data.contacts?.email || null,
       campaign_name: data.campaigns?.name || null,
+      smtp_email: data.smtp_accounts?.email_address || null,
+      smtp_label: data.smtp_accounts?.label || null,
       contacts: undefined,
       campaigns: undefined,
+      smtp_accounts: undefined,
     };
   },
 
@@ -196,7 +202,7 @@ export const inboxService = {
     if (error) throw new AppError(error.message, 500);
   },
 
-  async reply(userId: string, messageId: string, body: string) {
+  async reply(userId: string, messageId: string, body: string, smtpAccountId?: string) {
     const { data: original } = await supabaseAdmin
       .from('inbox_messages')
       .select('*')
@@ -205,7 +211,7 @@ export const inboxService = {
       .single();
     if (!original) throw new AppError('Message not found', 404);
 
-    const smtpAccount = await findSmtpAccount(userId, original.smtp_account_id);
+    const smtpAccount = await findSmtpAccount(userId, smtpAccountId || original.smtp_account_id);
     const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
     const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
     const newMessageId = `<${crypto.randomUUID()}@${domain}>`;
@@ -257,7 +263,7 @@ export const inboxService = {
     return { success: true, message_id: newMessageId };
   },
 
-  async forward(userId: string, messageId: string, toEmail: string, note?: string) {
+  async forward(userId: string, messageId: string, toEmail: string, note?: string, smtpAccountId?: string) {
     const { data: original } = await supabaseAdmin
       .from('inbox_messages')
       .select('*')
@@ -266,7 +272,7 @@ export const inboxService = {
       .single();
     if (!original) throw new AppError('Message not found', 404);
 
-    const smtpAccount = await findSmtpAccount(userId, original.smtp_account_id);
+    const smtpAccount = await findSmtpAccount(userId, smtpAccountId || original.smtp_account_id);
     const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
     const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
     const newMessageId = `<${crypto.randomUUID()}@${domain}>`;
@@ -313,15 +319,8 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
     return { success: true, message_id: newMessageId };
   },
 
-  async compose(userId: string, input: { to: string; subject: string; body: string }) {
-    const { data: smtpAccount } = await supabaseAdmin
-      .from('smtp_accounts')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .limit(1)
-      .single();
-    if (!smtpAccount) throw new AppError('No SMTP account available. Add one in SMTP Accounts settings.', 400);
+  async compose(userId: string, input: { to: string; subject: string; body: string; smtp_account_id?: string }) {
+    const smtpAccount = await findSmtpAccount(userId, input.smtp_account_id);
 
     const smtpPassword = decrypt(smtpAccount.smtp_pass_encrypted);
     const domain = smtpAccount.email_address?.split('@')[1] || 'skysend.io';
