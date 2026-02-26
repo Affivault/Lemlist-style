@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inboxApi } from '../../api/inbox.api';
-import { saraApi } from '../../api/sara.api';
 import { smtpApi } from '../../api/smtp.api';
 import { templateApi } from '../../api/template.api';
 import { Spinner } from '../../components/ui/Spinner';
@@ -20,11 +19,7 @@ import {
   Inbox,
   SendHorizontal,
   MailOpen,
-  Bot,
   Sparkles,
-  Check,
-  XCircle,
-  Edit3,
   RefreshCw,
   Pencil,
   Trash2,
@@ -35,11 +30,13 @@ import {
   EyeOff,
   ChevronDown,
   AtSign,
+  Tag,
+  Wand2,
+  Loader2,
 } from 'lucide-react';
 
 /* ─── Types ────────────────────────────────────────── */
 type Folder = 'inbox' | 'starred' | 'sent' | 'archived';
-type SaraFilter = 'all' | 'pending_review' | 'approved' | 'dismissed';
 
 interface SmtpAccount {
   id: string;
@@ -132,21 +129,32 @@ function msgSnippet(msg: Message): string {
 
 const INTENT_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   interested: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', label: 'Interested' },
-  meeting: { bg: 'bg-blue-500/10', text: 'text-blue-600', label: 'Meeting' },
+  meeting: { bg: 'bg-blue-500/10', text: 'text-blue-600', label: 'Meeting Booked' },
   objection: { bg: 'bg-amber-500/10', text: 'text-amber-600', label: 'Objection' },
-  not_now: { bg: 'bg-slate-500/10', text: 'text-slate-500', label: 'Not Now' },
+  not_now: { bg: 'bg-slate-500/10', text: 'text-slate-500', label: 'Not Interested' },
   unsubscribe: { bg: 'bg-red-500/10', text: 'text-red-500', label: 'Unsubscribe' },
   out_of_office: { bg: 'bg-purple-500/10', text: 'text-purple-500', label: 'Out of Office' },
   bounce: { bg: 'bg-red-500/10', text: 'text-red-500', label: 'Bounce' },
   other: { bg: 'bg-slate-500/10', text: 'text-slate-500', label: 'Other' },
 };
 
+const TAG_OPTIONS = [
+  { value: 'all', label: 'All Tags' },
+  { value: 'interested', label: 'Interested' },
+  { value: 'meeting', label: 'Meeting Booked' },
+  { value: 'not_now', label: 'Not Interested' },
+  { value: 'objection', label: 'Objection' },
+  { value: 'out_of_office', label: 'Out of Office' },
+  { value: 'unsubscribe', label: 'Unsubscribe' },
+  { value: 'bounce', label: 'Bounce' },
+  { value: 'other', label: 'Other' },
+];
+
 /* ─── Email HTML Renderer (sandboxed iframe) ──────── */
 function EmailBody({ html, text }: { html: string | null; text: string | null }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(200);
 
-  // Build the full HTML document for the iframe
   const srcDoc = useMemo(() => {
     let bodyContent: string;
     if (html) {
@@ -183,7 +191,6 @@ h1, h2, h3, h4 { margin: 0 0 8px; }
 </style></head><body>${bodyContent}</body></html>`;
   }, [html, text]);
 
-  // Auto-resize iframe to fit content
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
@@ -325,151 +332,124 @@ function ComposeModal({ onClose, onSend, sending, smtpAccounts, templates }: {
   );
 }
 
-/* ─── SARA Panel ──────────────────────────────────── */
-function SaraPanel({
-  message,
-  onApprove,
-  onDismiss,
-  onClassify,
-  stats,
-}: {
-  message: Message | null;
-  onApprove: (id: string, editedReply?: string) => void;
-  onDismiss: (id: string) => void;
-  onClassify: (id: string) => void;
-  stats: any;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [editedReply, setEditedReply] = useState('');
+/* ─── AI Reply Assist Bar ─────────────────────────── */
+function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (html: string) => void }) {
+  const [prompt, setPrompt] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    if (message?.sara_draft_reply) setEditedReply(message.sara_draft_reply);
-    setEditing(false);
-  }, [message?.id]);
+  const aiMut = useMutation({
+    mutationFn: ({ id, prompt }: { id: string; prompt: string }) => inboxApi.aiReplyAssist(id, prompt),
+    onSuccess: (data) => {
+      onInsert(data.html);
+      setPrompt('');
+      setIsOpen(false);
+      toast.success('AI reply generated');
+    },
+    onError: () => toast.error('Failed to generate AI reply'),
+  });
 
-  const intent = message?.sara_intent ? INTENT_COLORS[message.sara_intent] || INTENT_COLORS.other : null;
-  const hasSara = message && message.sara_intent;
-  const isPending = message?.sara_status === 'pending_review';
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/5 transition-colors"
+      >
+        <Wand2 className="h-3.5 w-3.5" />
+        AI Assist
+      </button>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-subtle)]">
-        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-[var(--bg-elevated)]">
-          <Bot className="h-4 w-4 text-[var(--text-primary)]" />
-        </div>
-        <span className="text-sm font-semibold text-[var(--text-primary)]">SARA AI</span>
-        <Sparkles className="h-3 w-3 text-[var(--text-tertiary)]" />
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {stats && (
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: 'Pending', value: stats.pending_review || 0 },
-              { label: 'Approved', value: stats.approved_today || 0 },
-              { label: 'Sent', value: stats.sent_today || 0 },
-              { label: 'Dismissed', value: stats.dismissed_today || 0 },
-            ].map(s => (
-              <div key={s.label} className="p-2.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                <p className="text-[10px] font-medium text-[var(--text-tertiary)] uppercase tracking-wide">{s.label}</p>
-                <p className="text-lg font-semibold text-[var(--text-primary)] mt-0.5">{s.value}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {message ? (
-          <div className="space-y-3">
-            <div className="text-[11px] font-medium text-[var(--text-tertiary)] uppercase tracking-wider">Analysis</div>
-
-            {hasSara ? (
-              <>
-                <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-[var(--text-secondary)]">Intent</span>
-                    {intent && (
-                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${intent.bg} ${intent.text}`}>
-                        {intent.label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded-full bg-[var(--border-subtle)]">
-                      <div className="h-1.5 rounded-full bg-[var(--text-primary)] transition-all" style={{ width: `${(message.sara_confidence || 0) * 100}%` }} />
-                    </div>
-                    <span className="text-[11px] font-medium text-[var(--text-tertiary)]">{Math.round((message.sara_confidence || 0) * 100)}%</span>
-                  </div>
-                </div>
-
-                {message.sara_action && (
-                  <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                    <span className="text-xs font-medium text-[var(--text-secondary)]">Suggested Action</span>
-                    <p className="text-sm text-[var(--text-primary)] mt-1 capitalize">{message.sara_action.replace('_', ' ')}</p>
-                  </div>
-                )}
-
-                {message.sara_draft_reply && (
-                  <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-[var(--text-secondary)]">Draft Reply</span>
-                      {isPending && (
-                        <button onClick={() => setEditing(!editing)} className="text-[11px] font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] flex items-center gap-1">
-                          <Edit3 className="h-3 w-3" />
-                          {editing ? 'Cancel' : 'Edit'}
-                        </button>
-                      )}
-                    </div>
-                    {editing ? (
-                      <textarea value={editedReply} onChange={e => setEditedReply(e.target.value)} rows={4} className="w-full text-sm bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg p-2 text-[var(--text-primary)] outline-none resize-none" />
-                    ) : (
-                      <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">{message.sara_draft_reply}</p>
-                    )}
-                  </div>
-                )}
-
-                {isPending && (
-                  <div className="flex gap-2">
-                    <button onClick={() => onApprove(message.id, editing ? editedReply : undefined)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium hover:opacity-90 transition-opacity">
-                      <Check className="h-3.5 w-3.5" />
-                      Approve & Send
-                    </button>
-                    <button onClick={() => onDismiss(message.id)} className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors">
-                      <XCircle className="h-3.5 w-3.5" />
-                      Dismiss
-                    </button>
-                  </div>
-                )}
-
-                {!isPending && message.sara_status !== 'pending_review' && (
-                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${
-                    message.sara_status === 'approved' ? 'bg-emerald-500/10 text-emerald-600' :
-                    message.sara_status === 'sent' ? 'bg-blue-500/10 text-blue-600' :
-                    'bg-slate-500/10 text-slate-500'
-                  }`}>
-                    <CheckCheck className="h-3.5 w-3.5" />
-                    {message.sara_status === 'approved' ? 'Approved' : message.sara_status === 'sent' ? 'Sent' : 'Dismissed'}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-xs text-[var(--text-tertiary)] mb-3">Not yet classified</p>
-                <button onClick={() => onClassify(message.id)} className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors mx-auto">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Classify with SARA
-                </button>
-              </div>
-            )}
-          </div>
+    <div className="flex items-center gap-2 px-4 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--accent)]/5">
+      <Wand2 className="h-4 w-4 text-[var(--accent)] flex-shrink-0" />
+      <input
+        value={prompt}
+        onChange={e => setPrompt(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && prompt.trim() && !aiMut.isPending) {
+            aiMut.mutate({ id: messageId, prompt: prompt.trim() });
+          }
+          if (e.key === 'Escape') setIsOpen(false);
+        }}
+        placeholder="Describe your reply... e.g. 'Accept the meeting' or 'Politely decline'"
+        className="flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
+        autoFocus
+      />
+      <button
+        onClick={() => {
+          if (prompt.trim() && !aiMut.isPending) {
+            aiMut.mutate({ id: messageId, prompt: prompt.trim() });
+          }
+        }}
+        disabled={!prompt.trim() || aiMut.isPending}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+      >
+        {aiMut.isPending ? (
+          <><Loader2 className="h-3 w-3 animate-spin" /> Generating...</>
         ) : (
-          <div className="text-center py-8">
-            <div className="mx-auto w-10 h-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center mb-3 border border-[var(--border-subtle)]">
-              <Bot className="h-5 w-5 text-[var(--text-tertiary)]" />
-            </div>
-            <p className="text-xs text-[var(--text-tertiary)]">Select a message to see<br/>SARA&apos;s analysis</p>
-          </div>
+          <><Sparkles className="h-3 w-3" /> Generate</>
         )}
-      </div>
+      </button>
+      <button
+        onClick={() => setIsOpen(false)}
+        className="p-1 rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+/* ─── Tag Filter Dropdown ─────────────────────────── */
+function TagFilterDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = TAG_OPTIONS.find(t => t.value === value) || TAG_OPTIONS[0];
+  const intentColor = value !== 'all' ? INTENT_COLORS[value] : null;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+          value !== 'all'
+            ? `${intentColor?.bg || 'bg-[var(--bg-elevated)]'} ${intentColor?.text || 'text-[var(--text-primary)]'}`
+            : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+        }`}
+      >
+        <Tag className="h-3.5 w-3.5" />
+        {selected.label}
+        <ChevronDown className="h-3 w-3" />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden z-50">
+          {TAG_OPTIONS.map(opt => {
+            const ic = opt.value !== 'all' ? INTENT_COLORS[opt.value] : null;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center gap-2 ${
+                  value === opt.value ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+                }`}
+              >
+                {ic && <span className={`w-2 h-2 rounded-full ${ic.bg.replace('/10', '')} ${ic.text}`} style={{ backgroundColor: 'currentColor' }} />}
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -478,12 +458,11 @@ function SaraPanel({
 export function InboxPage() {
   const qc = useQueryClient();
   const [folder, setFolder] = useState<Folder>('inbox');
-  const [saraFilter, setSaraFilter] = useState<SaraFilter>('all');
+  const [tagFilter, setTagFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCompose, setShowCompose] = useState(false);
-  const [showSara, setShowSara] = useState(true);
   const [replyMode, setReplyMode] = useState<'reply' | 'forward' | null>(null);
   const [forwardTo, setForwardTo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -511,11 +490,11 @@ export function InboxPage() {
 
   /* ── Queries ── */
   const { data: messagesData, isLoading, isFetching } = useQuery({
-    queryKey: ['inbox', folder, saraFilter, search],
+    queryKey: ['inbox', folder, tagFilter, search],
     queryFn: () => inboxApi.list({
       limit: 50,
       folder,
-      sara_status: saraFilter !== 'all' ? saraFilter : undefined,
+      sara_intent: tagFilter !== 'all' ? tagFilter : undefined,
       search: search || undefined,
     }),
   });
@@ -528,21 +507,14 @@ export function InboxPage() {
     enabled: !!selectedId,
   });
 
-  const { data: saraStats } = useQuery({
-    queryKey: ['sara', 'stats'],
-    queryFn: () => saraApi.getStats(),
-  });
-
   /* ── Invalidation ── */
   const invalidate = useCallback(() => {
     qc.invalidateQueries({ queryKey: ['inbox'] });
-    qc.invalidateQueries({ queryKey: ['sara'] });
   }, [qc]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await qc.invalidateQueries({ queryKey: ['inbox'] });
-    await qc.invalidateQueries({ queryKey: ['sara'] });
     setIsRefreshing(false);
   }, [qc]);
 
@@ -580,8 +552,8 @@ export function InboxPage() {
     mutationFn: inboxApi.toggleStar,
     onMutate: async (id: string) => {
       await qc.cancelQueries({ queryKey: ['inbox'] });
-      const prevList = qc.getQueryData(['inbox', folder, saraFilter, search]);
-      qc.setQueryData(['inbox', folder, saraFilter, search], (old: any) => {
+      const prevList = qc.getQueryData(['inbox', folder, tagFilter, search]);
+      qc.setQueryData(['inbox', folder, tagFilter, search], (old: any) => {
         if (!old?.data) return old;
         return {
           ...old,
@@ -599,7 +571,7 @@ export function InboxPage() {
       return { prevList, prevDetail };
     },
     onError: (_err, id, context) => {
-      if (context?.prevList) qc.setQueryData(['inbox', folder, saraFilter, search], context.prevList);
+      if (context?.prevList) qc.setQueryData(['inbox', folder, tagFilter, search], context.prevList);
       if (context?.prevDetail) qc.setQueryData(['inbox', 'detail', id], context.prevDetail);
       toast.error('Failed to toggle star');
     },
@@ -644,29 +616,10 @@ export function InboxPage() {
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to send — check your SMTP accounts'),
   });
 
-  const classifyMut = useMutation({
-    mutationFn: saraApi.classify,
-    onSuccess: () => { invalidate(); toast.success('Classified'); },
-    onError: () => toast.error('Classification failed'),
-  });
-
-  const approveMut = useMutation({
-    mutationFn: ({ id, editedReply }: { id: string; editedReply?: string }) => saraApi.approve(id, editedReply),
-    onSuccess: () => { invalidate(); toast.success('Approved & queued'); },
-    onError: () => toast.error('Failed to approve'),
-  });
-
-  const dismissMut = useMutation({
-    mutationFn: saraApi.dismiss,
-    onSuccess: () => { invalidate(); toast.success('Dismissed'); },
-    onError: () => toast.error('Failed to dismiss'),
-  });
-
   /* ── Handlers ── */
   const selectMessage = useCallback((msg: Message) => {
     setSelectedId(msg.id);
     setReplyMode(null);
-    // Auto-select the correct SMTP account for replies
     setReplySenderId(msg.smtp_account_id || smtpAccounts[0]?.id || '');
     if (!msg.is_read) markReadMut.mutate(msg.id);
   }, [markReadMut, smtpAccounts]);
@@ -692,7 +645,6 @@ export function InboxPage() {
 
   const currentMsg: Message | null = (selectedMsg as Message) || messages.find(m => m.id === selectedId) || null;
   const unreadCount = messages.filter(m => !m.is_read).length;
-  const pendingCount = saraStats?.pending_review || 0;
 
   const isInArchived = folder === 'archived';
   const archiveLabel = isInArchived ? 'Move to Inbox' : 'Archive';
@@ -704,6 +656,14 @@ export function InboxPage() {
     { id: 'sent', label: 'Sent', icon: SendHorizontal },
     { id: 'archived', label: 'Archived', icon: Archive },
   ];
+
+  // Handler to insert AI-generated content into the reply editor
+  const handleAiInsert = useCallback((html: string) => {
+    // Dispatch a custom event that the RichTextEditor can listen to
+    // For now we use a simpler approach - set content via editor ref
+    const event = new CustomEvent('ai-reply-insert', { detail: { html } });
+    window.dispatchEvent(event);
+  }, []);
 
   return (
     <div className="-mx-8 -my-6" style={{ height: 'calc(100vh - 56px)' }}>
@@ -749,14 +709,14 @@ export function InboxPage() {
             </div>
           </form>
 
-          {/* Folders */}
+          {/* Folders + Tag Filter */}
           <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
             {folders.map(f => {
               const FolderIcon = f.icon;
               return (
                 <button
                   key={f.id}
-                  onClick={() => { setFolder(f.id); setSelectedId(null); setSaraFilter('all'); }}
+                  onClick={() => { setFolder(f.id); setSelectedId(null); setTagFilter('all'); }}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                     folder === f.id
                       ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm'
@@ -769,19 +729,9 @@ export function InboxPage() {
                 </button>
               );
             })}
+            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+            <TagFilterDropdown value={tagFilter} onChange={v => { setTagFilter(v); setSelectedId(null); }} />
           </div>
-
-          {/* SARA filter */}
-          {folder === 'inbox' && pendingCount > 0 && (
-            <div className="flex items-center gap-1 px-3 py-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-              <Bot className="h-3 w-3 text-[var(--text-tertiary)] mr-1" />
-              {(['all', 'pending_review'] as const).map(sf => (
-                <button key={sf} onClick={() => setSaraFilter(sf)} className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${saraFilter === sf ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]'}`}>
-                  {sf === 'all' ? 'All' : `Pending (${pendingCount})`}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Message List */}
           <div className="flex-1 overflow-y-auto">
@@ -793,7 +743,9 @@ export function InboxPage() {
                   <MailOpen className="h-5 w-5 text-[var(--text-tertiary)]" />
                 </div>
                 <p className="text-sm font-medium text-[var(--text-secondary)]">No messages</p>
-                <p className="text-xs text-[var(--text-tertiary)] mt-1">{search ? 'Try a different search term' : `Your ${folder} is empty`}</p>
+                <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                  {search ? 'Try a different search term' : tagFilter !== 'all' ? `No messages tagged as "${TAG_OPTIONS.find(t => t.value === tagFilter)?.label}"` : `Your ${folder} is empty`}
+                </p>
               </div>
             ) : (
               messages.map(msg => {
@@ -893,35 +845,24 @@ export function InboxPage() {
                 >
                   {currentMsg.is_read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
-                <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
-                <button onClick={() => setShowSara(!showSara)} title={showSara ? 'Hide SARA' : 'Show SARA'} className={`p-2 rounded-lg transition-colors ${showSara ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]'}`}>
-                  <Bot className="h-4 w-4" />
-                </button>
               </div>
 
               {/* Email content */}
               <div className="flex-1 overflow-y-auto">
                 <div className="max-w-3xl mx-auto px-6 py-6">
-                  {/* Subject line */}
-                  <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-4 leading-tight">{currentMsg.subject || '(no subject)'}</h1>
-
-                  {/* SARA banner */}
-                  {currentMsg.sara_intent && currentMsg.sara_status === 'pending_review' && (
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] mb-4">
-                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-surface)]"><Bot className="h-4 w-4 text-[var(--text-primary)]" /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-[var(--text-primary)]">
-                          SARA classified as <span className={`${(INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other).text} font-semibold`}>{(INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other).label}</span>
-                          <span className="text-[var(--text-tertiary)] ml-1">({Math.round((currentMsg.sara_confidence || 0) * 100)}%)</span>
-                        </p>
-                        {currentMsg.sara_draft_reply && <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5 truncate">Draft: {currentMsg.sara_draft_reply}</p>}
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <button onClick={() => approveMut.mutate({ id: currentMsg.id })} className="px-2.5 py-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-[11px] font-semibold hover:opacity-90">Approve</button>
-                        <button onClick={() => dismissMut.mutate(currentMsg.id)} className="px-2.5 py-1.5 rounded-lg border border-[var(--border-default)] text-[11px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">Dismiss</button>
-                      </div>
-                    </div>
-                  )}
+                  {/* Subject line with AI tag badge */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <h1 className="text-xl font-semibold text-[var(--text-primary)] leading-tight flex-1">{currentMsg.subject || '(no subject)'}</h1>
+                    {currentMsg.sara_intent && (() => {
+                      const intentInfo = INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other;
+                      return (
+                        <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${intentInfo.bg} ${intentInfo.text}`}>
+                          <Tag className="h-3 w-3" />
+                          {intentInfo.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
 
                   {/* Email message card */}
                   <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
@@ -1003,6 +944,13 @@ export function InboxPage() {
                         minHeight="140px"
                         autoFocus
                       />
+                      {/* AI Assist Bar */}
+                      {replyMode === 'reply' && (
+                        <AiAssistBar
+                          messageId={currentMsg.id}
+                          onInsert={handleAiInsert}
+                        />
+                      )}
                       <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
                         <button
                           onClick={() => {
@@ -1044,24 +992,11 @@ export function InboxPage() {
                   <MailPlus className="h-7 w-7 text-[var(--text-tertiary)]" />
                 </div>
                 <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1.5">Select a message</h3>
-                <p className="text-sm text-[var(--text-secondary)] max-w-xs">Choose a conversation from the left to read, reply, or manage with SARA AI.</p>
+                <p className="text-sm text-[var(--text-secondary)] max-w-xs">Choose a conversation from the left to read and reply.</p>
               </div>
             </div>
           )}
         </div>
-
-        {/* ── Right: SARA Panel ── */}
-        {showSara && (
-          <div className="border-l border-[var(--border-subtle)] bg-[var(--bg-surface)]" style={{ width: '280px' }}>
-            <SaraPanel
-              message={currentMsg}
-              stats={saraStats}
-              onApprove={(id, editedReply) => approveMut.mutate({ id, editedReply })}
-              onDismiss={id => dismissMut.mutate(id)}
-              onClassify={id => classifyMut.mutate(id)}
-            />
-          </div>
-        )}
       </div>
 
       {showCompose && (

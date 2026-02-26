@@ -9,6 +9,7 @@ export const inboxApi = {
     is_starred?: boolean;
     folder?: string;
     sara_status?: string;
+    sara_intent?: string;
     search?: string;
   }) => {
     const { data } = await apiClient.get<PaginatedResponse<InboxMessageWithContext>>('/inbox', { params });
@@ -57,6 +58,11 @@ export const inboxApi = {
 
   forward: async (id: string, to: string, note?: string, smtp_account_id?: string, body_html?: string) => {
     const { data } = await apiClient.post<{ success: boolean; message_id: string }>(`/inbox/${id}/forward`, { to, note, body_html, smtp_account_id });
+    return data;
+  },
+
+  aiReplyAssist: async (id: string, prompt: string) => {
+    const { data } = await apiClient.post<{ html: string; text: string }>(`/inbox/${id}/ai-reply-assist`, { prompt });
     return data;
   },
 

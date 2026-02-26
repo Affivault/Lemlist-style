@@ -249,6 +249,19 @@ export function RichTextEditor({
     }
   }, [editor, initialContent]);
 
+  // Listen for AI reply insertion events
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.html && editor) {
+        editor.commands.setContent(detail.html);
+        onChange?.(editor.getHTML(), editor.getText());
+      }
+    };
+    window.addEventListener('ai-reply-insert', handler);
+    return () => window.removeEventListener('ai-reply-insert', handler);
+  }, [editor, onChange]);
+
   if (!editor) return null;
 
   const insertTemplate = (template: Template) => {

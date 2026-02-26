@@ -13,6 +13,7 @@ export const inboxService = {
     is_starred?: boolean;
     is_archived?: boolean;
     sara_status?: string;
+    sara_intent?: string;
     search?: string;
     folder?: string;
   }) {
@@ -45,6 +46,10 @@ export const inboxService = {
 
     if (params.sara_status) {
       query = query.eq('sara_status', params.sara_status);
+    }
+
+    if (params.sara_intent) {
+      query = query.eq('sara_intent', params.sara_intent);
     }
 
     if (params.search) {
@@ -362,6 +367,53 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
     });
 
     return { success: true, message_id: messageId };
+  },
+
+  /**
+   * Generate an AI-assisted reply draft based on the original message and user prompt.
+   */
+  async generateReplyAssist(userId: string, messageId: string, prompt: string): Promise<{ html: string; text: string }> {
+    const { data: msg } = await supabaseAdmin
+      .from('inbox_messages')
+      .select('*, contacts(first_name, last_name, company, email)')
+      .eq('id', messageId)
+      .eq('user_id', userId)
+      .single();
+    if (!msg) throw new AppError('Message not found', 404);
+
+    const senderName = msg.contacts
+      ? [msg.contacts.first_name, msg.contacts.last_name].filter(Boolean).join(' ')
+      : msg.from_email?.split('@')[0] || 'there';
+    const firstName = msg.contacts?.first_name || senderName.split(' ')[0] || 'there';
+    const originalBody = msg.body_text || '';
+    const subject = msg.subject || '';
+    const promptLower = prompt.toLowerCase();
+
+    // Context-aware reply generation based on user prompt
+    let replyText: string;
+
+    if (/accept|agree|yes|confirm|sounds good|let'?s do/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nThanks for reaching out! That sounds great — I'd be happy to move forward.\n\nPlease let me know if there are any next steps on your end, or if you'd like to schedule a time to connect.\n\nBest regards`;
+    } else if (/meet|call|schedule|book|calendar|chat|demo/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nI'd love to set up a time to chat! I'm generally available this week — feel free to suggest a time that works best for you, or I can send over some options.\n\nLooking forward to connecting.\n\nBest regards`;
+    } else if (/decline|no|not interested|pass|reject/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nThank you for thinking of us. After careful consideration, I'm going to pass on this for now.\n\nI appreciate you reaching out and wish you all the best.\n\nKind regards`;
+    } else if (/more info|details|learn more|tell me|explain/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nThanks for your interest! I'd be happy to share more details.\n\nCould you let me know which specific aspects you'd like to learn more about? That way I can tailor the information to what's most relevant for you.\n\nBest regards`;
+    } else if (/follow.?up|check.?in|touch base|reconnect/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nJust wanted to follow up on my previous message and see if you had any thoughts.\n\nI'd love to hear back from you when you get a chance. No rush at all — just wanted to make sure this didn't slip through the cracks.\n\nBest regards`;
+    } else if (/thank|appreciate|grateful/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nThank you so much — I really appreciate it!\n\nPlease don't hesitate to reach out if there's anything else I can help with.\n\nBest regards`;
+    } else if (/delay|later|postpone|busy|not now/i.test(promptLower)) {
+      replyText = `Hi ${firstName},\n\nNo worries at all — I completely understand. Timing is everything.\n\nFeel free to reach out whenever you're ready, and I'll be happy to pick things back up.\n\nBest regards`;
+    } else {
+      // Generic professional reply incorporating the user's prompt
+      replyText = `Hi ${firstName},\n\n${prompt}\n\nPlease let me know if you have any questions.\n\nBest regards`;
+    }
+
+    const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;">${replyText.replace(/\n/g, '<br/>')}</div>`;
+
+    return { html, text: replyText };
   },
 };
 

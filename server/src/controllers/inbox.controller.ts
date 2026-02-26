@@ -84,6 +84,15 @@ export const inboxController = {
     } catch (err) { next(err); }
   },
 
+  async aiReplyAssist(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { prompt } = req.body;
+      if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+      const result = await inboxService.generateReplyAssist(req.userId!, req.params.id, prompt);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
   async compose(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { to, subject, body: composeBody, body_html, smtp_account_id } = req.body;

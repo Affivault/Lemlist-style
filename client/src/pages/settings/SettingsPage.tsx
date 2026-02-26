@@ -20,9 +20,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Bot,
+  Sparkles,
   Zap,
-  SlidersHorizontal,
   Info,
   Loader2,
   Trash2,
@@ -30,7 +29,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 
-type Tab = 'profile' | 'account' | 'notifications' | 'preferences' | 'sara';
+type Tab = 'profile' | 'account' | 'notifications' | 'preferences' | 'ai';
 
 interface TabConfig {
   id: Tab;
@@ -43,7 +42,7 @@ const tabs: TabConfig[] = [
   { id: 'account', label: 'Account', icon: Shield },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'preferences', label: 'Preferences', icon: Palette },
-  { id: 'sara', label: 'SARA AI', icon: Bot },
+  { id: 'ai', label: 'AI Features', icon: Sparkles },
 ];
 
 export function SettingsPage() {
@@ -66,14 +65,11 @@ export function SettingsPage() {
 
   const [defaultSignature, setDefaultSignature] = useState('');
 
-  // SARA AI settings
-  const [saraEnabled, setSaraEnabled] = useState(true);
-  const [saraAutoClassify, setSaraAutoClassify] = useState(true);
-  const [saraAutoExecute, setSaraAutoExecute] = useState(true);
-  const [saraConfidenceThreshold, setSaraConfidenceThreshold] = useState(85);
-  const [saraAutoUnsubscribe, setSaraAutoUnsubscribe] = useState(true);
-  const [saraAutoBounce, setSaraAutoBounce] = useState(true);
-  const [saraDraftReplies, setSaraDraftReplies] = useState(true);
+  // AI Features settings (uses same DB columns as SARA for backwards compat)
+  const [aiTaggingEnabled, setAiTaggingEnabled] = useState(true);
+  const [aiAutoClassify, setAiAutoClassify] = useState(true);
+  const [aiAutoUnsubscribe, setAiAutoUnsubscribe] = useState(true);
+  const [aiAutoBounce, setAiAutoBounce] = useState(true);
 
   // Password change
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -107,13 +103,10 @@ export function SettingsPage() {
       setReplyNotifications(settings.reply_notifications ?? true);
       setWeeklyDigest(settings.weekly_digest ?? false);
       setDefaultSignature(settings.default_signature || '');
-      setSaraEnabled(settings.sara_enabled ?? true);
-      setSaraAutoClassify(settings.sara_auto_classify ?? true);
-      setSaraAutoExecute(settings.sara_auto_execute ?? true);
-      setSaraConfidenceThreshold(settings.sara_confidence_threshold ?? 85);
-      setSaraAutoUnsubscribe(settings.sara_auto_unsubscribe ?? true);
-      setSaraAutoBounce(settings.sara_auto_bounce ?? true);
-      setSaraDraftReplies(settings.sara_draft_replies ?? true);
+      setAiTaggingEnabled(settings.sara_enabled ?? true);
+      setAiAutoClassify(settings.sara_auto_classify ?? true);
+      setAiAutoUnsubscribe(settings.sara_auto_unsubscribe ?? true);
+      setAiAutoBounce(settings.sara_auto_bounce ?? true);
       if (settings.theme && settings.theme !== themeMode) {
         setThemeMode(settings.theme as 'light' | 'dark' | 'system');
       }
@@ -150,13 +143,13 @@ export function SettingsPage() {
       weekly_digest: weeklyDigest,
       default_signature: defaultSignature,
       theme: themeMode,
-      sara_enabled: saraEnabled,
-      sara_auto_classify: saraAutoClassify,
-      sara_auto_execute: saraAutoExecute,
-      sara_confidence_threshold: saraConfidenceThreshold,
-      sara_auto_unsubscribe: saraAutoUnsubscribe,
-      sara_auto_bounce: saraAutoBounce,
-      sara_draft_replies: saraDraftReplies,
+      sara_enabled: aiTaggingEnabled,
+      sara_auto_classify: aiAutoClassify,
+      sara_auto_execute: true,
+      sara_confidence_threshold: 85,
+      sara_auto_unsubscribe: aiAutoUnsubscribe,
+      sara_auto_bounce: aiAutoBounce,
+      sara_draft_replies: false,
     });
   };
 
@@ -636,132 +629,78 @@ export function SettingsPage() {
               </div>
             )}
 
-            {/* ═══ SARA AI Tab ═══ */}
-            {activeTab === 'sara' && (
+            {/* ═══ AI Features Tab ═══ */}
+            {activeTab === 'ai' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-base font-semibold text-[var(--text-primary)]">SARA AI Settings</h2>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">AI Features</h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">
-                    Configure your SkySend Autonomous Reply Agent
+                    Configure intelligent email tagging and AI-powered reply assistance
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-[var(--accent)]/5 border border-[var(--accent)]/20">
                   <div className="flex items-start gap-3">
-                    <Bot className="h-5 w-5 text-[var(--accent)] mt-0.5 flex-shrink-0" />
+                    <Sparkles className="h-5 w-5 text-[var(--accent)] mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">What is SARA?</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">Smart Email Tagging</p>
                       <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
-                        SARA automatically classifies incoming replies by intent (interested, meeting request,
-                        objection, unsubscribe, bounce, out-of-office) and drafts context-aware responses.
-                        Review classifications in the SARA panel within your Inbox.
+                        AI automatically tags incoming replies by intent &mdash; Interested, Meeting Booked,
+                        Not Interested, Objection, Out of Office, Unsubscribe, and Bounce.
+                        Filter your inbox by tag to quickly find the messages that matter most.
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <ToggleSetting
-                  label="Enable SARA AI"
-                  description="Turn on/off automatic reply classification and draft generation"
-                  checked={saraEnabled}
-                  onChange={(v) => { setSaraEnabled(v); markChanged(); }}
+                  label="AI Email Tagging"
+                  description="Automatically tag incoming emails by intent (interested, meeting, etc.)"
+                  checked={aiTaggingEnabled}
+                  onChange={(v) => { setAiTaggingEnabled(v); markChanged(); }}
                 />
 
-                {saraEnabled && (
+                {aiTaggingEnabled && (
                   <>
                     <div className="space-y-3">
                       <div className="px-1">
                         <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
                           <Zap className="h-4 w-4 text-[var(--text-tertiary)]" />
-                          Automation
+                          Auto-Tagging
                         </h3>
                       </div>
 
                       <ToggleSetting
-                        label="Auto-classify new replies"
-                        description="Automatically analyze incoming replies as they arrive"
-                        checked={saraAutoClassify}
-                        onChange={(v) => { setSaraAutoClassify(v); markChanged(); }}
+                        label="Auto-tag new replies"
+                        description="Automatically tag incoming replies as they arrive in your inbox"
+                        checked={aiAutoClassify}
+                        onChange={(v) => { setAiAutoClassify(v); markChanged(); }}
                       />
-                      <ToggleSetting
-                        label="Draft reply suggestions"
-                        description="Generate draft replies for classified messages"
-                        checked={saraDraftReplies}
-                        onChange={(v) => { setSaraDraftReplies(v); markChanged(); }}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="px-1">
-                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                          <SlidersHorizontal className="h-4 w-4 text-[var(--text-tertiary)]" />
-                          Confidence & Thresholds
-                        </h3>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="text-sm font-medium text-[var(--text-primary)]">
-                              Confidence Threshold
-                            </p>
-                            <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                              Minimum confidence score to show classification in inbox
-                            </p>
-                          </div>
-                          <span className="text-sm font-semibold text-[var(--accent)] tabular-nums">
-                            {saraConfidenceThreshold}%
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min={50}
-                          max={99}
-                          value={saraConfidenceThreshold}
-                          onChange={(e) => { setSaraConfidenceThreshold(Number(e.target.value)); markChanged(); }}
-                          className="w-full accent-[var(--accent)]"
-                        />
-                        <div className="flex justify-between mt-1">
-                          <span className="text-[10px] text-[var(--text-tertiary)]">50% (More results)</span>
-                          <span className="text-[10px] text-[var(--text-tertiary)]">99% (Higher accuracy)</span>
-                        </div>
-                      </div>
                     </div>
 
                     <div className="space-y-3">
                       <div className="px-1">
                         <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
                           <Zap className="h-4 w-4 text-[var(--text-tertiary)]" />
-                          Auto-Execute Actions
+                          Auto Actions
                         </h3>
-                        <p className="text-xs text-[var(--text-tertiary)] mt-1 px-0">
-                          High-confidence actions that SARA can execute without manual approval
+                        <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                          Actions that are automatically performed for high-confidence tags
                         </p>
                       </div>
 
                       <ToggleSetting
-                        label="Auto-execute enabled"
-                        description="Allow SARA to automatically perform high-confidence actions"
-                        checked={saraAutoExecute}
-                        onChange={(v) => { setSaraAutoExecute(v); markChanged(); }}
+                        label="Auto-unsubscribe"
+                        description="Automatically unsubscribe contacts who request removal (high confidence)"
+                        checked={aiAutoUnsubscribe}
+                        onChange={(v) => { setAiAutoUnsubscribe(v); markChanged(); }}
                       />
-
-                      {saraAutoExecute && (
-                        <>
-                          <ToggleSetting
-                            label="Auto-unsubscribe"
-                            description="Automatically unsubscribe contacts who request removal (>90% confidence)"
-                            checked={saraAutoUnsubscribe}
-                            onChange={(v) => { setSaraAutoUnsubscribe(v); markChanged(); }}
-                          />
-                          <ToggleSetting
-                            label="Auto-handle bounces"
-                            description="Automatically mark bounced contacts and stop sequences (>90% confidence)"
-                            checked={saraAutoBounce}
-                            onChange={(v) => { setSaraAutoBounce(v); markChanged(); }}
-                          />
-                        </>
-                      )}
+                      <ToggleSetting
+                        label="Auto-handle bounces"
+                        description="Automatically mark bounced contacts and stop sequences (high confidence)"
+                        checked={aiAutoBounce}
+                        onChange={(v) => { setAiAutoBounce(v); markChanged(); }}
+                      />
                     </div>
 
                     <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
@@ -769,10 +708,9 @@ export function SettingsPage() {
                         <Info className="h-4 w-4 text-[var(--text-tertiary)] mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                            SARA uses pattern-based classification to detect reply intent.
-                            Review all classifications in the SARA panel within your Inbox —
-                            click the <Bot className="inline h-3 w-3" /> icon on any message
-                            to view and manage SARA suggestions.
+                            Use the tag filter in your Inbox to quickly find messages by category.
+                            When replying, click the AI Assist button to generate context-aware reply
+                            drafts based on your prompt.
                           </p>
                         </div>
                       </div>

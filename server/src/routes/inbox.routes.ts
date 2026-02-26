@@ -14,4 +14,5 @@ inboxRoutes.put('/:id/archive', inboxController.archive);
 inboxRoutes.put('/:id/unarchive', inboxController.unarchive);
 inboxRoutes.post('/:id/reply', inboxController.reply);
 inboxRoutes.post('/:id/forward', inboxController.forward);
+inboxRoutes.post('/:id/ai-reply-assist', inboxController.aiReplyAssist);
 inboxRoutes.post('/compose', inboxController.compose);

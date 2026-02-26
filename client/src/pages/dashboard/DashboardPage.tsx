@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsApi, type TrendDataPoint } from '../../api/analytics.api';
 import { campaignsApi } from '../../api/campaigns.api';
 import { inboxApi } from '../../api/inbox.api';
-import { saraApi } from '../../api/sara.api';
 import { templateApi } from '../../api/template.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
@@ -20,8 +19,8 @@ import {
   Star,
   FileText,
   BarChart3,
-  Bot,
   Sparkles,
+  Tag,
   Play,
   Pause,
   CircleDot,
@@ -153,11 +152,6 @@ export function DashboardPage() {
     queryFn: () => inboxApi.list({ limit: 6, folder: 'inbox' }),
   });
 
-  const { data: saraStats } = useQuery({
-    queryKey: ['sara', 'stats'],
-    queryFn: () => saraApi.getStats(),
-  });
-
   const { data: emailTemplates } = useQuery({
     queryKey: ['templates', 'emails', 'dashboard'],
     queryFn: () => templateApi.listEmails(),
@@ -186,8 +180,6 @@ export function DashboardPage() {
   const unreadCount = recentMessages.filter((m: any) => !m.is_read).length;
   const templates = Array.isArray(emailTemplates) ? emailTemplates : [];
   const trend = Array.isArray(trendData) ? trendData : [];
-  const saraPending = saraStats?.pending_review || 0;
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* ── Header ── */}
@@ -400,7 +392,7 @@ export function DashboardPage() {
           )}
         </div>
 
-        {/* Inbox + SARA */}
+        {/* Inbox + AI */}
         <div className="flex flex-col gap-4">
           {/* Inbox preview */}
           <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
@@ -453,30 +445,26 @@ export function DashboardPage() {
             )}
           </div>
 
-          {/* SARA status */}
+          {/* AI Features */}
           <Link to="/inbox" className="group bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 hover:border-[var(--border-default)] transition-all">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="p-2 rounded-lg bg-[var(--bg-elevated)]">
-                <Bot className="h-4 w-4 text-[var(--text-primary)]" />
+              <div className="p-2 rounded-lg bg-[var(--accent)]/10">
+                <Sparkles className="h-4 w-4 text-[var(--accent)]" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[var(--text-primary)]">SARA AI</p>
-                <p className="text-[10px] text-[var(--text-tertiary)]">Autonomous Reply Agent</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">AI Features</p>
+                <p className="text-[10px] text-[var(--text-tertiary)]">Smart tagging & reply assist</p>
               </div>
               <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-2 rounded-lg bg-[var(--bg-elevated)] text-center">
-                <p className="text-base font-bold text-[var(--text-primary)]">{saraPending}</p>
-                <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Pending</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--bg-elevated)]">
+                <Tag className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                <p className="text-xs text-[var(--text-secondary)]">Auto-tags emails by intent</p>
               </div>
-              <div className="p-2 rounded-lg bg-[var(--bg-elevated)] text-center">
-                <p className="text-base font-bold text-[var(--text-primary)]">{saraStats?.approved_today || 0}</p>
-                <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Approved</p>
-              </div>
-              <div className="p-2 rounded-lg bg-[var(--bg-elevated)] text-center">
-                <p className="text-base font-bold text-[var(--text-primary)]">{saraStats?.sent_today || 0}</p>
-                <p className="text-[9px] text-[var(--text-tertiary)] mt-0.5">Sent</p>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--bg-elevated)]">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                <p className="text-xs text-[var(--text-secondary)]">AI reply assist in composer</p>
               </div>
             </div>
           </Link>
