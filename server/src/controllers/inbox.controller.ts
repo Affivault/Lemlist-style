@@ -101,4 +101,38 @@ export const inboxController = {
       res.json(result);
     } catch (err) { next(err); }
   },
+
+  async scheduleSend(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { to, subject, body: composeBody, body_html, smtp_account_id, scheduled_at } = req.body;
+      if (!to || !subject || (!composeBody && !body_html)) return res.status(400).json({ error: 'To, subject, and body are required' });
+      if (!scheduled_at) return res.status(400).json({ error: 'scheduled_at is required' });
+      const result = await inboxService.scheduleSend(req.userId!, { to, subject, body: composeBody || '', body_html, smtp_account_id, scheduled_at });
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
+  async scheduleReply(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { body: replyBody, body_html, smtp_account_id, scheduled_at } = req.body;
+      if (!replyBody && !body_html) return res.status(400).json({ error: 'Reply body is required' });
+      if (!scheduled_at) return res.status(400).json({ error: 'scheduled_at is required' });
+      const result = await inboxService.scheduleReply(req.userId!, req.params.id, replyBody || '', scheduled_at, smtp_account_id, body_html);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
+  async cancelScheduled(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await inboxService.cancelScheduledEmail(req.userId!, req.params.id);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
+  async listScheduled(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await inboxService.listScheduledEmails(req.userId!);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
 };

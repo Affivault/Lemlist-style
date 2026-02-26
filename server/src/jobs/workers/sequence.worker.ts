@@ -1,4 +1,5 @@
 import { processDueSteps, processWebhookTimeouts } from '../../services/sequence.service.js';
+import { processScheduledEmails } from '../../services/inbox.service.js';
 
 /**
  * Sequence Worker
@@ -28,6 +29,12 @@ async function tick() {
     const timedOut = await processWebhookTimeouts();
     if (timedOut > 0) {
       console.log(`[Sequence] Resumed ${timedOut} timed-out webhook wait(s)`);
+    }
+
+    // Process scheduled inbox emails that are due for sending
+    const scheduled = await processScheduledEmails();
+    if (scheduled > 0) {
+      console.log(`[Sequence] Sent ${scheduled} scheduled email(s)`);
     }
   } catch (err: any) {
     console.error('[Sequence] Worker error:', err.message);
