@@ -107,30 +107,40 @@ export const inboxService = {
   },
 
   async getThread(userId: string, messageId: string) {
+    // Step 1: Fetch the message to get contact info
     const { data: message } = await supabaseAdmin
       .from('inbox_messages')
-      .select('thread_id, subject, in_reply_to, message_id')
+      .select('*, contacts(first_name, last_name, email)')
       .eq('id', messageId)
       .eq('user_id', userId)
       .single();
 
     if (!message) throw new AppError('Message not found', 404);
 
-    const normalizedSubject = (message.subject || '').replace(/^(Re|Fwd|Fw):\s*/gi, '').trim();
+    // Step 2: Determine the contact email to find ALL conversations
+    const contactEmail = message.contacts?.email ||
+      (message.direction === 'outbound' ? message.to_email : message.from_email);
 
-    let query = supabaseAdmin
-      .from('inbox_messages')
-      .select('*, contacts(first_name, last_name, email)')
-      .eq('user_id', userId)
-      .order('received_at', { ascending: true });
-
-    if (message.thread_id) {
-      query = query.eq('thread_id', message.thread_id);
-    } else {
-      query = query.or(`subject.ilike.%${normalizedSubject}%`);
+    if (!contactEmail) {
+      // Fallback: return just this message
+      return [{
+        ...message,
+        contact_name: message.contacts
+          ? [message.contacts.first_name, message.contacts.last_name].filter(Boolean).join(' ') || null
+          : null,
+        contact_email: message.contacts?.email || null,
+        contacts: undefined,
+      }];
     }
 
-    const { data, error } = await query;
+    // Step 3: Find ALL messages with this contact (both directions)
+    const { data, error } = await supabaseAdmin
+      .from('inbox_messages')
+      .select('*, contacts(first_name, last_name, email), smtp_accounts(id, email_address, label)')
+      .eq('user_id', userId)
+      .or(`from_email.eq.${contactEmail},to_email.eq.${contactEmail}`)
+      .order('received_at', { ascending: true });
+
     if (error) throw new AppError(error.message, 500);
 
     return (data || []).map((m: any) => ({
@@ -139,7 +149,10 @@ export const inboxService = {
         ? [m.contacts.first_name, m.contacts.last_name].filter(Boolean).join(' ') || null
         : null,
       contact_email: m.contacts?.email || null,
+      smtp_email: m.smtp_accounts?.email_address || null,
+      smtp_label: m.smtp_accounts?.label || null,
       contacts: undefined,
+      smtp_accounts: undefined,
     }));
   },
 

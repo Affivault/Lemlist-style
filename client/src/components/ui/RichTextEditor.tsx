@@ -33,6 +33,7 @@ interface RichTextEditorProps {
   initialContent?: string;
   placeholder?: string;
   onChange?: (html: string, text: string) => void;
+  onTemplateSelect?: (template: Template) => void;
   templates?: Template[];
   minHeight?: string;
   autoFocus?: boolean;
@@ -200,6 +201,7 @@ export function RichTextEditor({
   initialContent = '',
   placeholder = 'Write your message...',
   onChange,
+  onTemplateSelect,
   templates,
   minHeight = '200px',
   autoFocus = false,
@@ -266,6 +268,7 @@ export function RichTextEditor({
 
   const insertTemplate = (template: Template) => {
     setContent(template.body_html);
+    onTemplateSelect?.(template);
   };
 
   return (
