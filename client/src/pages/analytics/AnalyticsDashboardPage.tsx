@@ -234,6 +234,39 @@ export function AnalyticsDashboardPage() {
     enabled: !!selectedCampaignId,
   });
 
+  // All useMemo hooks must be called before any early returns (Rules of Hooks)
+  const campaigns = Array.isArray(campaignsData?.data) ? campaignsData.data : [];
+
+  const chartData = useMemo(() => campaignAnalytics
+    ? [
+        { name: 'Sent', value: safeNum(campaignAnalytics.sent), fill: COLORS[0] },
+        { name: 'Opened', value: safeNum(campaignAnalytics.opened), fill: COLORS[1] },
+        { name: 'Clicked', value: safeNum(campaignAnalytics.clicked), fill: COLORS[2] },
+        { name: 'Replied', value: safeNum(campaignAnalytics.replied), fill: COLORS[3] },
+        { name: 'Bounced', value: safeNum(campaignAnalytics.bounced), fill: theme === 'dark' ? '#24242A' : '#E4E4E7' },
+      ]
+    : [], [campaignAnalytics, COLORS, theme]);
+
+  const formattedTrend = useMemo(() => {
+    if (!Array.isArray(trendData) || trendData.length === 0) return [];
+    return trendData.map((d: TrendDataPoint) => ({
+      ...d,
+      label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+    }));
+  }, [trendData]);
+
+  const pieData = useMemo(() => overview
+    ? [
+        { name: 'Opened', value: safeNum(overview.total_opened) },
+        { name: 'Clicked', value: safeNum(overview.total_clicked) },
+        { name: 'Replied', value: safeNum(overview.total_replied) },
+        { name: 'No engagement', value: Math.max(0, safeNum(overview.total_sent) - safeNum(overview.total_opened)) },
+      ].filter((d) => d.value > 0)
+    : [], [overview]);
+
   if (overviewLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -263,39 +296,6 @@ export function AnalyticsDashboardPage() {
       </div>
     );
   }
-
-  const campaigns = Array.isArray(campaignsData?.data) ? campaignsData.data : [];
-
-  const chartData = useMemo(() => campaignAnalytics
-    ? [
-        { name: 'Sent', value: safeNum(campaignAnalytics.sent), fill: COLORS[0] },
-        { name: 'Opened', value: safeNum(campaignAnalytics.opened), fill: COLORS[1] },
-        { name: 'Clicked', value: safeNum(campaignAnalytics.clicked), fill: COLORS[2] },
-        { name: 'Replied', value: safeNum(campaignAnalytics.replied), fill: COLORS[3] },
-        { name: 'Bounced', value: safeNum(campaignAnalytics.bounced), fill: theme === 'dark' ? '#24242A' : '#E4E4E7' },
-      ]
-    : [], [campaignAnalytics, COLORS, theme]);
-
-  // Format trend data for the chart — safely handles non-array responses
-  const formattedTrend = useMemo(() => {
-    if (!Array.isArray(trendData) || trendData.length === 0) return [];
-    return trendData.map((d: TrendDataPoint) => ({
-      ...d,
-      label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }),
-    }));
-  }, [trendData]);
-
-  const pieData = overview
-    ? [
-        { name: 'Opened', value: safeNum(overview.total_opened) },
-        { name: 'Clicked', value: safeNum(overview.total_clicked) },
-        { name: 'Replied', value: safeNum(overview.total_replied) },
-        { name: 'No engagement', value: Math.max(0, safeNum(overview.total_sent) - safeNum(overview.total_opened)) },
-      ].filter((d) => d.value > 0)
-    : [];
 
   const dateRangeOptions: { value: '7d' | '30d' | '90d'; label: string }[] = [
     { value: '7d', label: '7 days' },
