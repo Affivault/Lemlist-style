@@ -135,4 +135,11 @@ export const inboxController = {
       res.json(result);
     } catch (err) { next(err); }
   },
+
+  async syncInbox(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await inboxService.syncInbox(req.userId!);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
 };
