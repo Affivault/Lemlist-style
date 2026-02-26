@@ -393,10 +393,10 @@ function EmailEditorModal({
   const mergeTags = ['first_name', 'last_name', 'company', 'email', 'industry', 'title', 'sender_name'];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Email Template Editor" size="xl">
-      <div className="flex gap-5 min-h-[500px]">
+    <Modal isOpen={isOpen} onClose={onClose} title="Email Template Editor" size="2xl">
+      <div className="flex gap-6 min-h-[500px]">
         {/* Editor side */}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3 min-w-0">
           <div className="grid grid-cols-2 gap-3">
             <Input label="Template Name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Cold Intro v2" required />
             <div>
@@ -450,7 +450,7 @@ function EmailEditorModal({
 
         {/* Preview side */}
         {showPreview && (
-          <div className="w-[360px] shrink-0 space-y-2">
+          <div className="w-[380px] shrink-0 sticky top-0 self-start space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Live Preview</span>
               <button onClick={() => setShowPreview(false)} className="p-1 rounded hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">

@@ -305,6 +305,7 @@ function ComposeModal({ onClose, onSend, sending, smtpAccounts, templates }: {
           <RichTextEditor
             placeholder="Write your message..."
             onChange={editor.handleChange}
+            onTemplateSelect={(t) => { if (t.subject) setSubject(t.subject); }}
             templates={templates}
             minHeight="200px"
             autoFocus
@@ -506,6 +507,14 @@ export function InboxPage() {
     queryFn: () => inboxApi.get(selectedId!),
     enabled: !!selectedId,
   });
+
+  /* ── Thread / conversation history ── */
+  const { data: threadMessages } = useQuery({
+    queryKey: ['inbox', 'thread', selectedId],
+    queryFn: () => inboxApi.getThread(selectedId!),
+    enabled: !!selectedId,
+  });
+  const thread: Message[] = Array.isArray(threadMessages) ? threadMessages : [];
 
   /* ── Invalidation ── */
   const invalidate = useCallback(() => {
@@ -850,9 +859,17 @@ export function InboxPage() {
               {/* Email content */}
               <div className="flex-1 overflow-y-auto">
                 <div className="max-w-3xl mx-auto px-6 py-6">
-                  {/* Subject line with AI tag badge */}
+                  {/* Conversation header */}
                   <div className="flex items-start gap-3 mb-4">
-                    <h1 className="text-xl font-semibold text-[var(--text-primary)] leading-tight flex-1">{currentMsg.subject || '(no subject)'}</h1>
+                    <div className="flex-1">
+                      <h1 className="text-xl font-semibold text-[var(--text-primary)] leading-tight">
+                        {currentMsg.contact_name || currentMsg.from_email?.split('@')[0] || 'Conversation'}
+                      </h1>
+                      <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                        {thread.length > 1 ? `${thread.length} messages` : '1 message'}
+                        {currentMsg.contact_email && ` · ${currentMsg.contact_email}`}
+                      </p>
+                    </div>
                     {currentMsg.sara_intent && (() => {
                       const intentInfo = INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other;
                       return (
@@ -864,55 +881,79 @@ export function InboxPage() {
                     })()}
                   </div>
 
-                  {/* Email message card */}
-                  <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
-                    {/* Sender header */}
-                    <div className="flex items-start gap-3 p-4 border-b border-[var(--border-subtle)]">
-                      <div className="w-10 h-10 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-[var(--text-primary)]">{senderInitial(currentMsg)}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-[var(--text-primary)]">{senderName(currentMsg)}</span>
-                          <span className="text-xs text-[var(--text-tertiary)]">&lt;{currentMsg.from_email}&gt;</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span className="text-xs text-[var(--text-tertiary)]">to {currentMsg.to_email}</span>
-                          {currentMsg.smtp_email && currentMsg.direction !== 'outbound' && (
-                            <>
-                              <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
-                              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600" title={`Delivered to ${currentMsg.smtp_email}`}>
-                                <AtSign className="inline h-2.5 w-2.5 mr-0.5" />
-                                {currentMsg.smtp_label || currentMsg.smtp_email}
-                              </span>
-                            </>
-                          )}
-                          {currentMsg.campaign_name && (
-                            <>
-                              <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
-                              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)]">{currentMsg.campaign_name}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs text-[var(--text-tertiary)]">{formatFullDate(currentMsg.received_at)}</span>
-                        <button onClick={() => toggleStarMut.mutate(currentMsg.id)} className="p-1.5 rounded hover:bg-[var(--bg-hover)]">
-                          <Star className={`h-4 w-4 ${currentMsg.is_starred ? 'text-amber-400 fill-amber-400' : 'text-[var(--text-tertiary)]'}`} />
-                        </button>
-                      </div>
-                    </div>
+                  {/* Conversation thread */}
+                  <div className="space-y-3">
+                    {(thread.length > 0 ? thread : [currentMsg]).map((msg) => {
+                      const isOutbound = msg.direction === 'outbound';
+                      const isCurrent = msg.id === selectedId;
+                      return (
+                        <div
+                          key={msg.id}
+                          id={`msg-${msg.id}`}
+                          className={`rounded-xl border overflow-hidden transition-all ${
+                            isCurrent
+                              ? 'border-[var(--accent)]/30 bg-[var(--bg-surface)]'
+                              : 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
+                          }`}
+                          style={{ boxShadow: isCurrent ? '0 0 0 1px var(--accent)' : 'var(--shadow-card)' }}
+                        >
+                          {/* Sender header */}
+                          <div className="flex items-start gap-3 p-4 border-b border-[var(--border-subtle)]">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border ${
+                              isOutbound ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)]'
+                            }`}>
+                              {isOutbound ? (
+                                <SendHorizontal className="h-3.5 w-3.5 text-[var(--accent)]" />
+                              ) : (
+                                <span className="text-xs font-semibold text-[var(--text-primary)]">{senderInitial(msg)}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-[var(--text-primary)]">
+                                  {isOutbound ? 'You' : senderName(msg)}
+                                </span>
+                                <span className="text-xs text-[var(--text-tertiary)]">
+                                  &lt;{msg.from_email}&gt;
+                                </span>
+                                {isOutbound && (
+                                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">Sent</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span className="text-xs text-[var(--text-tertiary)]">to {msg.to_email}</span>
+                                {msg.subject && (
+                                  <>
+                                    <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
+                                    <span className="text-xs text-[var(--text-secondary)] truncate max-w-[200px]">{msg.subject}</span>
+                                  </>
+                                )}
+                                {msg.campaign_name && (
+                                  <>
+                                    <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)]">{msg.campaign_name}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-[11px] text-[var(--text-tertiary)]">{formatFullDate(msg.received_at)}</span>
+                            </div>
+                          </div>
 
-                    {/* Email body - rendered in sandboxed iframe */}
-                    <div className="p-0">
-                      <ErrorBoundary fallback={
-                        <div className="p-6 text-sm text-[var(--text-secondary)]">
-                          <p>{currentMsg.body_text ? stripHtml(currentMsg.body_text) : '(Unable to render email content)'}</p>
+                          {/* Email body */}
+                          <div className="p-0">
+                            <ErrorBoundary fallback={
+                              <div className="p-6 text-sm text-[var(--text-secondary)]">
+                                <p>{msg.body_text ? stripHtml(msg.body_text) : '(Unable to render email content)'}</p>
+                              </div>
+                            }>
+                              <EmailBody html={msg.body_html} text={msg.body_text} />
+                            </ErrorBoundary>
+                          </div>
                         </div>
-                      }>
-                        <EmailBody html={currentMsg.body_html} text={currentMsg.body_text} />
-                      </ErrorBoundary>
-                    </div>
+                      );
+                    })}
                   </div>
 
                   {/* Reply / Forward composer */}
