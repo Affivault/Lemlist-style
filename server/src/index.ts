@@ -1,5 +1,6 @@
 import { app } from './app.js';
 import { env } from './config/env.js';
+import { runMigrations } from './config/supabase.js';
 import { startEmailWorker } from './jobs/workers/email.worker.js';
 import { startSequenceWorker } from './jobs/workers/sequence.worker.js';
 import { startInboxWorker } from './jobs/workers/inbox.worker.js';
@@ -7,10 +8,13 @@ import { scheduleInboxSync } from './jobs/schedulers/inbox.scheduler.js';
 
 const port = parseInt(env.PORT, 10);
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server running on port ${port}`);
   console.log(`API: ${env.API_BASE_URL}/api/v1`);
   console.log(`Health: ${env.API_BASE_URL}/health`);
+
+  // Run auto-migrations before starting workers
+  await runMigrations();
 
   // Start background workers
   try {
