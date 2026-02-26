@@ -9,7 +9,7 @@ import {
   Shield,
   Zap,
   Globe,
-  Bot,
+  Sparkles,
   Star,
   TrendingUp,
   Lock,
@@ -39,9 +39,9 @@ const features = [
     description: 'Built-in warmup, reputation monitoring, and domain health scoring. Every email lands in the primary inbox.',
   },
   {
-    icon: Bot,
-    title: 'SARA AI Assistant',
-    description: 'AI classifies replies by intent, drafts contextual responses, and routes conversations for human review.',
+    icon: Sparkles,
+    title: 'AI-Powered Inbox',
+    description: 'Smart email tagging automatically classifies replies by intent. AI reply assist helps you draft responses in seconds.',
   },
   {
     icon: Lock,
