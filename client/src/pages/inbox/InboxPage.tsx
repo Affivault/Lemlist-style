@@ -869,61 +869,64 @@ export function InboxPage() {
 
         {/* ── Left: Message List ── */}
         <div className="flex flex-col border-r border-[var(--border-subtle)]" style={{ width: '380px', minWidth: '340px' }}>
-          {/* Toolbar */}
-          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            <button onClick={() => setShowCompose(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-semibold hover:opacity-90 transition-opacity">
-              <Pencil className="h-3.5 w-3.5" />
-              Compose
-            </button>
-            <div className="flex-1" />
-            <button
-              onClick={() => markAllReadMut.mutate()}
-              disabled={markAllReadMut.isPending}
-              title="Mark all read"
-              className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
-            >
-              <CheckCheck className="h-4 w-4" />
-            </button>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing || isFetching}
-              title="Refresh"
-              className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
-            >
-              <RefreshCw className={`h-4 w-4 ${(isRefreshing || isFetching) ? 'animate-spin' : ''}`} />
-            </button>
+          {/* Header: Compose + Search */}
+          <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowCompose(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-semibold hover:opacity-90 transition-opacity">
+                <Pencil className="h-3.5 w-3.5" />
+                Compose
+              </button>
+              <form onSubmit={handleSearch} className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                  <input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Search..." className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[var(--text-primary)] transition-colors" />
+                  {search && (
+                    <button type="button" onClick={() => { setSearch(''); setSearchInput(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-[var(--bg-hover)]">
+                      <X className="h-3 w-3 text-[var(--text-tertiary)]" />
+                    </button>
+                  )}
+                </div>
+              </form>
+              <button
+                onClick={() => markAllReadMut.mutate()}
+                disabled={markAllReadMut.isPending}
+                title="Mark all read"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+              >
+                <CheckCheck className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing || isFetching}
+                title="Refresh"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${(isRefreshing || isFetching) ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)]" />
-              <input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Search messages..." className="w-full pl-9 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[var(--text-primary)] transition-colors" />
-              {search && (
-                <button type="button" onClick={() => { setSearch(''); setSearchInput(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-[var(--bg-hover)]">
-                  <X className="h-3 w-3 text-[var(--text-tertiary)]" />
-                </button>
-              )}
-            </div>
-          </form>
-
-          {/* Folders */}
-          <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+          {/* Folder tabs + Tag filter */}
+          <div className="flex items-center px-3 py-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] gap-0.5">
             {folders.map(f => {
               const FolderIcon = f.icon;
+              const isActive = folder === f.id;
               return (
                 <button
                   key={f.id}
                   onClick={() => { setFolder(f.id); setSelectedId(null); setTagFilter('all'); }}
-                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                    folder === f.id
-                      ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm'
+                  title={f.label}
+                  className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                    isActive
+                      ? 'text-[var(--text-primary)] bg-[var(--bg-elevated)]'
                       : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
                   <FolderIcon className="h-3.5 w-3.5" />
-                  {f.label}
-                  {f.count ? <span className="ml-0.5 text-[10px] bg-[var(--text-primary)] text-[var(--bg-app)] rounded-full px-1.5 py-px font-bold">{f.count}</span> : null}
+                  <span className="hidden sm:inline">{f.label}</span>
+                  {f.count ? (
+                    <span className="text-[9px] bg-[var(--accent)] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{f.count}</span>
+                  ) : null}
                 </button>
               );
             })}
@@ -949,53 +952,58 @@ export function InboxPage() {
               messages.map(msg => {
                 const isSelected = msg.id === selectedId;
                 const isOutbound = msg.direction === 'outbound';
+                const hasTags = (msg.smtp_email && !isOutbound) || (msg.sara_intent && msg.sara_intent !== 'scheduled') || msg.campaign_name;
                 return (
                   <button
                     key={msg.id}
                     onClick={() => selectMessage(msg)}
-                    className={`w-full text-left px-3 py-3 border-b border-[var(--border-subtle)] transition-all duration-100 ${
+                    className={`w-full text-left px-3 py-2.5 border-b border-[var(--border-subtle)] transition-all duration-100 ${
                       isSelected ? 'bg-[var(--bg-elevated)]' : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
                     }`}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="relative flex-shrink-0">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold border ${
-                          isOutbound ? 'bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-secondary)]' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-primary)]'
+                    <div className="flex items-start gap-2.5">
+                      <div className="relative flex-shrink-0 mt-0.5">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold ${
+                          isOutbound
+                            ? 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)]'
+                            : msg.is_read
+                              ? 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
+                              : 'bg-[var(--accent)]/10 text-[var(--accent)]'
                         }`}>
-                          {isOutbound ? <SendHorizontal className="h-3.5 w-3.5" /> : senderInitial(msg)}
+                          {isOutbound ? <SendHorizontal className="h-3 w-3" /> : senderInitial(msg)}
                         </div>
                         {!msg.is_read && !isOutbound && (
-                          <div className="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 rounded-full bg-[var(--accent)] border-2 border-[var(--bg-surface)]" />
+                          <div className="absolute -top-px -right-px w-2 h-2 rounded-full bg-[var(--accent)]" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <span className={`text-[13px] truncate ${msg.is_read ? 'font-medium text-[var(--text-secondary)]' : 'font-semibold text-[var(--text-primary)]'}`}>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className={`text-[13px] truncate ${msg.is_read ? 'font-normal text-[var(--text-secondary)]' : 'font-semibold text-[var(--text-primary)]'}`}>
                             {isOutbound ? `To: ${msg.to_email?.split('@')[0]}` : senderName(msg)}
                           </span>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {msg.is_starred && <Star className="h-3 w-3 text-amber-400 fill-amber-400" />}
-                            <span className="text-[11px] text-[var(--text-tertiary)]">{timeAgo(msg.received_at)}</span>
+                            <span className="text-[10px] text-[var(--text-tertiary)]">{timeAgo(msg.received_at)}</span>
                           </div>
                         </div>
-                        <p className={`text-[12px] truncate mb-0.5 ${msg.is_read ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)] font-medium'}`}>
+                        <p className={`text-[12px] truncate ${msg.is_read ? 'text-[var(--text-tertiary)]' : 'text-[var(--text-primary)]'}`}>
                           {msg.subject || '(no subject)'}
                         </p>
-                        <p className="text-[11px] text-[var(--text-tertiary)] truncate">{msgSnippet(msg)}</p>
-                        {(msg.smtp_email || msg.sara_intent || msg.campaign_name) && (
-                          <div className="flex items-center gap-1 mt-1 overflow-hidden">
+                        <p className="text-[11px] text-[var(--text-tertiary)] truncate mt-px">{msgSnippet(msg)}</p>
+                        {hasTags && (
+                          <div className="flex items-center gap-1 mt-1.5 overflow-hidden">
                             {msg.smtp_email && !isOutbound && (
-                              <span className="text-[9px] font-medium px-1.5 py-px rounded bg-blue-500/8 text-blue-600 truncate max-w-[80px]" title={`Delivered to ${msg.smtp_email}`}>
+                              <span className="inline-flex items-center text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-blue-500/8 text-blue-500 truncate max-w-[90px]" title={`Delivered to ${msg.smtp_email}`}>
                                 {msg.smtp_label || msg.smtp_email.split('@')[0]}
                               </span>
                             )}
                             {msg.sara_intent && msg.sara_intent !== 'scheduled' && (
-                              <span className={`text-[9px] font-semibold px-1.5 py-px rounded truncate max-w-[80px] ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).bg} ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).text}`}>
+                              <span className={`inline-flex items-center text-[9px] font-semibold px-1.5 py-0.5 rounded-md truncate max-w-[90px] ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).bg} ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).text}`}>
                                 {(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).label}
                               </span>
                             )}
                             {msg.campaign_name && (
-                              <span className="text-[9px] font-medium px-1.5 py-px rounded bg-[var(--bg-elevated)] text-[var(--text-tertiary)] truncate max-w-[80px]">{msg.campaign_name}</span>
+                              <span className="inline-flex items-center text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-[var(--bg-elevated)] text-[var(--text-tertiary)] truncate max-w-[90px]">{msg.campaign_name}</span>
                             )}
                           </div>
                         )}
