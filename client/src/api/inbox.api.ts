@@ -70,4 +70,19 @@ export const inboxApi = {
     const { data } = await apiClient.post<{ success: boolean; message_id: string }>('/inbox/compose', input);
     return data;
   },
+
+  scheduleSend: async (input: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string; scheduled_at: string }) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string; id: string; scheduled_at: string }>('/inbox/schedule-send', input);
+    return data;
+  },
+
+  scheduleReply: async (id: string, body: string, scheduled_at: string, smtp_account_id?: string, body_html?: string) => {
+    const { data } = await apiClient.post<{ success: boolean; message_id: string; id: string; scheduled_at: string }>(`/inbox/${id}/schedule-reply`, { body, body_html, smtp_account_id, scheduled_at });
+    return data;
+  },
+
+  cancelScheduled: async (id: string) => {
+    const { data } = await apiClient.delete<{ success: boolean }>(`/inbox/${id}/schedule`);
+    return data;
+  },
 };

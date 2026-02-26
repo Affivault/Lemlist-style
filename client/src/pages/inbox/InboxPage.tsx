@@ -33,6 +33,10 @@ import {
   Tag,
   Wand2,
   Loader2,
+  Clock,
+  Maximize2,
+  Minimize2,
+  Calendar,
 } from 'lucide-react';
 
 /* ─── Types ────────────────────────────────────────── */
@@ -265,9 +269,10 @@ function SenderSelect({ accounts, value, onChange }: {
 }
 
 /* ─── Compose Modal ───────────────────────────────── */
-function ComposeModal({ onClose, onSend, sending, smtpAccounts, templates }: {
+function ComposeModal({ onClose, onSend, onSchedule, sending, smtpAccounts, templates }: {
   onClose: () => void;
   onSend: (data: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string }) => void;
+  onSchedule: (data: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string; scheduled_at: string }) => void;
   sending?: boolean;
   smtpAccounts: SmtpAccount[];
   templates?: { id: string; name: string; subject: string; body_html: string }[];
@@ -275,17 +280,42 @@ function ComposeModal({ onClose, onSend, sending, smtpAccounts, templates }: {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [senderId, setSenderId] = useState(smtpAccounts[0]?.id || '');
+  const [expanded, setExpanded] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
   const editor = useRichTextEditorRef();
 
+  const canSend = to && subject && !editor.isEmpty && !sending && smtpAccounts.length > 0;
+
+  const handleSchedule = (scheduledAt: string) => {
+    if (to && subject && !editor.isEmpty) {
+      onSchedule({ to, subject, body: editor.text, body_html: editor.html, smtp_account_id: senderId || undefined, scheduled_at: scheduledAt });
+      setShowSchedule(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-end p-6">
+    <div className={`fixed inset-0 z-50 flex ${expanded ? 'items-center justify-center' : 'items-end justify-end'} p-6`}>
       <div className="fixed inset-0 bg-black/20" onClick={onClose} />
-      <div className="relative w-[620px] bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-2xl flex flex-col max-h-[85vh]" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+      <div
+        className={`relative bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-2xl flex flex-col transition-all duration-200 ${
+          expanded ? 'w-[800px] max-h-[80vh]' : 'w-[620px] max-h-[85vh]'
+        }`}
+        style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+      >
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)] rounded-t-xl">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">New Message</h3>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="p-1.5 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+              title={expanded ? 'Minimize' : 'Expand'}
+            >
+              {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </button>
+            <button onClick={onClose} className="p-1.5 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <div className="border-b border-[var(--border-subtle)]">
           <div className="flex items-center px-4 py-2 border-b border-[var(--border-subtle)]">
@@ -307,23 +337,37 @@ function ComposeModal({ onClose, onSend, sending, smtpAccounts, templates }: {
             onChange={editor.handleChange}
             onTemplateSelect={(t) => { if (t.subject) setSubject(t.subject); }}
             templates={templates}
-            minHeight="200px"
+            minHeight={expanded ? '300px' : '200px'}
             autoFocus
           />
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
-          <button
-            onClick={() => {
-              if (to && subject && !editor.isEmpty) {
-                onSend({ to, subject, body: editor.text, body_html: editor.html, smtp_account_id: senderId || undefined });
-              }
-            }}
-            disabled={!to || !subject || editor.isEmpty || sending || smtpAccounts.length === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
-          >
-            <Send className="h-3.5 w-3.5" />
-            {sending ? 'Sending...' : 'Send'}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                if (canSend) {
+                  onSend({ to, subject, body: editor.text, body_html: editor.html, smtp_account_id: senderId || undefined });
+                }
+              }}
+              disabled={!canSend}
+              className="flex items-center gap-2 px-4 py-2 rounded-l-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+            >
+              <Send className="h-3.5 w-3.5" />
+              {sending ? 'Sending...' : 'Send'}
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowSchedule(!showSchedule)}
+                disabled={!canSend}
+                className="flex items-center gap-1 px-2 py-2 rounded-r-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 border-l border-[var(--bg-app)]/20"
+                title="Schedule send"
+              >
+                <Clock className="h-3.5 w-3.5" />
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {showSchedule && <ScheduleSendPicker onSchedule={handleSchedule} onClose={() => setShowSchedule(false)} />}
+            </div>
+          </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">
             <Trash2 className="h-4 w-4" />
           </button>
@@ -402,6 +446,126 @@ function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (ht
   );
 }
 
+/* ─── Schedule Send Picker ────────────────────────── */
+function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string) => void; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [customDate, setCustomDate] = useState('');
+  const [customTime, setCustomTime] = useState('09:00');
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  const presets = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextMonday = new Date(now);
+    nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
+
+    const fmt = (d: Date, h: number, m: number) => {
+      const dt = new Date(d);
+      dt.setHours(h, m, 0, 0);
+      return dt;
+    };
+
+    const items: { label: string; sublabel: string; date: Date }[] = [];
+
+    // Tomorrow morning
+    const tomMorn = fmt(tomorrow, 8, 0);
+    items.push({
+      label: 'Tomorrow morning',
+      sublabel: tomMorn.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', 8:00 AM',
+      date: tomMorn,
+    });
+
+    // Tomorrow afternoon
+    const tomAfter = fmt(tomorrow, 13, 0);
+    items.push({
+      label: 'Tomorrow afternoon',
+      sublabel: tomAfter.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', 1:00 PM',
+      date: tomAfter,
+    });
+
+    // Next Monday morning (if not already Monday)
+    if (now.getDay() !== 1) {
+      const monMorn = fmt(nextMonday, 8, 0);
+      items.push({
+        label: 'Monday morning',
+        sublabel: monMorn.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', 8:00 AM',
+        date: monMorn,
+      });
+    }
+
+    return items;
+  }, []);
+
+  const handleCustomSchedule = () => {
+    if (!customDate) return;
+    const dt = new Date(`${customDate}T${customTime}:00`);
+    if (dt <= new Date()) return;
+    onSchedule(dt.toISOString());
+  };
+
+  return (
+    <div ref={ref} className="absolute bottom-full left-0 mb-2 w-72 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-xl z-50 overflow-hidden">
+      <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
+        <p className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5 text-[var(--accent)]" />
+          Schedule Send
+        </p>
+      </div>
+
+      {/* Presets */}
+      <div className="py-1">
+        {presets.map((p, i) => (
+          <button
+            key={i}
+            onClick={() => onSchedule(p.date.toISOString())}
+            className="w-full text-left px-3 py-2 hover:bg-[var(--bg-hover)] transition-colors flex items-center justify-between"
+          >
+            <span className="text-sm text-[var(--text-primary)]">{p.label}</span>
+            <span className="text-[11px] text-[var(--text-tertiary)]">{p.sublabel}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Custom picker */}
+      <div className="px-3 py-3 border-t border-[var(--border-subtle)]">
+        <p className="text-[11px] font-medium text-[var(--text-tertiary)] mb-2 uppercase tracking-wider">Pick date & time</p>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={customDate}
+            min={new Date().toISOString().split('T')[0]}
+            onChange={e => setCustomDate(e.target.value)}
+            className="flex-1 px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
+          />
+          <input
+            type="time"
+            value={customTime}
+            onChange={e => setCustomTime(e.target.value)}
+            className="w-24 px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
+          />
+        </div>
+        <button
+          onClick={handleCustomSchedule}
+          disabled={!customDate}
+          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
+        >
+          <Calendar className="h-3 w-3" />
+          Schedule
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Tag Filter Dropdown ─────────────────────────── */
 function TagFilterDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -468,6 +632,7 @@ export function InboxPage() {
   const [forwardTo, setForwardTo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [replySenderId, setReplySenderId] = useState('');
+  const [showReplySchedule, setShowReplySchedule] = useState(false);
   const replyEditor = useRichTextEditorRef();
 
   /* ── SMTP accounts for sender selection ── */
@@ -623,6 +788,30 @@ export function InboxPage() {
     mutationFn: inboxApi.compose,
     onSuccess: () => { invalidate(); setShowCompose(false); toast.success('Message sent'); },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to send — check your SMTP accounts'),
+  });
+
+  const scheduleComposeMut = useMutation({
+    mutationFn: inboxApi.scheduleSend,
+    onSuccess: (data) => {
+      invalidate();
+      setShowCompose(false);
+      const dt = new Date(data.scheduled_at);
+      toast.success(`Email scheduled for ${dt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`);
+    },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to schedule email'),
+  });
+
+  const scheduleReplyMut = useMutation({
+    mutationFn: ({ id, body, scheduled_at, smtp_account_id, body_html }: { id: string; body: string; scheduled_at: string; smtp_account_id?: string; body_html?: string }) =>
+      inboxApi.scheduleReply(id, body, scheduled_at, smtp_account_id, body_html),
+    onSuccess: (data) => {
+      invalidate();
+      setReplyMode(null);
+      setReplySenderId('');
+      const dt = new Date(data.scheduled_at);
+      toast.success(`Reply scheduled for ${dt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`);
+    },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to schedule reply'),
   });
 
   /* ── Handlers ── */
@@ -892,15 +1081,21 @@ export function InboxPage() {
                           id={`msg-${msg.id}`}
                           className={`rounded-xl border overflow-hidden transition-all ${
                             isCurrent
-                              ? 'border-[var(--accent)]/30 bg-[var(--bg-surface)]'
-                              : 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
+                              ? isOutbound
+                                ? 'border-[var(--accent)]/30 bg-[var(--bg-surface)]'
+                                : 'border-[var(--accent)]/30 bg-[var(--bg-elevated)]'
+                              : isOutbound
+                                ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
+                                : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)]'
                           }`}
                           style={{ boxShadow: isCurrent ? '0 0 0 1px var(--accent)' : 'var(--shadow-card)' }}
                         >
                           {/* Sender header */}
-                          <div className="flex items-start gap-3 p-4 border-b border-[var(--border-subtle)]">
+                          <div className={`flex items-start gap-3 p-4 border-b border-[var(--border-subtle)] ${
+                            !isOutbound ? 'bg-[var(--bg-elevated)]' : ''
+                          }`}>
                             <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border ${
-                              isOutbound ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)]'
+                              isOutbound ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20' : 'bg-[var(--bg-surface)] border-[var(--border-default)]'
                             }`}>
                               {isOutbound ? (
                                 <SendHorizontal className="h-3.5 w-3.5 text-[var(--accent)]" />
@@ -918,6 +1113,9 @@ export function InboxPage() {
                                 </span>
                                 {isOutbound && (
                                   <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">Sent</span>
+                                )}
+                                {!isOutbound && (
+                                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--text-tertiary)]/10 text-[var(--text-tertiary)]">Received</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -993,20 +1191,45 @@ export function InboxPage() {
                         />
                       )}
                       <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
-                        <button
-                          onClick={() => {
-                            const sid = replySenderId || undefined;
-                            if (replyMode === 'reply' && !replyEditor.isEmpty) replyMut.mutate({ id: currentMsg.id, body: replyEditor.text, body_html: replyEditor.html, smtp_account_id: sid });
-                            else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyEditor.text || undefined, body_html: replyEditor.html || undefined, smtp_account_id: sid });
-                          }}
-                          disabled={
-                            (replyMode === 'reply' ? replyEditor.isEmpty || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
-                          }
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
-                        >
-                          <Send className="h-3.5 w-3.5" />
-                          {replyMut.isPending || forwardMut.isPending ? 'Sending...' : replyMode === 'reply' ? 'Send Reply' : 'Forward'}
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              const sid = replySenderId || undefined;
+                              if (replyMode === 'reply' && !replyEditor.isEmpty) replyMut.mutate({ id: currentMsg.id, body: replyEditor.text, body_html: replyEditor.html, smtp_account_id: sid });
+                              else if (replyMode === 'forward' && forwardTo.trim()) forwardMut.mutate({ id: currentMsg.id, to: forwardTo, note: replyEditor.text || undefined, body_html: replyEditor.html || undefined, smtp_account_id: sid });
+                            }}
+                            disabled={
+                              (replyMode === 'reply' ? replyEditor.isEmpty || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
+                            }
+                            className="flex items-center gap-2 px-4 py-2 rounded-l-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            {replyMut.isPending || forwardMut.isPending ? 'Sending...' : replyMode === 'reply' ? 'Send Reply' : 'Forward'}
+                          </button>
+                          {replyMode === 'reply' && (
+                            <div className="relative">
+                              <button
+                                onClick={() => setShowReplySchedule(!showReplySchedule)}
+                                disabled={replyEditor.isEmpty || replyMut.isPending}
+                                className="flex items-center gap-1 px-2 py-2 rounded-r-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 border-l border-[var(--bg-app)]/20"
+                                title="Schedule send"
+                              >
+                                <Clock className="h-3.5 w-3.5" />
+                                <ChevronDown className="h-3 w-3" />
+                              </button>
+                              {showReplySchedule && (
+                                <ScheduleSendPicker
+                                  onSchedule={(scheduledAt) => {
+                                    const sid = replySenderId || undefined;
+                                    scheduleReplyMut.mutate({ id: currentMsg.id, body: replyEditor.text, body_html: replyEditor.html, smtp_account_id: sid, scheduled_at: scheduledAt });
+                                    setShowReplySchedule(false);
+                                  }}
+                                  onClose={() => setShowReplySchedule(false)}
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <button onClick={() => setReplyMode(null)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">Discard</button>
                       </div>
                     </div>
@@ -1044,7 +1267,8 @@ export function InboxPage() {
         <ComposeModal
           onClose={() => setShowCompose(false)}
           onSend={data => composeMut.mutate(data)}
-          sending={composeMut.isPending}
+          onSchedule={data => scheduleComposeMut.mutate(data)}
+          sending={composeMut.isPending || scheduleComposeMut.isPending}
           smtpAccounts={smtpAccounts}
           templates={templates}
         />
