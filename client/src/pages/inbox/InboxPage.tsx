@@ -583,21 +583,21 @@ function TagFilterDropdown({ value, onChange }: { value: string; onChange: (v: s
   const intentColor = value !== 'all' ? INTENT_COLORS[value] : null;
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative flex-shrink-0" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
           value !== 'all'
             ? `${intentColor?.bg || 'bg-[var(--bg-elevated)]'} ${intentColor?.text || 'text-[var(--text-primary)]'}`
             : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
         }`}
       >
-        <Tag className="h-3.5 w-3.5" />
+        <Tag className="h-3 w-3" />
         {selected.label}
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-2.5 w-2.5" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden z-50">
+        <div className="absolute top-full right-0 mt-1 w-44 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden z-50">
           {TAG_OPTIONS.map(opt => {
             const ic = opt.value !== 'all' ? INTENT_COLORS[opt.value] : null;
             return (
@@ -608,7 +608,7 @@ function TagFilterDropdown({ value, onChange }: { value: string; onChange: (v: s
                   value === opt.value ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                 }`}
               >
-                {ic && <span className={`w-2 h-2 rounded-full ${ic.bg.replace('/10', '')} ${ic.text}`} style={{ backgroundColor: 'currentColor' }} />}
+                {ic && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'currentColor' }} />}
                 {opt.label}
               </button>
             );
@@ -907,7 +907,7 @@ export function InboxPage() {
             </div>
           </form>
 
-          {/* Folders + Tag Filter */}
+          {/* Folders */}
           <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
             {folders.map(f => {
               const FolderIcon = f.icon;
@@ -915,7 +915,7 @@ export function InboxPage() {
                 <button
                   key={f.id}
                   onClick={() => { setFolder(f.id); setSelectedId(null); setTagFilter('all'); }}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                     folder === f.id
                       ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm'
                       : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
@@ -927,7 +927,7 @@ export function InboxPage() {
                 </button>
               );
             })}
-            <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+            <div className="flex-1" />
             <TagFilterDropdown value={tagFilter} onChange={v => { setTagFilter(v); setSelectedId(null); }} />
           </div>
 
@@ -981,22 +981,24 @@ export function InboxPage() {
                         <p className={`text-[12px] truncate mb-0.5 ${msg.is_read ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)] font-medium'}`}>
                           {msg.subject || '(no subject)'}
                         </p>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-[11px] text-[var(--text-tertiary)] truncate flex-1">{msgSnippet(msg)}</p>
-                          {msg.smtp_email && !isOutbound && (
-                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 flex-shrink-0 max-w-[100px] truncate" title={`Delivered to ${msg.smtp_email}`}>
-                              {msg.smtp_label || msg.smtp_email.split('@')[0]}
-                            </span>
-                          )}
-                          {msg.sara_intent && (
-                            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).bg} ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).text}`}>
-                              {(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).label}
-                            </span>
-                          )}
-                          {msg.campaign_name && (
-                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)] flex-shrink-0 max-w-[80px] truncate">{msg.campaign_name}</span>
-                          )}
-                        </div>
+                        <p className="text-[11px] text-[var(--text-tertiary)] truncate">{msgSnippet(msg)}</p>
+                        {(msg.smtp_email || msg.sara_intent || msg.campaign_name) && (
+                          <div className="flex items-center gap-1 mt-1 overflow-hidden">
+                            {msg.smtp_email && !isOutbound && (
+                              <span className="text-[9px] font-medium px-1.5 py-px rounded bg-blue-500/8 text-blue-600 truncate max-w-[80px]" title={`Delivered to ${msg.smtp_email}`}>
+                                {msg.smtp_label || msg.smtp_email.split('@')[0]}
+                              </span>
+                            )}
+                            {msg.sara_intent && msg.sara_intent !== 'scheduled' && (
+                              <span className={`text-[9px] font-semibold px-1.5 py-px rounded truncate max-w-[80px] ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).bg} ${(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).text}`}>
+                                {(INTENT_COLORS[msg.sara_intent] || INTENT_COLORS.other).label}
+                              </span>
+                            )}
+                            {msg.campaign_name && (
+                              <span className="text-[9px] font-medium px-1.5 py-px rounded bg-[var(--bg-elevated)] text-[var(--text-tertiary)] truncate max-w-[80px]">{msg.campaign_name}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </button>
