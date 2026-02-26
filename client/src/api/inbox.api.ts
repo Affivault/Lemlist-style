@@ -85,4 +85,14 @@ export const inboxApi = {
     const { data } = await apiClient.delete<{ success: boolean }>(`/inbox/${id}/schedule`);
     return data;
   },
+
+  listScheduled: async () => {
+    const { data } = await apiClient.get<any[]>('/inbox/scheduled');
+    return data;
+  },
+
+  syncInbox: async () => {
+    const { data } = await apiClient.post<{ synced: number; newMessages: number }>('/inbox/sync');
+    return data;
+  },
 };

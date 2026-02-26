@@ -29,6 +29,7 @@ import {
   Eye,
   EyeOff,
   ChevronDown,
+  ChevronRight,
   AtSign,
   Tag,
   Wand2,
@@ -37,10 +38,21 @@ import {
   Maximize2,
   Minimize2,
   Calendar,
+  MessageSquare,
+  XCircle,
 } from 'lucide-react';
 
 /* ─── Types ────────────────────────────────────────── */
-type Folder = 'inbox' | 'starred' | 'sent' | 'archived';
+type Folder = 'inbox' | 'starred' | 'sent' | 'archived' | 'scheduled';
+
+interface ConversationThread {
+  contactEmail: string;
+  contactName: string | null;
+  latestMessage: Message;
+  messageCount: number;
+  hasUnread: boolean;
+  isStarred: boolean;
+}
 
 interface SmtpAccount {
   id: string;
@@ -619,6 +631,228 @@ function TagFilterDropdown({ value, onChange }: { value: string; onChange: (v: s
   );
 }
 
+/* ─── Collapsible Thread Messages ─────────────────── */
+function CollapsibleThread({ thread, selectedId }: { thread: Message[]; selectedId: string | null }) {
+  // Expand latest message and the selected one by default, collapse older ones
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    const ids = new Set<string>();
+    if (thread.length > 0) ids.add(thread[thread.length - 1].id); // latest
+    if (selectedId) ids.add(selectedId);
+    return ids;
+  });
+
+  // Update expanded set when thread or selection changes
+  useEffect(() => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (thread.length > 0) next.add(thread[thread.length - 1].id);
+      if (selectedId) next.add(selectedId);
+      return next;
+    });
+  }, [thread.length, selectedId]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      {thread.map((msg) => {
+        const isOutbound = msg.direction === 'outbound';
+        const isCurrent = msg.id === selectedId;
+        const isExpanded = expandedIds.has(msg.id);
+
+        return (
+          <div
+            key={msg.id}
+            id={`msg-${msg.id}`}
+            className={`rounded-xl border overflow-hidden transition-all ${
+              isCurrent
+                ? isOutbound
+                  ? 'border-[var(--accent)]/30 bg-[var(--bg-surface)]'
+                  : 'border-[var(--accent)]/30 bg-[var(--bg-elevated)]'
+                : isOutbound
+                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
+                  : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)]'
+            }`}
+            style={{ boxShadow: isCurrent ? '0 0 0 1px var(--accent)' : 'var(--shadow-card)' }}
+          >
+            {/* Clickable header — toggles collapse */}
+            <button
+              type="button"
+              onClick={() => toggleExpand(msg.id)}
+              className={`w-full text-left flex items-start gap-3 p-4 transition-colors hover:bg-[var(--bg-hover)]/50 ${
+                isExpanded ? 'border-b border-[var(--border-subtle)]' : ''
+              } ${!isOutbound && isExpanded ? 'bg-[var(--bg-elevated)]' : ''}`}
+            >
+              <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                  <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                </div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${
+                  isOutbound ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20' : 'bg-[var(--bg-surface)] border-[var(--border-default)]'
+                }`}>
+                  {isOutbound ? (
+                    <SendHorizontal className="h-3 w-3 text-[var(--accent)]" />
+                  ) : (
+                    <span className="text-[11px] font-semibold text-[var(--text-primary)]">{senderInitial(msg)}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    {isOutbound ? 'You' : senderName(msg)}
+                  </span>
+                  {isOutbound && (
+                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">Sent</span>
+                  )}
+                  {!isOutbound && (
+                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--text-tertiary)]/10 text-[var(--text-tertiary)]">Received</span>
+                  )}
+                  {msg.campaign_name && (
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)]">{msg.campaign_name}</span>
+                  )}
+                </div>
+                {/* Collapsed: show snippet; Expanded: show recipient */}
+                {isExpanded ? (
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <span className="text-xs text-[var(--text-tertiary)]">to {msg.to_email}</span>
+                    {msg.subject && (
+                      <>
+                        <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
+                        <span className="text-xs text-[var(--text-secondary)] truncate max-w-[200px]">{msg.subject}</span>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--text-tertiary)] truncate mt-0.5">{msgSnippet(msg)}</p>
+                )}
+              </div>
+              <span className="text-[11px] text-[var(--text-tertiary)] flex-shrink-0 whitespace-nowrap">
+                {isExpanded ? formatFullDate(msg.received_at) : timeAgo(msg.received_at)}
+              </span>
+            </button>
+
+            {/* Collapsible email body */}
+            {isExpanded && (
+              <div className="p-0 animate-fade-in">
+                <ErrorBoundary fallback={
+                  <div className="p-6 text-sm text-[var(--text-secondary)]">
+                    <p>{msg.body_text ? stripHtml(msg.body_text) : '(Unable to render email content)'}</p>
+                  </div>
+                }>
+                  <EmailBody html={msg.body_html} text={msg.body_text} />
+                </ErrorBoundary>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Scheduled Emails Panel ─────────────────────── */
+function ScheduledEmailsPanel({ onCancel }: { onCancel: (id: string) => void }) {
+  const { data: scheduled, isLoading } = useQuery({
+    queryKey: ['inbox', 'scheduled'],
+    queryFn: inboxApi.listScheduled,
+    refetchInterval: 30000,
+  });
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-16"><Spinner size="md" /></div>;
+  }
+
+  const emails = scheduled || [];
+
+  if (emails.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center mb-4 border border-[var(--border-subtle)]">
+            <Clock className="h-7 w-7 text-[var(--text-tertiary)]" />
+          </div>
+          <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1.5">No scheduled emails</h3>
+          <p className="text-sm text-[var(--text-secondary)] max-w-xs">Schedule emails from compose or reply to see them here.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-6 py-6 space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="h-5 w-5 text-[var(--accent)]" />
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Scheduled Emails</h2>
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">{emails.length}</span>
+        </div>
+        {emails.map((email: any) => {
+          const scheduledDate = new Date(email.scheduled_at);
+          const isPast = scheduledDate < new Date();
+          return (
+            <div
+              key={email.id}
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden"
+              style={{ boxShadow: 'var(--shadow-card)' }}
+            >
+              <div className="flex items-start gap-3 p-4">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-[var(--accent)]/10 border border-[var(--accent)]/20">
+                  <Clock className="h-4 w-4 text-[var(--accent)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">To: {email.to_email}</span>
+                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full ${
+                      isPast ? 'bg-amber-500/10 text-amber-500' : 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                    }`}>
+                      {isPast ? 'Sending soon...' : 'Scheduled'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-[var(--text-secondary)] mt-0.5 truncate">{email.subject || '(no subject)'}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]">
+                      <Calendar className="h-3 w-3" />
+                      {scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]">
+                      <Clock className="h-3 w-3" />
+                      {scheduledDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    </div>
+                    {email.smtp_email && (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-blue-500/8 text-blue-500">
+                        via {email.smtp_label || email.smtp_email.split('@')[0]}
+                      </span>
+                    )}
+                  </div>
+                  {email.body_text && (
+                    <p className="text-xs text-[var(--text-tertiary)] mt-2 line-clamp-2">{stripHtml(email.body_text || email.body_html || '').slice(0, 200)}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => onCancel(email.id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                  title="Cancel scheduled email"
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  Cancel
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main InboxPage ──────────────────────────────── */
 export function InboxPage() {
   const qc = useQueryClient();
@@ -659,10 +893,11 @@ export function InboxPage() {
     queryKey: ['inbox', folder, tagFilter, search],
     queryFn: () => inboxApi.list({
       limit: 50,
-      folder,
+      folder: folder === 'scheduled' ? 'inbox' : folder,
       sara_intent: tagFilter !== 'all' ? tagFilter : undefined,
       search: search || undefined,
     }),
+    enabled: folder !== 'scheduled',
   });
 
   const messages: Message[] = Array.isArray(messagesData?.data) ? messagesData.data : [];
@@ -686,11 +921,32 @@ export function InboxPage() {
     qc.invalidateQueries({ queryKey: ['inbox'] });
   }, [qc]);
 
+  const syncMut = useMutation({
+    mutationFn: inboxApi.syncInbox,
+    onSuccess: (data) => {
+      invalidate();
+      if (data.newMessages > 0) {
+        toast.success(`${data.newMessages} new email${data.newMessages > 1 ? 's' : ''} synced`);
+      } else {
+        toast.success('Inbox up to date');
+      }
+    },
+    onError: () => {
+      // Fallback: just re-fetch from DB
+      invalidate();
+      toast.error('Sync failed — refreshed from cache');
+    },
+  });
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    try {
+      await syncMut.mutateAsync();
+    } catch { /* handled by mutation */ }
+    // Also refresh the query cache after sync
     await qc.invalidateQueries({ queryKey: ['inbox'] });
     setIsRefreshing(false);
-  }, [qc]);
+  }, [syncMut, qc]);
 
   /* ── Select next message after removal ── */
   const selectNextMessage = useCallback((removedId: string) => {
@@ -814,6 +1070,16 @@ export function InboxPage() {
     onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to schedule reply'),
   });
 
+  const cancelScheduledMut = useMutation({
+    mutationFn: inboxApi.cancelScheduled,
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ['inbox', 'scheduled'] });
+      toast.success('Scheduled email cancelled');
+    },
+    onError: () => toast.error('Failed to cancel scheduled email'),
+  });
+
   /* ── Handlers ── */
   const selectMessage = useCallback((msg: Message) => {
     setSelectedId(msg.id);
@@ -842,16 +1108,62 @@ export function InboxPage() {
   }, [replyMode]);
 
   const currentMsg: Message | null = (selectedMsg as Message) || messages.find(m => m.id === selectedId) || null;
-  const unreadCount = messages.filter(m => !m.is_read).length;
+
+  /* ── Group messages into conversation threads for the sidebar ── */
+  const conversations: ConversationThread[] = useMemo(() => {
+    if (messages.length === 0) return [];
+
+    const threadMap = new Map<string, Message[]>();
+
+    for (const msg of messages) {
+      // Skip scheduled messages from regular views
+      if (msg.sara_status === 'scheduled') continue;
+
+      // Group by contact email — matches the getThread logic on the server
+      const contactEmail = msg.direction === 'outbound'
+        ? (msg.contact_email || msg.to_email)
+        : (msg.contact_email || msg.from_email);
+
+      if (!contactEmail) {
+        // Ungroupable messages get their own thread
+        threadMap.set(msg.id, [msg]);
+        continue;
+      }
+
+      const existing = threadMap.get(contactEmail);
+      if (existing) {
+        existing.push(msg);
+      } else {
+        threadMap.set(contactEmail, [msg]);
+      }
+    }
+
+    return Array.from(threadMap.entries()).map(([key, msgs]) => {
+      // Sort desc — latest first
+      msgs.sort((a, b) => new Date(b.received_at).getTime() - new Date(a.received_at).getTime());
+      const latest = msgs[0];
+      return {
+        contactEmail: key,
+        contactName: latest.contact_name,
+        latestMessage: latest,
+        messageCount: msgs.length,
+        hasUnread: msgs.some(m => !m.is_read),
+        isStarred: msgs.some(m => m.is_starred),
+      };
+    }).sort((a, b) => new Date(b.latestMessage.received_at).getTime() - new Date(a.latestMessage.received_at).getTime());
+  }, [messages]);
+
+  const unreadCount = conversations.filter(c => c.hasUnread).length;
 
   const isInArchived = folder === 'archived';
   const archiveLabel = isInArchived ? 'Move to Inbox' : 'Archive';
   const ArchiveIcon = isInArchived ? ArchiveRestore : Archive;
 
-  const folders: { id: Folder; label: string; icon: React.ElementType; count?: number }[] = [
+  const foldersList: { id: Folder; label: string; icon: React.ElementType; count?: number }[] = [
     { id: 'inbox', label: 'Inbox', icon: Inbox, count: unreadCount || undefined },
     { id: 'starred', label: 'Starred', icon: Star },
     { id: 'sent', label: 'Sent', icon: SendHorizontal },
+    { id: 'scheduled', label: 'Scheduled', icon: Clock },
     { id: 'archived', label: 'Archived', icon: Archive },
   ];
 
@@ -908,7 +1220,7 @@ export function InboxPage() {
 
           {/* Folder tabs + Tag filter */}
           <div className="flex items-center px-3 py-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] gap-0.5">
-            {folders.map(f => {
+            {foldersList.map(f => {
               const FolderIcon = f.icon;
               const isActive = folder === f.id;
               return (
@@ -934,28 +1246,38 @@ export function InboxPage() {
             <TagFilterDropdown value={tagFilter} onChange={v => { setTagFilter(v); setSelectedId(null); }} />
           </div>
 
-          {/* Message List */}
+          {/* Message List — grouped as conversation threads */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-16"><Spinner size="md" /></div>
-            ) : messages.length === 0 ? (
+            ) : folder === 'scheduled' ? (
+              /* Scheduled folder: empty sidebar, detail panel shows scheduled list */
+              <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mb-3 border border-[var(--accent)]/20">
+                  <Clock className="h-5 w-5 text-[var(--accent)]" />
+                </div>
+                <p className="text-sm font-medium text-[var(--text-primary)]">Scheduled Emails</p>
+                <p className="text-xs text-[var(--text-tertiary)] mt-1">View and manage your scheduled emails in the panel</p>
+              </div>
+            ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-6">
                 <div className="w-12 h-12 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center mb-3 border border-[var(--border-subtle)]">
                   <MailOpen className="h-5 w-5 text-[var(--text-tertiary)]" />
                 </div>
-                <p className="text-sm font-medium text-[var(--text-secondary)]">No messages</p>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">No conversations</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1">
                   {search ? 'Try a different search term' : tagFilter !== 'all' ? `No messages tagged as "${TAG_OPTIONS.find(t => t.value === tagFilter)?.label}"` : `Your ${folder} is empty`}
                 </p>
               </div>
             ) : (
-              messages.map(msg => {
+              conversations.map(conv => {
+                const msg = conv.latestMessage;
                 const isSelected = msg.id === selectedId;
                 const isOutbound = msg.direction === 'outbound';
                 const hasTags = (msg.smtp_email && !isOutbound) || (msg.sara_intent && msg.sara_intent !== 'scheduled') || msg.campaign_name;
                 return (
                   <button
-                    key={msg.id}
+                    key={conv.contactEmail}
                     onClick={() => selectMessage(msg)}
                     className={`w-full text-left px-3 py-2.5 border-b border-[var(--border-subtle)] transition-all duration-100 ${
                       isSelected ? 'bg-[var(--bg-elevated)]' : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
@@ -966,27 +1288,32 @@ export function InboxPage() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold ${
                           isOutbound
                             ? 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)]'
-                            : msg.is_read
-                              ? 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
-                              : 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                            : conv.hasUnread
+                              ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                              : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
                         }`}>
                           {isOutbound ? <SendHorizontal className="h-3 w-3" /> : senderInitial(msg)}
                         </div>
-                        {!msg.is_read && !isOutbound && (
+                        {conv.hasUnread && !isOutbound && (
                           <div className="absolute -top-px -right-px w-2 h-2 rounded-full bg-[var(--accent)]" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between gap-2">
-                          <span className={`text-[13px] truncate ${msg.is_read ? 'font-normal text-[var(--text-secondary)]' : 'font-semibold text-[var(--text-primary)]'}`}>
-                            {isOutbound ? `To: ${msg.to_email?.split('@')[0]}` : senderName(msg)}
-                          </span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className={`text-[13px] truncate ${conv.hasUnread ? 'font-semibold text-[var(--text-primary)]' : 'font-normal text-[var(--text-secondary)]'}`}>
+                              {isOutbound ? `To: ${msg.to_email?.split('@')[0]}` : (conv.contactName || senderName(msg))}
+                            </span>
+                            {conv.messageCount > 1 && (
+                              <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-tertiary)] flex-shrink-0">{conv.messageCount}</span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
-                            {msg.is_starred && <Star className="h-3 w-3 text-amber-400 fill-amber-400" />}
+                            {conv.isStarred && <Star className="h-3 w-3 text-amber-400 fill-amber-400" />}
                             <span className="text-[10px] text-[var(--text-tertiary)]">{timeAgo(msg.received_at)}</span>
                           </div>
                         </div>
-                        <p className={`text-[12px] truncate ${msg.is_read ? 'text-[var(--text-tertiary)]' : 'text-[var(--text-primary)]'}`}>
+                        <p className={`text-[12px] truncate ${conv.hasUnread ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`}>
                           {msg.subject || '(no subject)'}
                         </p>
                         <p className="text-[11px] text-[var(--text-tertiary)] truncate mt-px">{msgSnippet(msg)}</p>
@@ -1016,9 +1343,11 @@ export function InboxPage() {
           </div>
         </div>
 
-        {/* ── Center: Email Detail ── */}
+        {/* ── Center: Email Detail / Scheduled Panel ── */}
         <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-surface)]">
-          {currentMsg ? (
+          {folder === 'scheduled' ? (
+            <ScheduledEmailsPanel onCancel={(id) => cancelScheduledMut.mutate(id)} />
+          ) : currentMsg ? (
             <>
               {/* Toolbar */}
               <div className="flex items-center gap-1 px-4 py-2 border-b border-[var(--border-subtle)]">
@@ -1080,89 +1409,11 @@ export function InboxPage() {
                     })()}
                   </div>
 
-                  {/* Conversation thread */}
-                  <div className="space-y-3">
-                    {(thread.length > 0 ? thread : [currentMsg]).map((msg) => {
-                      const isOutbound = msg.direction === 'outbound';
-                      const isCurrent = msg.id === selectedId;
-                      return (
-                        <div
-                          key={msg.id}
-                          id={`msg-${msg.id}`}
-                          className={`rounded-xl border overflow-hidden transition-all ${
-                            isCurrent
-                              ? isOutbound
-                                ? 'border-[var(--accent)]/30 bg-[var(--bg-surface)]'
-                                : 'border-[var(--accent)]/30 bg-[var(--bg-elevated)]'
-                              : isOutbound
-                                ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
-                                : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)]'
-                          }`}
-                          style={{ boxShadow: isCurrent ? '0 0 0 1px var(--accent)' : 'var(--shadow-card)' }}
-                        >
-                          {/* Sender header */}
-                          <div className={`flex items-start gap-3 p-4 border-b border-[var(--border-subtle)] ${
-                            !isOutbound ? 'bg-[var(--bg-elevated)]' : ''
-                          }`}>
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border ${
-                              isOutbound ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20' : 'bg-[var(--bg-surface)] border-[var(--border-default)]'
-                            }`}>
-                              {isOutbound ? (
-                                <SendHorizontal className="h-3.5 w-3.5 text-[var(--accent)]" />
-                              ) : (
-                                <span className="text-xs font-semibold text-[var(--text-primary)]">{senderInitial(msg)}</span>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-[var(--text-primary)]">
-                                  {isOutbound ? 'You' : senderName(msg)}
-                                </span>
-                                <span className="text-xs text-[var(--text-tertiary)]">
-                                  &lt;{msg.from_email}&gt;
-                                </span>
-                                {isOutbound && (
-                                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">Sent</span>
-                                )}
-                                {!isOutbound && (
-                                  <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--text-tertiary)]/10 text-[var(--text-tertiary)]">Received</span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                <span className="text-xs text-[var(--text-tertiary)]">to {msg.to_email}</span>
-                                {msg.subject && (
-                                  <>
-                                    <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
-                                    <span className="text-xs text-[var(--text-secondary)] truncate max-w-[200px]">{msg.subject}</span>
-                                  </>
-                                )}
-                                {msg.campaign_name && (
-                                  <>
-                                    <span className="text-xs text-[var(--text-tertiary)]">&middot;</span>
-                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)]">{msg.campaign_name}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <span className="text-[11px] text-[var(--text-tertiary)]">{formatFullDate(msg.received_at)}</span>
-                            </div>
-                          </div>
-
-                          {/* Email body */}
-                          <div className="p-0">
-                            <ErrorBoundary fallback={
-                              <div className="p-6 text-sm text-[var(--text-secondary)]">
-                                <p>{msg.body_text ? stripHtml(msg.body_text) : '(Unable to render email content)'}</p>
-                              </div>
-                            }>
-                              <EmailBody html={msg.body_html} text={msg.body_text} />
-                            </ErrorBoundary>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {/* Conversation thread — collapsible messages */}
+                  <CollapsibleThread
+                    thread={thread.length > 0 ? thread : [currentMsg]}
+                    selectedId={selectedId}
+                  />
 
                   {/* Reply / Forward composer */}
                   {replyMode && (
