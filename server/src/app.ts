@@ -212,17 +212,6 @@ app.post('/debug/send-email', async (req, res) => {
   }
 });
 
-// Run database migrations on demand
-app.post('/debug/migrate', async (_req, res) => {
-  try {
-    const { runMigrations } = await import('./config/supabase.js');
-    await runMigrations();
-    res.json({ success: true, message: 'Migrations complete — check server logs for details' });
-  } catch (err: any) {
-    res.json({ success: false, error: err.message });
-  }
-});
-
 // Error handler (must be last)
 app.use(errorMiddleware);
 

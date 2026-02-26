@@ -384,7 +384,8 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
 
   /**
    * Schedule a new compose email for future sending.
-   * Stores the message in inbox_messages with a scheduled_at timestamp instead of sending immediately.
+   * Uses sara_status='scheduled' and sara_action=ISO_TIMESTAMP on existing columns
+   * so no database migration is needed.
    */
   async scheduleSend(userId: string, input: { to: string; subject: string; body: string; body_html?: string; smtp_account_id?: string; scheduled_at: string }) {
     const smtpAccount = await findSmtpAccount(userId, input.smtp_account_id);
@@ -405,7 +406,8 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
       is_read: true,
       direction: 'outbound',
       received_at: new Date().toISOString(),
-      scheduled_at: input.scheduled_at,
+      sara_status: 'scheduled',
+      sara_action: input.scheduled_at,
     }).select('id').single();
 
     if (error) throw new AppError(error.message, 500);
@@ -414,7 +416,7 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
 
   /**
    * Schedule a reply email for future sending.
-   * Stores the reply in inbox_messages with a scheduled_at timestamp instead of sending immediately.
+   * Uses sara_status='scheduled' and sara_action=ISO_TIMESTAMP.
    */
   async scheduleReply(userId: string, messageId: string, body: string, scheduledAt: string, smtpAccountId?: string, bodyHtml?: string) {
     const { data: original } = await supabaseAdmin
@@ -457,7 +459,8 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
       direction: 'outbound',
       thread_id: original.thread_id || original.message_id,
       received_at: new Date().toISOString(),
-      scheduled_at: scheduledAt,
+      sara_status: 'scheduled',
+      sara_action: scheduledAt,
     }).select('id').single();
 
     if (error) throw new AppError(error.message, 500);
@@ -465,21 +468,19 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
   },
 
   /**
-   * Cancel a scheduled email by clearing its scheduled_at timestamp.
+   * Cancel a scheduled email — delete the unsent row.
    */
   async cancelScheduledEmail(userId: string, id: string) {
-    // Verify the message exists, belongs to the user, and is actually scheduled
     const { data: msg } = await supabaseAdmin
       .from('inbox_messages')
-      .select('id, scheduled_at')
+      .select('id, sara_status')
       .eq('id', id)
       .eq('user_id', userId)
       .single();
 
     if (!msg) throw new AppError('Message not found', 404);
-    if (!msg.scheduled_at) throw new AppError('Message is not scheduled', 400);
+    if (msg.sara_status !== 'scheduled') throw new AppError('Message is not scheduled', 400);
 
-    // Delete the unsent message entirely
     const { error } = await supabaseAdmin
       .from('inbox_messages')
       .delete()
@@ -499,13 +500,15 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
       .select('*, smtp_accounts(id, email_address, label)')
       .eq('user_id', userId)
       .eq('direction', 'outbound')
-      .not('scheduled_at', 'is', null)
-      .order('scheduled_at', { ascending: true });
+      .eq('sara_status', 'scheduled')
+      .not('sara_action', 'is', null)
+      .order('sara_action', { ascending: true });
 
     if (error) throw new AppError(error.message, 500);
 
     return (data || []).map((m: any) => ({
       ...m,
+      scheduled_at: m.sara_action,
       smtp_email: m.smtp_accounts?.email_address || null,
       smtp_label: m.smtp_accounts?.label || null,
       smtp_accounts: undefined,
@@ -585,9 +588,9 @@ async function findSmtpAccount(userId: string, preferredId?: string | null): Pro
  * Process all scheduled emails that are due for sending.
  * Called by the sequence worker on each tick (every 30 seconds).
  *
- * Queries inbox_messages where scheduled_at <= now and scheduled_at IS NOT NULL,
- * sends each one via SMTP, then clears scheduled_at to mark as sent.
- * On error, clears scheduled_at to prevent infinite retry loops.
+ * Uses existing columns: sara_status='scheduled', sara_action=ISO_TIMESTAMP.
+ * After sending, clears both to mark as sent.
+ * On error, also clears to prevent infinite retry loops.
  */
 export async function processScheduledEmails(): Promise<number> {
   const now = new Date().toISOString();
@@ -596,9 +599,10 @@ export async function processScheduledEmails(): Promise<number> {
     .from('inbox_messages')
     .select('*, smtp_accounts(id, email_address, smtp_host, smtp_port, smtp_secure, smtp_user, smtp_pass_encrypted, user_id)')
     .eq('direction', 'outbound')
-    .not('scheduled_at', 'is', null)
-    .lte('scheduled_at', now)
-    .order('scheduled_at', { ascending: true })
+    .eq('sara_status', 'scheduled')
+    .not('sara_action', 'is', null)
+    .lte('sara_action', now)
+    .order('sara_action', { ascending: true })
     .limit(50);
 
   if (error) {
@@ -617,7 +621,7 @@ export async function processScheduledEmails(): Promise<number> {
         console.error(`[ScheduledEmails] No SMTP account for message ${msg.id}, clearing schedule`);
         await supabaseAdmin
           .from('inbox_messages')
-          .update({ scheduled_at: null })
+          .update({ sara_status: null, sara_action: null })
           .eq('id', msg.id);
         continue;
       }
@@ -639,20 +643,20 @@ export async function processScheduledEmails(): Promise<number> {
         headers: msg.in_reply_to ? { 'In-Reply-To': msg.in_reply_to, 'References': msg.in_reply_to } : {},
       });
 
-      // Mark as sent by clearing scheduled_at
+      // Mark as sent by clearing the schedule markers
       await supabaseAdmin
         .from('inbox_messages')
-        .update({ scheduled_at: null })
+        .update({ sara_status: null, sara_action: null })
         .eq('id', msg.id);
 
       sent++;
       console.log(`[ScheduledEmails] Sent scheduled email ${msg.id} to ${msg.to_email}`);
     } catch (err: any) {
       console.error(`[ScheduledEmails] Failed to send message ${msg.id}:`, err.message);
-      // Clear scheduled_at to prevent infinite retry loop (per MEMORY.md pattern)
+      // Clear schedule markers to prevent infinite retry loop
       await supabaseAdmin
         .from('inbox_messages')
-        .update({ scheduled_at: null })
+        .update({ sara_status: null, sara_action: null })
         .eq('id', msg.id);
     }
   }
