@@ -136,10 +136,14 @@ export const inboxController = {
     } catch (err) { next(err); }
   },
 
-  async syncInbox(req: AuthRequest, res: Response, next: NextFunction) {
+  async syncInbox(req: AuthRequest, res: Response, _next: NextFunction) {
     try {
       const result = await inboxService.syncInbox(req.userId!);
       res.json(result);
-    } catch (err) { next(err); }
+    } catch (err: any) {
+      // Sync should never fail hard — always return a usable response
+      console.error('[InboxSync] Controller error:', err.message);
+      res.json({ synced: 0, newMessages: 0, errors: [err.message || 'Sync failed'] });
+    }
   },
 };

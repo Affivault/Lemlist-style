@@ -92,7 +92,7 @@ export const inboxApi = {
   },
 
   syncInbox: async () => {
-    const { data } = await apiClient.post<{ synced: number; newMessages: number }>('/inbox/sync');
+    const { data } = await apiClient.post<{ synced: number; newMessages: number; errors?: string[] }>('/inbox/sync');
     return data;
   },
 };

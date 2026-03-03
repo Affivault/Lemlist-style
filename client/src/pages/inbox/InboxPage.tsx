@@ -578,6 +578,69 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
   );
 }
 
+/* ─── Folder Selector Dropdown ────────────────────── */
+function FolderSelector({ folders, active, onChange }: {
+  folders: { id: Folder; label: string; icon: React.ElementType; count?: number }[];
+  active: Folder;
+  onChange: (id: Folder) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const current = folders.find(f => f.id === active) || folders[0];
+  const CurrentIcon = current.icon;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] transition-colors"
+      >
+        <CurrentIcon className="h-3.5 w-3.5" />
+        {current.label}
+        {current.count ? (
+          <span className="text-[9px] bg-[var(--accent)] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{current.count}</span>
+        ) : null}
+        <ChevronDown className={`h-3 w-3 text-[var(--text-tertiary)] transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden z-50">
+          {folders.map(f => {
+            const FolderIcon = f.icon;
+            const isActive = active === f.id;
+            return (
+              <button
+                key={f.id}
+                onClick={() => { onChange(f.id); setOpen(false); }}
+                className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors flex items-center gap-2.5 ${
+                  isActive ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+                }`}
+              >
+                <FolderIcon className={`h-3.5 w-3.5 ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`} />
+                <span className="flex-1">{f.label}</span>
+                {f.count ? (
+                  <span className="text-[9px] bg-[var(--accent)] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{f.count}</span>
+                ) : null}
+                {isActive && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-primary)]" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Tag Filter Dropdown ─────────────────────────── */
 function TagFilterDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -925,16 +988,23 @@ export function InboxPage() {
     mutationFn: inboxApi.syncInbox,
     onSuccess: (data) => {
       invalidate();
-      if (data.newMessages > 0) {
+      if (data.errors && data.errors.length > 0 && data.newMessages === 0) {
+        // IMAP sync had issues but we still refreshed from the database
+        toast.error('Could not connect to mail server — showing cached emails');
+      } else if (data.errors && data.errors.length > 0) {
+        // Partial success — some accounts synced, some had errors
+        toast.success(`${data.newMessages} new email${data.newMessages > 1 ? 's' : ''} synced (some accounts had errors)`);
+      } else if (data.newMessages > 0) {
         toast.success(`${data.newMessages} new email${data.newMessages > 1 ? 's' : ''} synced`);
+      } else if (data.synced === 0) {
+        toast('No SMTP accounts configured — add one in Settings', { icon: 'ℹ️' });
       } else {
         toast.success('Inbox up to date');
       }
     },
     onError: () => {
-      // Fallback: just re-fetch from DB
       invalidate();
-      toast.error('Sync failed — refreshed from cache');
+      toast.error('Sync request failed — showing cached emails');
     },
   });
 
@@ -943,7 +1013,6 @@ export function InboxPage() {
     try {
       await syncMut.mutateAsync();
     } catch { /* handled by mutation */ }
-    // Also refresh the query cache after sync
     await qc.invalidateQueries({ queryKey: ['inbox'] });
     setIsRefreshing(false);
   }, [syncMut, qc]);
@@ -1181,14 +1250,14 @@ export function InboxPage() {
 
         {/* ── Left: Message List ── */}
         <div className="flex flex-col border-r border-[var(--border-subtle)]" style={{ width: '380px', minWidth: '340px' }}>
-          {/* Header: Compose + Search */}
+          {/* Header: Compose + Search + Actions */}
           <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
             <div className="flex items-center gap-2">
-              <button onClick={() => setShowCompose(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-semibold hover:opacity-90 transition-opacity">
+              <button onClick={() => setShowCompose(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-semibold hover:opacity-90 transition-opacity flex-shrink-0">
                 <Pencil className="h-3.5 w-3.5" />
                 Compose
               </button>
-              <form onSubmit={handleSearch} className="flex-1">
+              <form onSubmit={handleSearch} className="flex-1 min-w-0">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)]" />
                   <input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Search..." className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[var(--text-primary)] transition-colors" />
@@ -1203,7 +1272,7 @@ export function InboxPage() {
                 onClick={() => markAllReadMut.mutate()}
                 disabled={markAllReadMut.isPending}
                 title="Mark all read"
-                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40 flex-shrink-0"
               >
                 <CheckCheck className="h-3.5 w-3.5" />
               </button>
@@ -1211,37 +1280,20 @@ export function InboxPage() {
                 onClick={handleRefresh}
                 disabled={isRefreshing || isFetching}
                 title="Refresh"
-                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40 flex-shrink-0"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${(isRefreshing || isFetching) ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
 
-          {/* Folder tabs + Tag filter */}
-          <div className="flex items-center px-3 py-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] gap-0.5">
-            {foldersList.map(f => {
-              const FolderIcon = f.icon;
-              const isActive = folder === f.id;
-              return (
-                <button
-                  key={f.id}
-                  onClick={() => { setFolder(f.id); setSelectedId(null); setTagFilter('all'); }}
-                  title={f.label}
-                  className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${
-                    isActive
-                      ? 'text-[var(--text-primary)] bg-[var(--bg-elevated)]'
-                      : 'text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
-                  }`}
-                >
-                  <FolderIcon className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">{f.label}</span>
-                  {f.count ? (
-                    <span className="text-[9px] bg-[var(--accent)] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{f.count}</span>
-                  ) : null}
-                </button>
-              );
-            })}
+          {/* Folder selector + Tag filter — compact row */}
+          <div className="flex items-center px-3 py-1.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] gap-2">
+            <FolderSelector
+              folders={foldersList}
+              active={folder}
+              onChange={(id) => { setFolder(id); setSelectedId(null); setTagFilter('all'); }}
+            />
             <div className="flex-1" />
             <TagFilterDropdown value={tagFilter} onChange={v => { setTagFilter(v); setSelectedId(null); }} />
           </div>
