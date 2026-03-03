@@ -565,160 +565,199 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
   /**
    * Trigger an immediate IMAP inbox sync for all of a user's active SMTP accounts.
    * Does a direct IMAP fetch inline — no Redis/BullMQ dependency.
+   * Never throws — always returns a structured result.
    */
-  async syncInbox(userId: string): Promise<{ synced: number; newMessages: number }> {
-    const { data: accounts } = await supabaseAdmin
-      .from('smtp_accounts')
-      .select('id, user_id, smtp_host, smtp_port, smtp_secure, smtp_user, smtp_pass_encrypted, email_address, last_inbox_sync_at')
-      .eq('user_id', userId)
-      .eq('is_active', true);
+  async syncInbox(userId: string): Promise<{ synced: number; newMessages: number; errors?: string[] }> {
+    try {
+      const { data: accounts, error: dbError } = await supabaseAdmin
+        .from('smtp_accounts')
+        .select('id, user_id, smtp_host, smtp_port, smtp_secure, smtp_user, smtp_pass_encrypted, email_address, last_inbox_sync_at')
+        .eq('user_id', userId)
+        .eq('is_active', true);
 
-    if (!accounts || accounts.length === 0) {
-      return { synced: 0, newMessages: 0 };
-    }
+      if (dbError) {
+        console.error('[InboxSync] DB error fetching accounts:', dbError.message);
+        return { synced: 0, newMessages: 0, errors: ['Could not fetch SMTP accounts'] };
+      }
 
-    let totalNew = 0;
+      if (!accounts || accounts.length === 0) {
+        return { synced: 0, newMessages: 0 };
+      }
 
-    for (const account of accounts) {
+      // Check that IMAP modules are available before starting
+      let ImapFlow: any;
+      let simpleParser: any;
       try {
-        const password = decrypt(account.smtp_pass_encrypted);
+        const imapModule = await import('imapflow');
+        const parserModule = await import('mailparser');
+        ImapFlow = imapModule.ImapFlow;
+        simpleParser = parserModule.simpleParser;
+      } catch (importErr: any) {
+        console.error('[InboxSync] IMAP modules not available:', importErr.message);
+        return { synced: 0, newMessages: 0, errors: ['IMAP modules not available — install imapflow and mailparser'] };
+      }
 
-        // Derive IMAP host
-        let imapHost: string;
-        if (account.smtp_host?.includes('smtp.gmail')) imapHost = 'imap.gmail.com';
-        else if (account.smtp_host?.includes('smtp.outlook') || account.smtp_host?.includes('office365')) imapHost = 'outlook.office365.com';
-        else if (account.smtp_host?.includes('smtp.')) imapHost = account.smtp_host.replace('smtp.', 'imap.');
-        else imapHost = `imap.${account.email_address?.split('@')[1] || ''}`;
+      let totalNew = 0;
+      const errors: string[] = [];
 
-        // Dynamic import to avoid errors when imapflow isn't available
-        const { ImapFlow } = await import('imapflow');
-        const { simpleParser } = await import('mailparser');
+      for (const account of accounts) {
+        let client: any = null;
+        try {
+          const password = decrypt(account.smtp_pass_encrypted);
 
-        const client = new ImapFlow({
-          host: imapHost,
-          port: 993,
-          secure: true,
-          auth: { user: account.smtp_user || account.email_address, pass: password },
-          logger: false,
-        });
+          // Derive IMAP host
+          let imapHost: string;
+          if (account.smtp_host?.includes('smtp.gmail')) imapHost = 'imap.gmail.com';
+          else if (account.smtp_host?.includes('smtp.outlook') || account.smtp_host?.includes('office365')) imapHost = 'outlook.office365.com';
+          else if (account.smtp_host?.includes('smtp.')) imapHost = account.smtp_host.replace('smtp.', 'imap.');
+          else imapHost = `imap.${account.email_address?.split('@')[1] || ''}`;
 
-        await client.connect();
-        await client.mailboxOpen('INBOX');
+          client = new ImapFlow({
+            host: imapHost,
+            port: 993,
+            secure: true,
+            auth: { user: account.smtp_user || account.email_address, pass: password },
+            logger: false,
+            emitLogs: false,
+          });
 
-        const sinceDate = account.last_inbox_sync_at
-          ? new Date(account.last_inbox_sync_at)
-          : new Date(Date.now() - 7 * 24 * 3600 * 1000);
+          // Add connection timeout (15 seconds)
+          const connectPromise = client.connect();
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('IMAP connection timed out')), 15000)
+          );
+          await Promise.race([connectPromise, timeoutPromise]);
 
-        let newCount = 0;
+          await client.mailboxOpen('INBOX');
 
-        for await (const msg of client.fetch(
-          { since: sinceDate },
-          { envelope: true, source: true }
-        )) {
-          const envelope = msg.envelope;
-          if (!envelope) continue;
+          const sinceDate = account.last_inbox_sync_at
+            ? new Date(account.last_inbox_sync_at)
+            : new Date(Date.now() - 7 * 24 * 3600 * 1000);
 
-          const fromEmail = envelope.from?.[0]?.address || '';
-          const toEmail = envelope.to?.[0]?.address || '';
-          const subject = envelope.subject || '';
-          const messageId = envelope.messageId || '';
-          const inReplyTo = envelope.inReplyTo || '';
+          let newCount = 0;
 
-          // Skip if already stored
-          if (messageId) {
-            const { count } = await supabaseAdmin
-              .from('inbox_messages')
-              .select('*', { count: 'exact', head: true })
-              .eq('message_id', messageId);
-            if (count && count > 0) continue;
-          }
+          for await (const msg of client.fetch(
+            { since: sinceDate },
+            { envelope: true, source: true }
+          )) {
+            const envelope = msg.envelope;
+            if (!envelope) continue;
 
-          // Parse email body
-          let bodyText = '';
-          let bodyHtml: string | undefined;
-          try {
-            const parsed = await simpleParser(msg.source || '');
-            bodyText = parsed.text || '';
-            bodyHtml = parsed.html || undefined;
-          } catch {
-            const src = typeof msg.source === 'string' ? msg.source : (msg.source || '').toString();
-            const bodyStart = src.indexOf('\r\n\r\n');
-            bodyText = bodyStart !== -1 ? src.slice(bodyStart + 4).trim() : '';
-          }
+            const fromEmail = envelope.from?.[0]?.address || '';
+            const toEmail = envelope.to?.[0]?.address || '';
+            const subject = envelope.subject || '';
+            const messageId = envelope.messageId || '';
+            const inReplyTo = envelope.inReplyTo || '';
 
-          // Match to campaign contact
-          let matchedActivity: any = null;
-          if (inReplyTo) {
-            const { data } = await supabaseAdmin
-              .from('campaign_activities')
-              .select('campaign_id, campaign_contact_id, contact_id, step_id')
-              .eq('activity_type', 'sent')
-              .eq('message_id', inReplyTo)
-              .single();
-            matchedActivity = data;
-          }
-          if (!matchedActivity && fromEmail) {
-            const { data: contact } = await supabaseAdmin
-              .from('contacts')
-              .select('id')
-              .eq('email', fromEmail)
-              .eq('user_id', userId)
-              .single();
-            if (contact) {
-              const { data: cc } = await supabaseAdmin
-                .from('campaign_contacts')
-                .select('id, campaign_id, contact_id')
-                .eq('contact_id', contact.id)
-                .in('status', ['active', 'completed'])
-                .order('created_at', { ascending: false })
-                .limit(1)
+            // Skip if already stored
+            if (messageId) {
+              const { count } = await supabaseAdmin
+                .from('inbox_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('message_id', messageId);
+              if (count && count > 0) continue;
+            }
+
+            // Parse email body
+            let bodyText = '';
+            let bodyHtml: string | undefined;
+            try {
+              const parsed = await simpleParser(msg.source || '');
+              bodyText = parsed.text || '';
+              bodyHtml = parsed.html || undefined;
+            } catch {
+              const src = typeof msg.source === 'string' ? msg.source : (msg.source || '').toString();
+              const bodyStart = src.indexOf('\r\n\r\n');
+              bodyText = bodyStart !== -1 ? src.slice(bodyStart + 4).trim() : '';
+            }
+
+            // Match to campaign contact
+            let matchedActivity: any = null;
+            if (inReplyTo) {
+              const { data } = await supabaseAdmin
+                .from('campaign_activities')
+                .select('campaign_id, campaign_contact_id, contact_id, step_id')
+                .eq('activity_type', 'sent')
+                .eq('message_id', inReplyTo)
                 .single();
-              if (cc) {
-                matchedActivity = { campaign_id: cc.campaign_id, campaign_contact_id: cc.id, contact_id: cc.contact_id };
+              matchedActivity = data;
+            }
+            if (!matchedActivity && fromEmail) {
+              const { data: contact } = await supabaseAdmin
+                .from('contacts')
+                .select('id')
+                .eq('email', fromEmail)
+                .eq('user_id', userId)
+                .single();
+              if (contact) {
+                const { data: cc } = await supabaseAdmin
+                  .from('campaign_contacts')
+                  .select('id, campaign_id, contact_id')
+                  .eq('contact_id', contact.id)
+                  .in('status', ['active', 'completed'])
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .single();
+                if (cc) {
+                  matchedActivity = { campaign_id: cc.campaign_id, campaign_contact_id: cc.id, contact_id: cc.contact_id };
+                }
               }
             }
+
+            // Store
+            const inboxRow: any = {
+              user_id: userId,
+              smtp_account_id: account.id,
+              from_email: fromEmail,
+              to_email: toEmail,
+              subject,
+              body_text: bodyText,
+              body_html: bodyHtml,
+              message_id: messageId || undefined,
+              in_reply_to: inReplyTo || undefined,
+              direction: 'inbound',
+              is_read: false,
+              received_at: envelope.date || new Date().toISOString(),
+            };
+            if (matchedActivity) {
+              inboxRow.campaign_id = matchedActivity.campaign_id;
+              inboxRow.contact_id = matchedActivity.contact_id;
+            }
+
+            await supabaseAdmin.from('inbox_messages').insert(inboxRow);
+            newCount++;
           }
 
-          // Store
-          const inboxRow: any = {
-            user_id: userId,
-            smtp_account_id: account.id,
-            from_email: fromEmail,
-            to_email: toEmail,
-            subject,
-            body_text: bodyText,
-            body_html: bodyHtml,
-            message_id: messageId || undefined,
-            in_reply_to: inReplyTo || undefined,
-            direction: 'inbound',
-            is_read: false,
-            received_at: envelope.date || new Date().toISOString(),
-          };
-          if (matchedActivity) {
-            inboxRow.campaign_id = matchedActivity.campaign_id;
-            inboxRow.contact_id = matchedActivity.contact_id;
-          }
+          // Update sync timestamp
+          await supabaseAdmin
+            .from('smtp_accounts')
+            .update({ last_inbox_sync_at: new Date().toISOString() })
+            .eq('id', account.id);
 
-          await supabaseAdmin.from('inbox_messages').insert(inboxRow);
-          newCount++;
+          await client.logout().catch(() => {});
+          client = null;
+          totalNew += newCount;
+          console.log(`[InboxSync] Account ${account.email_address}: ${newCount} new messages`);
+        } catch (err: any) {
+          console.error(`[InboxSync] Failed for ${account.email_address}:`, err.message);
+          errors.push(`${account.email_address}: ${err.message}`);
+          // Clean up IMAP client on error
+          if (client) {
+            try { await client.logout(); } catch { /* ignore */ }
+          }
         }
-
-        // Update sync timestamp
-        await supabaseAdmin
-          .from('smtp_accounts')
-          .update({ last_inbox_sync_at: new Date().toISOString() })
-          .eq('id', account.id);
-
-        await client.logout().catch(() => {});
-        totalNew += newCount;
-        console.log(`[InboxSync] Account ${account.email_address}: ${newCount} new messages`);
-      } catch (err: any) {
-        console.error(`[InboxSync] Failed for ${account.email_address}:`, err.message);
-        // Don't throw — continue to next account
       }
-    }
 
-    return { synced: accounts.length, newMessages: totalNew };
+      return {
+        synced: accounts.length,
+        newMessages: totalNew,
+        ...(errors.length > 0 ? { errors } : {}),
+      };
+    } catch (outerErr: any) {
+      // Absolute last resort — should never reach here but prevents HTTP 500
+      console.error('[InboxSync] Unexpected top-level error:', outerErr.message);
+      return { synced: 0, newMessages: 0, errors: [outerErr.message || 'Unexpected sync error'] };
+    }
   },
 };
 
