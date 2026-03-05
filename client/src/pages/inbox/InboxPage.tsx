@@ -40,6 +40,10 @@ import {
   Calendar,
   MessageSquare,
   XCircle,
+  Sun,
+  CloudSun,
+  Briefcase,
+  CalendarClock,
 } from 'lucide-react';
 
 /* ─── Types ────────────────────────────────────────── */
@@ -354,7 +358,7 @@ function ComposeModal({ onClose, onSend, onSchedule, sending, smtpAccounts, temp
           />
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 if (canSend) {
@@ -362,7 +366,7 @@ function ComposeModal({ onClose, onSend, onSchedule, sending, smtpAccounts, temp
                 }
               }}
               disabled={!canSend}
-              className="flex items-center gap-2 px-4 py-2 rounded-l-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-all disabled:opacity-40 shadow-sm hover:shadow-md"
             >
               <Send className="h-3.5 w-3.5" />
               {sending ? 'Sending...' : 'Send'}
@@ -371,16 +375,21 @@ function ComposeModal({ onClose, onSend, onSchedule, sending, smtpAccounts, temp
               <button
                 onClick={() => setShowSchedule(!showSchedule)}
                 disabled={!canSend}
-                className="flex items-center gap-1 px-2 py-2 rounded-r-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 border-l border-[var(--bg-app)]/20"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 ${
+                  showSchedule
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]'
+                }`}
                 title="Schedule send"
               >
-                <Clock className="h-3.5 w-3.5" />
-                <ChevronDown className="h-3 w-3" />
+                <CalendarClock className="h-3.5 w-3.5" />
+                <span className="text-[13px]">Schedule</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${showSchedule ? 'rotate-180' : ''}`} />
               </button>
               {showSchedule && <ScheduleSendPicker onSchedule={handleSchedule} onClose={() => setShowSchedule(false)} />}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)]">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors">
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
@@ -461,6 +470,7 @@ function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (ht
 /* ─── Schedule Send Picker ────────────────────────── */
 function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string) => void; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [showCustom, setShowCustom] = useState(false);
   const [customDate, setCustomDate] = useState('');
   const [customTime, setCustomTime] = useState('09:00');
 
@@ -474,7 +484,6 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
 
   const presets = useMemo(() => {
     const now = new Date();
-    const today = new Date(now);
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const nextMonday = new Date(now);
@@ -486,31 +495,31 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
       return dt;
     };
 
-    const items: { label: string; sublabel: string; date: Date }[] = [];
+    const items: { label: string; sublabel: string; date: Date; icon: React.ElementType }[] = [];
 
-    // Tomorrow morning
     const tomMorn = fmt(tomorrow, 8, 0);
     items.push({
       label: 'Tomorrow morning',
-      sublabel: tomMorn.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', 8:00 AM',
+      sublabel: tomMorn.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · 8:00 AM',
       date: tomMorn,
+      icon: Sun,
     });
 
-    // Tomorrow afternoon
     const tomAfter = fmt(tomorrow, 13, 0);
     items.push({
       label: 'Tomorrow afternoon',
-      sublabel: tomAfter.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', 1:00 PM',
+      sublabel: tomAfter.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · 1:00 PM',
       date: tomAfter,
+      icon: CloudSun,
     });
 
-    // Next Monday morning (if not already Monday)
     if (now.getDay() !== 1) {
       const monMorn = fmt(nextMonday, 8, 0);
       items.push({
         label: 'Monday morning',
-        sublabel: monMorn.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', 8:00 AM',
+        sublabel: monMorn.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · 8:00 AM',
         date: monMorn,
+        icon: Briefcase,
       });
     }
 
@@ -524,55 +533,122 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
     onSchedule(dt.toISOString());
   };
 
+  const customDateFormatted = customDate
+    ? new Date(customDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    : '';
+
+  const customTimeFormatted = customTime
+    ? new Date(`2000-01-01T${customTime}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    : '';
+
   return (
-    <div ref={ref} className="absolute bottom-full left-0 mb-2 w-72 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-xl z-50 overflow-hidden">
-      <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
-        <p className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-          <Clock className="h-3.5 w-3.5 text-[var(--accent)]" />
-          Schedule Send
-        </p>
-      </div>
-
-      {/* Presets */}
-      <div className="py-1">
-        {presets.map((p, i) => (
-          <button
-            key={i}
-            onClick={() => onSchedule(p.date.toISOString())}
-            className="w-full text-left px-3 py-2 hover:bg-[var(--bg-hover)] transition-colors flex items-center justify-between"
-          >
-            <span className="text-sm text-[var(--text-primary)]">{p.label}</span>
-            <span className="text-[11px] text-[var(--text-tertiary)]">{p.sublabel}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Custom picker */}
-      <div className="px-3 py-3 border-t border-[var(--border-subtle)]">
-        <p className="text-[11px] font-medium text-[var(--text-tertiary)] mb-2 uppercase tracking-wider">Pick date & time</p>
+    <div ref={ref} className="absolute bottom-full left-0 mb-2 w-80 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl z-50 overflow-hidden" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)' }}>
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={customDate}
-            min={new Date().toISOString().split('T')[0]}
-            onChange={e => setCustomDate(e.target.value)}
-            className="flex-1 px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
-          />
-          <input
-            type="time"
-            value={customTime}
-            onChange={e => setCustomTime(e.target.value)}
-            className="w-24 px-2 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
-          />
+          <div className="w-7 h-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
+            <CalendarClock className="h-3.5 w-3.5 text-[var(--accent)]" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Schedule Send</p>
+            <p className="text-[11px] text-[var(--text-tertiary)]">Choose when to deliver</p>
+          </div>
         </div>
-        <button
-          onClick={handleCustomSchedule}
-          disabled={!customDate}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
-        >
-          <Calendar className="h-3 w-3" />
-          Schedule
-        </button>
+      </div>
+
+      {/* Quick Presets */}
+      <div className="p-2">
+        {presets.map((p, i) => {
+          const Icon = p.icon;
+          return (
+            <button
+              key={i}
+              onClick={() => onSchedule(p.date.toISOString())}
+              className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
+                <Icon className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[13px] font-medium text-[var(--text-primary)] block">{p.label}</span>
+                <span className="text-[11px] text-[var(--text-tertiary)]">{p.sublabel}</span>
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Divider */}
+      <div className="mx-3 border-t border-[var(--border-subtle)]" />
+
+      {/* Custom Date & Time */}
+      <div className="p-2">
+        {!showCustom ? (
+          <button
+            onClick={() => setShowCustom(true)}
+            className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
+              <Calendar className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
+            </div>
+            <div className="flex-1">
+              <span className="text-[13px] font-medium text-[var(--text-primary)]">Custom date & time</span>
+              <span className="text-[11px] text-[var(--text-tertiary)] block">Pick a specific date and time</span>
+            </div>
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
+          </button>
+        ) : (
+          <div className="px-3 py-2.5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">Custom date & time</span>
+              <button onClick={() => setShowCustom(false)} className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+                Cancel
+              </button>
+            </div>
+            <div className="space-y-2">
+              <div className="relative">
+                <label className="text-[11px] font-medium text-[var(--text-tertiary)] mb-1 block">Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)] pointer-events-none" />
+                  <input
+                    type="date"
+                    value={customDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={e => setCustomDate(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/10 transition-all"
+                  />
+                </div>
+                {customDate && (
+                  <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{customDateFormatted}</span>
+                )}
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-[var(--text-tertiary)] mb-1 block">Time</label>
+                <div className="relative">
+                  <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)] pointer-events-none" />
+                  <input
+                    type="time"
+                    value={customTime}
+                    onChange={e => setCustomTime(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/10 transition-all"
+                  />
+                </div>
+                {customTime && (
+                  <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{customTimeFormatted}</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={handleCustomSchedule}
+              disabled={!customDate}
+              className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-[13px] font-semibold hover:bg-[var(--accent-hover)] disabled:opacity-30 transition-all shadow-sm hover:shadow-md disabled:shadow-none"
+            >
+              <CalendarClock className="h-3.5 w-3.5" />
+              Schedule for {customDate && customTime ? `${customDateFormatted} · ${customTimeFormatted}` : '...'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1504,7 +1580,7 @@ export function InboxPage() {
                         />
                       )}
                       <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-subtle)]">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => {
                               const sid = replySenderId || undefined;
@@ -1514,7 +1590,7 @@ export function InboxPage() {
                             disabled={
                               (replyMode === 'reply' ? replyEditor.isEmpty || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
                             }
-                            className="flex items-center gap-2 px-4 py-2 rounded-l-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+                            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-all disabled:opacity-40 shadow-sm hover:shadow-md"
                           >
                             <Send className="h-3.5 w-3.5" />
                             {replyMut.isPending || forwardMut.isPending ? 'Sending...' : replyMode === 'reply' ? 'Send Reply' : 'Forward'}
@@ -1524,11 +1600,16 @@ export function InboxPage() {
                               <button
                                 onClick={() => setShowReplySchedule(!showReplySchedule)}
                                 disabled={replyEditor.isEmpty || replyMut.isPending}
-                                className="flex items-center gap-1 px-2 py-2 rounded-r-lg bg-[var(--text-primary)] text-[var(--bg-app)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 border-l border-[var(--bg-app)]/20"
+                                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 ${
+                                  showReplySchedule
+                                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]'
+                                }`}
                                 title="Schedule send"
                               >
-                                <Clock className="h-3.5 w-3.5" />
-                                <ChevronDown className="h-3 w-3" />
+                                <CalendarClock className="h-3.5 w-3.5" />
+                                <span className="text-[13px]">Schedule</span>
+                                <ChevronDown className={`h-3 w-3 transition-transform ${showReplySchedule ? 'rotate-180' : ''}`} />
                               </button>
                               {showReplySchedule && (
                                 <ScheduleSendPicker
