@@ -165,6 +165,13 @@ export function SmtpAccountsPage() {
         toast.error(result.message);
       }
     },
+    onError: (err: any) => {
+      const msg = err.response?.data?.error
+        || err.response?.data?.message
+        || err.message
+        || 'Connection test failed';
+      toast.error(msg);
+    },
   });
 
   const closeModal = () => {
