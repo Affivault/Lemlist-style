@@ -132,6 +132,20 @@ export const listsApi = {
     const { data } = await apiClient.get<{ contact_ids: string[] }>(`/lists/${listId}/contacts`);
     return data.contact_ids;
   },
+
+  getListsForContact: async (contactId: string) => {
+    const { data } = await apiClient.get<(ContactList & { is_member: boolean })[]>(`/lists/contact/${contactId}`);
+    return data;
+  },
+
+  moveContact: async (contactId: string, fromListId: string, toListId: string) => {
+    const { data } = await apiClient.post<{ success: boolean }>('/lists/move-contact', {
+      contact_id: contactId,
+      from_list_id: fromListId,
+      to_list_id: toListId,
+    });
+    return data;
+  },
 };
 
 // Segments API

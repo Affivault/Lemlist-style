@@ -58,4 +58,22 @@ export const listsController = {
       res.json({ contact_ids: contactIds });
     } catch (err) { next(err); }
   },
+
+  async getListsForContact(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const lists = await listsService.getListsForContact(req.userId!, req.params.contactId);
+      res.json(lists);
+    } catch (err) { next(err); }
+  },
+
+  async moveContact(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { contact_id, from_list_id, to_list_id } = req.body;
+      if (!contact_id || !from_list_id || !to_list_id) {
+        return res.status(400).json({ error: 'contact_id, from_list_id, and to_list_id are required' });
+      }
+      const result = await listsService.moveContact(req.userId!, contact_id, from_list_id, to_list_id);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
 };

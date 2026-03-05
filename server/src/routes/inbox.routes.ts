@@ -17,6 +17,7 @@ inboxRoutes.get('/:id/thread', inboxController.getThread);
 inboxRoutes.put('/:id/read', inboxController.markRead);
 inboxRoutes.put('/:id/unread', inboxController.markUnread);
 inboxRoutes.put('/:id/star', inboxController.toggleStar);
+inboxRoutes.put('/:id/tag', inboxController.setTag);
 inboxRoutes.put('/:id/archive', inboxController.archive);
 inboxRoutes.put('/:id/unarchive', inboxController.unarchive);
 inboxRoutes.post('/:id/reply', inboxController.reply);

@@ -52,6 +52,15 @@ export const inboxController = {
     } catch (err) { next(err); }
   },
 
+  async setTag(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { tag } = req.body;
+      if (tag === undefined) return res.status(400).json({ error: 'Tag value is required' });
+      const result = await inboxService.setTag(req.userId!, req.params.id, tag);
+      res.json(result);
+    } catch (err) { next(err); }
+  },
+
   async archive(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       await inboxService.archive(req.userId!, req.params.id);

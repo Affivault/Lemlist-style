@@ -171,6 +171,40 @@ export const listsService = {
     return (data || []).map((row: any) => row.contact_id);
   },
 
+  async getListsForContact(userId: string, contactId: string) {
+    // Get all list_ids this contact is on
+    const { data: memberships, error: memError } = await supabaseAdmin
+      .from('list_contacts')
+      .select('list_id')
+      .eq('contact_id', contactId);
+
+    if (memError) throw new AppError(memError.message, 500);
+
+    const memberListIds = (memberships || []).map((m: any) => m.list_id);
+
+    // Get all lists for user
+    const { data: lists, error } = await supabaseAdmin
+      .from('contact_lists')
+      .select('*')
+      .eq('user_id', userId)
+      .order('name', { ascending: true });
+
+    if (error) throw new AppError(error.message, 500);
+
+    return (lists || []).map((list: any) => ({
+      ...list,
+      is_member: memberListIds.includes(list.id),
+    }));
+  },
+
+  async moveContact(userId: string, contactId: string, fromListId: string, toListId: string) {
+    // Remove from source list
+    await this.removeContacts(userId, fromListId, [contactId]);
+    // Add to target list
+    await this.addContacts(userId, toListId, [contactId]);
+    return { success: true };
+  },
+
   async createDefaultList(userId: string) {
     // Check if default list already exists
     const { data: existing } = await supabaseAdmin

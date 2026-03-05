@@ -202,6 +202,20 @@ export const inboxService = {
     return { is_starred: newVal };
   },
 
+  async setTag(userId: string, id: string, tag: string) {
+    const validTags = ['interested', 'meeting', 'objection', 'not_now', 'unsubscribe', 'out_of_office', 'bounce', 'other'];
+    if (tag !== '' && !validTags.includes(tag)) {
+      throw new AppError('Invalid tag value', 400);
+    }
+    const { error } = await supabaseAdmin
+      .from('inbox_messages')
+      .update({ sara_intent: tag || null })
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) throw new AppError(error.message, 500);
+    return { sara_intent: tag || null };
+  },
+
   async archive(userId: string, id: string) {
     const { error } = await supabaseAdmin
       .from('inbox_messages')
