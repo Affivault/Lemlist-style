@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { contactsApi } from '../../api/contacts.api';
+import { contactsApi, listsApi } from '../../api/contacts.api';
 import { analyticsApi } from '../../api/analytics.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { formatDate, formatDateTime, getInitials } from '../../lib/utils';
@@ -17,6 +18,11 @@ import {
   MousePointerClick,
   MessageSquare,
   AlertTriangle,
+  FolderOpen,
+  Plus,
+  X,
+  ArrowRightLeft,
+  Check,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -44,6 +50,10 @@ export function ContactDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [showAddToListDropdown, setShowAddToListDropdown] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [moveFromListId, setMoveFromListId] = useState<string | null>(null);
+  const [moveToListId, setMoveToListId] = useState<string | null>(null);
 
   const { data: contact, isLoading } = useQuery({
     queryKey: ['contacts', id],
@@ -57,12 +67,53 @@ export function ContactDetailPage() {
     enabled: !!id,
   });
 
+  const { data: contactLists } = useQuery({
+    queryKey: ['contact-lists', id],
+    queryFn: () => listsApi.getListsForContact(id!),
+    enabled: !!id,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: () => contactsApi.delete(id!),
     onSuccess: () => {
       toast.success('Contact deleted');
       navigate('/contacts');
     },
+  });
+
+  const addToListMutation = useMutation({
+    mutationFn: (listId: string) => listsApi.addContacts(listId, [id!]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contact-lists', id] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Added to list');
+      setShowAddToListDropdown(false);
+    },
+    onError: () => toast.error('Failed to add to list'),
+  });
+
+  const removeFromListMutation = useMutation({
+    mutationFn: (listId: string) => listsApi.removeContacts(listId, [id!]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contact-lists', id] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Removed from list');
+    },
+    onError: () => toast.error('Failed to remove from list'),
+  });
+
+  const moveContactMutation = useMutation({
+    mutationFn: ({ fromListId, toListId }: { fromListId: string; toListId: string }) =>
+      listsApi.moveContact(id!, fromListId, toListId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contact-lists', id] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('Moved to new list');
+      setShowMoveModal(false);
+      setMoveFromListId(null);
+      setMoveToListId(null);
+    },
+    onError: () => toast.error('Failed to move contact'),
   });
 
   if (isLoading) {
@@ -78,6 +129,8 @@ export function ContactDetailPage() {
   }
 
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+  const memberLists = (contactLists || []).filter((l: any) => l.is_member);
+  const nonMemberLists = (contactLists || []).filter((l: any) => !l.is_member);
 
   return (
     <div className="space-y-6">
@@ -131,20 +184,103 @@ export function ContactDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contact Info */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-md p-5">
-          <h2 className="text-sm font-medium text-[var(--text-primary)] mb-4">Contact Info</h2>
-          <div className="space-y-3">
-            <InfoRow icon={Mail} label="Email" value={contact.email} />
-            {contact.company && <InfoRow icon={Building2} label="Company" value={contact.company} />}
-            {contact.job_title && <InfoRow icon={Briefcase} label="Job Title" value={contact.job_title} />}
-            {contact.phone && <InfoRow icon={Phone} label="Phone" value={contact.phone} />}
-            {contact.linkedin_url && <InfoRow icon={Linkedin} label="LinkedIn" value={contact.linkedin_url} isLink />}
-            {contact.website && <InfoRow icon={Globe} label="Website" value={contact.website} isLink />}
+        <div className="space-y-6">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-md p-5">
+            <h2 className="text-sm font-medium text-[var(--text-primary)] mb-4">Contact Info</h2>
+            <div className="space-y-3">
+              <InfoRow icon={Mail} label="Email" value={contact.email} />
+              {contact.company && <InfoRow icon={Building2} label="Company" value={contact.company} />}
+              {contact.job_title && <InfoRow icon={Briefcase} label="Job Title" value={contact.job_title} />}
+              {contact.phone && <InfoRow icon={Phone} label="Phone" value={contact.phone} />}
+              {contact.linkedin_url && <InfoRow icon={Linkedin} label="LinkedIn" value={contact.linkedin_url} isLink />}
+              {contact.website && <InfoRow icon={Globe} label="Website" value={contact.website} isLink />}
+            </div>
+            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] space-y-1">
+              <p>Source: {contact.source}</p>
+              <p>Created: {formatDate(contact.created_at)}</p>
+              <p>Updated: {formatDate(contact.updated_at)}</p>
+            </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] space-y-1">
-            <p>Source: {contact.source}</p>
-            <p>Created: {formatDate(contact.created_at)}</p>
-            <p>Updated: {formatDate(contact.updated_at)}</p>
+
+          {/* Lists Section */}
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-md p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-medium text-[var(--text-primary)]">Lists</h2>
+              <div className="relative">
+                <button
+                  onClick={() => setShowAddToListDropdown(!showAddToListDropdown)}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add to list
+                </button>
+                {showAddToListDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowAddToListDropdown(false)} />
+                    <div className="absolute right-0 top-full mt-1 z-50 w-52 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden">
+                      {nonMemberLists.length === 0 ? (
+                        <p className="px-3 py-3 text-xs text-[var(--text-tertiary)] text-center">
+                          Already on all lists
+                        </p>
+                      ) : (
+                        nonMemberLists.map((list: any) => (
+                          <button
+                            key={list.id}
+                            onClick={() => addToListMutation.mutate(list.id)}
+                            disabled={addToListMutation.isPending}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+                          >
+                            <FolderOpen className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                            <span className="flex-1 text-left truncate">{list.name}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            {memberLists.length === 0 ? (
+              <p className="text-sm text-[var(--text-tertiary)]">Not on any lists yet</p>
+            ) : (
+              <div className="space-y-1.5">
+                {memberLists.map((list: any) => (
+                  <div
+                    key={list.id}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-[var(--bg-elevated)] group"
+                  >
+                    <FolderOpen className="h-4 w-4 text-[var(--text-tertiary)] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-medium text-[var(--text-primary)] truncate">
+                      {list.name}
+                    </span>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {!list.is_default && (
+                        <button
+                          onClick={() => {
+                            setMoveFromListId(list.id);
+                            setMoveToListId(null);
+                            setShowMoveModal(true);
+                          }}
+                          className="p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded transition-colors"
+                          title="Move to another list"
+                        >
+                          <ArrowRightLeft className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {!list.is_default && (
+                        <button
+                          onClick={() => removeFromListMutation.mutate(list.id)}
+                          className="p-1 text-[var(--text-tertiary)] hover:text-[var(--error)] hover:bg-[var(--error)]/10 rounded transition-colors"
+                          title="Remove from list"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -181,6 +317,76 @@ export function ContactDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Move Contact Modal */}
+      {showMoveModal && moveFromListId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMoveModal(false)} />
+          <div className="relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl w-full max-w-sm shadow-xl">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border-subtle)]">
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Move to List</h2>
+                <p className="text-[13px] text-[var(--text-tertiary)] mt-0.5">
+                  Move from "{memberLists.find((l: any) => l.id === moveFromListId)?.name}" to:
+                </p>
+              </div>
+              <button
+                onClick={() => setShowMoveModal(false)}
+                className="p-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded-lg transition-all duration-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4">
+              <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                {(contactLists || [])
+                  .filter((l: any) => l.id !== moveFromListId && !l.is_default)
+                  .map((list: any) => (
+                    <button
+                      key={list.id}
+                      onClick={() => setMoveToListId(list.id)}
+                      className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                        moveToListId === list.id
+                          ? 'bg-[var(--bg-elevated)] border border-[var(--border-default)]'
+                          : 'hover:bg-[var(--bg-hover)] border border-transparent'
+                      }`}
+                    >
+                      <FolderOpen className="h-4 w-4 text-[var(--text-tertiary)]" />
+                      <span className="flex-1 text-left text-sm font-medium text-[var(--text-primary)]">
+                        {list.name}
+                      </span>
+                      {list.is_member && (
+                        <span className="text-[10px] font-medium text-[var(--text-tertiary)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded-full">
+                          Already on
+                        </span>
+                      )}
+                      {moveToListId === list.id && (
+                        <Check className="h-4 w-4 text-[var(--success)]" />
+                      )}
+                    </button>
+                  ))}
+              </div>
+              <div className="flex justify-end gap-3 mt-4 pt-3 border-t border-[var(--border-subtle)]">
+                <button onClick={() => setShowMoveModal(false)} className="btn-secondary rounded-lg">
+                  Cancel
+                </button>
+                <button
+                  disabled={!moveToListId || moveContactMutation.isPending}
+                  onClick={() => {
+                    if (moveFromListId && moveToListId) {
+                      moveContactMutation.mutate({ fromListId: moveFromListId, toListId: moveToListId });
+                    }
+                  }}
+                  className="btn-primary rounded-lg disabled:opacity-40"
+                >
+                  <ArrowRightLeft className="h-4 w-4" />
+                  {moveContactMutation.isPending ? 'Moving...' : 'Move'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

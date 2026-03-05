@@ -43,6 +43,11 @@ export const inboxApi = {
     return data;
   },
 
+  setTag: async (id: string, tag: string) => {
+    const { data } = await apiClient.put<{ sara_intent: string | null }>(`/inbox/${id}/tag`, { tag });
+    return data;
+  },
+
   archive: async (id: string) => {
     await apiClient.put(`/inbox/${id}/archive`);
   },

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { campaignsApi } from '../../api/campaigns.api';
 import { smtpApi } from '../../api/smtp.api';
-import { contactsApi } from '../../api/contacts.api';
+import { contactsApi, listsApi } from '../../api/contacts.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -38,6 +38,8 @@ import {
   RotateCcw,
   Plus,
   X,
+  FolderOpen,
+  ListPlus,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type {
@@ -84,6 +86,7 @@ export function CampaignCreatePage() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [contactSearch, setContactSearch] = useState('');
+  const [contactModalTab, setContactModalTab] = useState<'individual' | 'lists'>('individual');
   const [wizardStep, setWizardStep] = useState(0);
 
   const [senderPoolIds, setSenderPoolIds] = useState<string[]>([]);
@@ -109,6 +112,34 @@ export function CampaignCreatePage() {
     queryKey: ['contacts', 'select', contactSearch],
     queryFn: () => contactsApi.list({ limit: 50, search: contactSearch || undefined }),
   });
+
+  const { data: allLists } = useQuery({
+    queryKey: ['lists'],
+    queryFn: listsApi.list,
+  });
+
+  const [addingListId, setAddingListId] = useState<string | null>(null);
+  const addListContacts = async (listId: string) => {
+    setAddingListId(listId);
+    try {
+      const contactIds = await listsApi.getContacts(listId);
+      if (contactIds.length === 0) {
+        toast.error('This list has no contacts');
+        setAddingListId(null);
+        return;
+      }
+      setSelectedContactIds(prev => {
+        const set = new Set(prev);
+        for (const cid of contactIds) set.add(cid);
+        return Array.from(set);
+      });
+      const listName = (allLists || []).find((l: any) => l.id === listId)?.name || 'list';
+      toast.success(`Added ${contactIds.length} contacts from "${listName}"`);
+    } catch {
+      toast.error('Failed to load list contacts');
+    }
+    setAddingListId(null);
+  };
 
   const { data: campaignContacts } = useQuery({
     queryKey: ['campaign-contacts', id],
@@ -790,7 +821,7 @@ export function CampaignCreatePage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-medium text-primary">Select Recipients</h2>
-                <p className="text-sm text-secondary mt-1">Choose contacts for this campaign</p>
+                <p className="text-sm text-secondary mt-1">Add individual contacts or entire lists</p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)]">
@@ -811,7 +842,7 @@ export function CampaignCreatePage() {
                   <Users className="h-6 w-6 text-[var(--text-secondary)]" />
                 </div>
                 <h3 className="font-medium text-primary mb-1">No contacts selected</h3>
-                <p className="text-sm text-secondary mb-4">Click "Add Contacts" to choose recipients.</p>
+                <p className="text-sm text-secondary mb-4">Add individual contacts or entire lists as recipients.</p>
                 <Button onClick={() => setShowContactModal(true)}>
                   <UserPlus className="h-4 w-4" />
                   Select Contacts
@@ -1036,31 +1067,98 @@ export function CampaignCreatePage() {
       {/* Contact Selection Modal */}
       <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Select Contacts" size="lg">
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
-            <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full rounded-md border border-default bg-surface pl-10 pr-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]" />
+          {/* Tabs: Individual vs Lists */}
+          <div className="flex gap-1 p-1 bg-[var(--bg-elevated)] rounded-lg">
+            <button
+              onClick={() => setContactModalTab('individual')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                contactModalTab === 'individual'
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <UserPlus className="h-4 w-4" />
+              Individual Contacts
+            </button>
+            <button
+              onClick={() => setContactModalTab('lists')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                contactModalTab === 'lists'
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <ListPlus className="h-4 w-4" />
+              Add from Lists
+            </button>
           </div>
-          <div className="max-h-[350px] overflow-y-auto rounded-md border border-subtle">
-            {contacts.map((contact: ContactWithTags) => (
-              <label key={contact.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-hover border-b border-subtle last:border-0 transition-colors">
-                <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]" />
-                <div className="w-8 h-8 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] text-xs font-medium">
-                  {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-primary">{[contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.email}</p>
-                  <p className="text-xs text-tertiary">{contact.email}</p>
-                </div>
-                {contact.company && (
-                  <span className="flex items-center gap-1 text-xs text-tertiary">
-                    <Building2 className="h-3 w-3" />
-                    {contact.company}
-                  </span>
-                )}
-              </label>
-            ))}
-            {contacts.length === 0 && <p className="p-6 text-center text-sm text-tertiary">No contacts found</p>}
-          </div>
+
+          {contactModalTab === 'individual' ? (
+            <>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-tertiary" />
+                <input type="text" placeholder="Search by name, email, or company..." value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} className="w-full rounded-md border border-default bg-surface pl-10 pr-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]" />
+              </div>
+              <div className="max-h-[350px] overflow-y-auto rounded-md border border-subtle">
+                {contacts.map((contact: ContactWithTags) => (
+                  <label key={contact.id} className="flex cursor-pointer items-center gap-3 p-3 hover:bg-hover border-b border-subtle last:border-0 transition-colors">
+                    <input type="checkbox" checked={selectedContactIds.includes(contact.id)} onChange={() => toggleContact(contact.id)} className="h-4 w-4 rounded border-default bg-surface text-[var(--text-primary)] focus:ring-[var(--border-default)]" />
+                    <div className="w-8 h-8 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] text-xs font-medium">
+                      {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-primary">{[contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.email}</p>
+                      <p className="text-xs text-tertiary">{contact.email}</p>
+                    </div>
+                    {contact.company && (
+                      <span className="flex items-center gap-1 text-xs text-tertiary">
+                        <Building2 className="h-3 w-3" />
+                        {contact.company}
+                      </span>
+                    )}
+                  </label>
+                ))}
+                {contacts.length === 0 && <p className="p-6 text-center text-sm text-tertiary">No contacts found</p>}
+              </div>
+            </>
+          ) : (
+            <div className="max-h-[400px] overflow-y-auto rounded-md border border-subtle">
+              {(allLists || []).length === 0 ? (
+                <p className="p-6 text-center text-sm text-tertiary">No lists found. Create lists on the Contacts page first.</p>
+              ) : (
+                (allLists || []).map((list: any) => (
+                  <div
+                    key={list.id}
+                    className="flex items-center gap-3 p-4 hover:bg-hover border-b border-subtle last:border-0 transition-colors"
+                  >
+                    <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-[var(--bg-elevated)]">
+                      <FolderOpen className="h-5 w-5 text-[var(--text-primary)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-primary">{list.name}</p>
+                      <p className="text-xs text-tertiary">
+                        {list.contact_count || 0} contact{(list.contact_count || 0) !== 1 ? 's' : ''}
+                        {list.description && ` · ${list.description}`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => addListContacts(list.id)}
+                      disabled={addingListId === list.id || (list.contact_count || 0) === 0}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--text-primary)] text-[var(--bg-app)] hover:opacity-90 disabled:opacity-40 transition-all"
+                    >
+                      {addingListId === list.id ? (
+                        <Spinner size="sm" />
+                      ) : (
+                        <Plus className="h-3.5 w-3.5" />
+                      )}
+                      {addingListId === list.id ? 'Adding...' : 'Add All'}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between pt-2">
             <p className="text-sm text-secondary">{selectedContactIds.length} selected</p>
             <Button onClick={() => setShowContactModal(false)}>

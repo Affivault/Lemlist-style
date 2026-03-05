@@ -25,6 +25,7 @@ import {
   Trash2,
   MailPlus,
   ArrowLeft,
+  Check,
   CheckCheck,
   Eye,
   EyeOff,
@@ -1184,6 +1185,7 @@ export function InboxPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [replySenderId, setReplySenderId] = useState('');
   const [showReplySchedule, setShowReplySchedule] = useState(false);
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
   const replyEditor = useRichTextEditorRef();
 
   /* ── SMTP accounts for sender selection ── */
@@ -1329,6 +1331,17 @@ export function InboxPage() {
       toast.error('Failed to toggle star');
     },
     onSettled: () => invalidate(),
+  });
+
+  const setTagMut = useMutation({
+    mutationFn: ({ id, tag }: { id: string; tag: string }) => inboxApi.setTag(id, tag),
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ['inbox', 'detail'] });
+      qc.invalidateQueries({ queryKey: ['inbox', 'thread'] });
+      toast.success('Tag updated');
+    },
+    onError: () => toast.error('Failed to update tag'),
   });
 
   const archiveMut = useMutation({
@@ -1704,15 +1717,56 @@ export function InboxPage() {
                         {currentMsg.contact_email && ` · ${currentMsg.contact_email}`}
                       </p>
                     </div>
-                    {currentMsg.sara_intent && (() => {
-                      const intentInfo = INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other;
-                      return (
-                        <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${intentInfo.bg} ${intentInfo.text}`}>
-                          <Tag className="h-3 w-3" />
-                          {intentInfo.label}
-                        </span>
-                      );
-                    })()}
+                    {/* Clickable tag dropdown */}
+                    <div className="relative flex-shrink-0">
+                      <button
+                        onClick={() => setShowTagDropdown(!showTagDropdown)}
+                        className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                          currentMsg.sara_intent
+                            ? `${(INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other).bg} ${(INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other).text}`
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
+                        }`}
+                      >
+                        <Tag className="h-3 w-3" />
+                        {currentMsg.sara_intent
+                          ? (INTENT_COLORS[currentMsg.sara_intent] || INTENT_COLORS.other).label
+                          : 'Add Tag'}
+                        <ChevronDown className="h-2.5 w-2.5 ml-0.5" />
+                      </button>
+                      {showTagDropdown && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setShowTagDropdown(false)} />
+                          <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-lg overflow-hidden">
+                            {currentMsg.sara_intent && (
+                              <button
+                                onClick={() => { setTagMut.mutate({ id: currentMsg.id, tag: '' }); setShowTagDropdown(false); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-subtle)]"
+                              >
+                                <X className="h-3 w-3" />
+                                Remove Tag
+                              </button>
+                            )}
+                            {TAG_OPTIONS.filter(t => t.value !== 'all').map(opt => {
+                              const info = INTENT_COLORS[opt.value] || INTENT_COLORS.other;
+                              const isActive = currentMsg.sara_intent === opt.value;
+                              return (
+                                <button
+                                  key={opt.value}
+                                  onClick={() => { setTagMut.mutate({ id: currentMsg.id, tag: opt.value }); setShowTagDropdown(false); }}
+                                  className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors ${
+                                    isActive ? 'bg-[var(--bg-elevated)]' : 'hover:bg-[var(--bg-hover)]'
+                                  } ${info.text}`}
+                                >
+                                  <span className={`w-2 h-2 rounded-full ${info.bg} ring-1 ring-current`} />
+                                  {opt.label}
+                                  {isActive && <Check className="h-3 w-3 ml-auto" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Conversation thread — collapsible messages */}

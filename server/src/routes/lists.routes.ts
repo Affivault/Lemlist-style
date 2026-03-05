@@ -10,6 +10,8 @@ listsRoutes.put('/:id', listsController.update);
 listsRoutes.delete('/:id', listsController.delete);
 
 // Contact management within lists
+listsRoutes.get('/contact/:contactId', listsController.getListsForContact);
+listsRoutes.post('/move-contact', listsController.moveContact);
 listsRoutes.get('/:id/contacts', listsController.getContacts);
 listsRoutes.post('/:id/contacts', listsController.addContacts);
 listsRoutes.delete('/:id/contacts', listsController.removeContacts);
