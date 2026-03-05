@@ -165,7 +165,7 @@ export function LandingPage() {
               <Link to="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors px-3 py-2">
                 Log in
               </Link>
-              <Link to="/signup" className="btn-primary text-sm px-4 py-2 rounded-lg">
+              <Link to="/signup" className="landing-btn-primary text-sm px-4 py-2 rounded-lg">
                 Get Started Free
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -181,51 +181,17 @@ export function LandingPage() {
         <div className="landing-gradient-orb landing-gradient-orb-2" />
         <div className="landing-gradient-orb landing-gradient-orb-3" />
 
-        {/* Rocket SVG background */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.04 }}>
-          <svg viewBox="0 0 800 800" className="w-[900px] h-[900px]" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Rocket body */}
-            <path d="M400 100 C400 100, 340 200, 340 400 C340 500, 360 580, 400 650 C440 580, 460 500, 460 400 C460 200, 400 100, 400 100Z" fill="currentColor" className="text-[var(--text-primary)]" />
-            {/* Rocket nose cone */}
-            <ellipse cx="400" cy="130" rx="30" ry="50" fill="currentColor" className="text-[var(--text-primary)]" />
-            {/* Left fin */}
-            <path d="M340 480 C340 480, 280 520, 270 600 C270 600, 310 570, 340 540Z" fill="currentColor" className="text-[var(--text-primary)]" />
-            {/* Right fin */}
-            <path d="M460 480 C460 480, 520 520, 530 600 C530 600, 490 570, 460 540Z" fill="currentColor" className="text-[var(--text-primary)]" />
-            {/* Window */}
-            <circle cx="400" cy="280" r="25" fill="none" stroke="currentColor" strokeWidth="6" className="text-[var(--text-primary)]" />
-            {/* Exhaust flames */}
-            <path d="M380 650 C380 650, 370 720, 400 750 C430 720, 420 650, 420 650" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.5" />
-            <path d="M390 650 C390 650, 385 700, 400 730 C415 700, 410 650, 410 650" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.3" />
-            {/* Stars scattered around */}
-            <circle cx="200" cy="200" r="3" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="600" cy="150" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="150" cy="400" r="2.5" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="650" cy="350" r="3" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="250" cy="600" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="550" cy="550" r="2.5" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="100" cy="300" r="1.5" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="700" cy="250" r="1.5" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="300" cy="150" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
-            <circle cx="500" cy="650" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
-            {/* Trail particles */}
-            <circle cx="390" cy="700" r="4" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.3" />
-            <circle cx="410" cy="710" r="3" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.2" />
-            <circle cx="395" cy="730" r="5" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.15" />
-          </svg>
-        </div>
-
         <div className="relative z-10 mx-auto max-w-6xl px-6">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] px-4 py-1.5 mb-8 opacity-0 animate-fade-up">
-              <span className="text-sm text-[var(--text-secondary)]">Trusted by <span className="font-medium text-[var(--text-primary)]">500+</span> enterprise teams</span>
-              <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/[0.06] px-4 py-1.5 mb-8 opacity-0 animate-fade-up">
+              <span className="text-sm text-[var(--text-secondary)]">Trusted by <span className="font-semibold text-purple-500">500+</span> enterprise teams</span>
+              <ChevronRight className="h-3.5 w-3.5 text-purple-400" />
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-[4.5rem] font-semibold tracking-tight leading-[1.05] text-[var(--text-primary)] opacity-0 animate-fade-up-delay-1">
               Outreach that
               <br />
-              actually converts.
+              <span className="landing-gradient-text">actually converts.</span>
             </h1>
 
             <p className="mt-6 text-lg text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed opacity-0 animate-fade-up-delay-2">
@@ -234,11 +200,11 @@ export function LandingPage() {
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up-delay-3">
-              <Link to="/signup" className="btn-primary text-base px-8 py-3 rounded-lg">
+              <Link to="/signup" className="landing-btn-primary text-base px-8 py-3.5 rounded-xl">
                 Get started free
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/login" className="btn-secondary text-base px-8 py-3 rounded-lg">
+              <Link to="/login" className="btn-secondary text-base px-8 py-3.5 rounded-xl">
                 Sign in
               </Link>
             </div>
@@ -246,7 +212,7 @@ export function LandingPage() {
             <div className="mt-8 flex items-center justify-center gap-8 text-sm text-[var(--text-tertiary)]">
               {['Free forever plan', 'No credit card required', 'Setup in 5 minutes'].map((item) => (
                 <div key={item} className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-[var(--text-secondary)]" strokeWidth={2} />
+                  <Check className="h-3.5 w-3.5 text-purple-400" strokeWidth={2} />
                   {item}
                 </div>
               ))}
@@ -255,7 +221,7 @@ export function LandingPage() {
 
           {/* Dashboard Preview */}
           <div className="mt-20 opacity-0 animate-fade-up-delay-3">
-            <div className="rounded-2xl border border-[var(--border-default)] bg-[#0A0A0B] p-1.5 shadow-[0_32px_80px_-12px_rgba(0,0,0,0.6)] landing-dashboard-glow">
+            <div className="rounded-2xl border border-purple-500/20 bg-[#0A0A0B] p-1.5 landing-dashboard-glow">
               <div className="rounded-xl bg-[#111114] overflow-hidden" style={{ aspectRatio: '16/9.2' }}>
                 {/* Browser chrome */}
                 <div className="h-10 border-b border-[#1C1C21] flex items-center px-4 gap-2 bg-[#0D0D10]">
@@ -523,7 +489,7 @@ export function LandingPage() {
             <div className="flex animate-marquee">
               {[...logos, ...logos].map((logo, i) => (
                 <div key={i} className="flex-shrink-0 mx-10 flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-[var(--text-muted)]" />
+                  <Globe className="h-4 w-4 text-purple-400/50" />
                   <span className="text-base font-medium text-[var(--text-tertiary)] whitespace-nowrap">{logo}</span>
                 </div>
               ))}
@@ -538,7 +504,7 @@ export function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
             {stats.map((stat) => (
               <div key={stat.label} className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 text-center p-8 bg-[var(--bg-surface)]">
-                <div className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">{stat.value}</div>
+                <div className="text-3xl sm:text-4xl font-semibold tracking-tight landing-gradient-text">{stat.value}</div>
                 <div className="mt-1.5 text-sm text-[var(--text-secondary)]">{stat.label}</div>
               </div>
             ))}
@@ -550,7 +516,7 @@ export function LandingPage() {
       <section id="features" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Platform</p>
+            <p className="text-xs font-semibold text-purple-500 uppercase tracking-widest mb-3">Platform</p>
             <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
               Everything you need to
               <br />
@@ -562,14 +528,16 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 p-8 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors"
+                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 p-8 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] hover:border-purple-500/30 hover:shadow-[var(--shadow-md)] transition-all"
                 style={{ transitionDelay: `${i * 60}ms` }}
               >
-                <feature.icon className="h-5 w-5 text-[var(--text-primary)] mb-4" strokeWidth={1.5} />
+                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+                  <feature.icon className="h-5 w-5 text-purple-500" strokeWidth={1.5} />
+                </div>
                 <h3 className="text-base font-semibold text-[var(--text-primary)] mb-2">{feature.title}</h3>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{feature.description}</p>
               </div>
@@ -582,7 +550,7 @@ export function LandingPage() {
       <section className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Process</p>
+            <p className="text-xs font-semibold text-purple-500 uppercase tracking-widest mb-3">Process</p>
             <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
               From cold list to closed deal
             </h2>
@@ -613,9 +581,11 @@ export function LandingPage() {
               },
             ].map((step, i) => (
               <div key={step.step} className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
-                <div className="p-8 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] h-full">
-                  <div className="text-5xl font-semibold text-[var(--border-default)] mb-6">{step.step}</div>
-                  <step.icon className="h-5 w-5 text-[var(--text-primary)] mb-4" strokeWidth={1.5} />
+                <div className="p-8 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] h-full hover:border-purple-500/30 transition-colors">
+                  <div className="text-5xl font-semibold landing-gradient-text mb-6">{step.step}</div>
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+                    <step.icon className="h-5 w-5 text-purple-500" strokeWidth={1.5} />
+                  </div>
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{step.title}</h3>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{step.description}</p>
                 </div>
@@ -635,7 +605,7 @@ export function LandingPage() {
 
         <div className="relative z-10 mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Testimonials</p>
+            <p className="text-xs font-semibold text-purple-500 uppercase tracking-widest mb-3">Testimonials</p>
             <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
               Loved by revenue teams
             </h2>
@@ -652,7 +622,7 @@ export function LandingPage() {
                 className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 break-inside-avoid"
                 style={{ transitionDelay: `${i * 80}ms` }}
               >
-                <div className="group rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 hover:border-[var(--border-default)] transition-all duration-300 hover:shadow-[var(--shadow-lg)]">
+                <div className="group rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 hover:border-purple-500/30 transition-all duration-300 hover:shadow-[var(--shadow-lg)]">
                   {/* Metric highlight */}
                   <div className="mb-5 pb-5 border-b border-[var(--border-subtle)]">
                     <div className="text-3xl font-bold landing-gradient-text">{testimonial.metric}</div>
@@ -695,7 +665,7 @@ export function LandingPage() {
       <section id="pricing" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Pricing</p>
+            <p className="text-xs font-semibold text-purple-500 uppercase tracking-widest mb-3">Pricing</p>
             <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
               Simple, transparent pricing
             </h2>
@@ -717,7 +687,7 @@ export function LandingPage() {
               </div>
               <Link
                 to="/signup"
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium border border-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors mb-6"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium border border-purple-500/30 text-purple-500 hover:bg-purple-500/[0.06] transition-colors mb-6"
               >
                 Get started
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -733,8 +703,8 @@ export function LandingPage() {
             </div>
 
             {/* Lifetime Plan */}
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 relative p-8 rounded-xl border-2 border-[var(--text-primary)] bg-[var(--bg-surface)]" style={{ transitionDelay: '100ms' }}>
-              <div className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium">
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 relative p-8 rounded-xl border-2 border-purple-500 bg-[var(--bg-surface)]" style={{ transitionDelay: '100ms' }}>
+              <div className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-purple-500 text-white text-xs font-medium">
                 Best value
               </div>
               <div className="mb-6">
@@ -747,7 +717,7 @@ export function LandingPage() {
               </div>
               <Link
                 to="/signup"
-                className="w-full btn-primary flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium mb-6"
+                className="w-full landing-btn-primary flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium mb-6"
               >
                 Get lifetime access
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -755,7 +725,7 @@ export function LandingPage() {
               <div className="space-y-3">
                 {['Unlimited emails', 'Unlimited contacts', 'SARA AI assistant', 'A/B testing', 'API access', 'Priority support', 'Custom domains', 'SSO & SAML'].map((feature) => (
                   <div key={feature} className="flex items-center gap-2.5 text-sm text-[var(--text-secondary)]">
-                    <Check className="h-4 w-4 text-[var(--text-primary)] flex-shrink-0" strokeWidth={2} />
+                    <Check className="h-4 w-4 text-purple-500 flex-shrink-0" strokeWidth={2} />
                     {feature}
                   </div>
                 ))}
@@ -768,9 +738,10 @@ export function LandingPage() {
       {/* CTA */}
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="rounded-xl border border-[var(--border-subtle)] bg-[#0A0A0B] p-12 sm:p-20 text-center relative overflow-hidden">
-            {/* Subtle gradient glow in CTA */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-[0.08]" style={{ background: 'radial-gradient(ellipse, #8B5CF6, #06B6D4, transparent)' }} />
+          <div className="rounded-2xl border border-purple-500/20 bg-[#0A0A0B] p-12 sm:p-20 text-center relative overflow-hidden">
+            {/* Gradient glow in CTA */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-[0.12]" style={{ background: 'radial-gradient(ellipse, #8B5CF6, #06B6D4, transparent)' }} />
+            <div className="absolute bottom-0 left-1/3 w-[400px] h-[200px] rounded-full opacity-[0.06]" style={{ background: 'radial-gradient(ellipse, #10B981, transparent)' }} />
             <div className="relative z-10">
               <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
                 Ready to transform your outreach?
@@ -779,11 +750,11 @@ export function LandingPage() {
                 Join thousands of revenue teams using SkySend to book more meetings and close more deals.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-white text-[#0A0A0B] font-medium px-8 py-3 rounded-lg text-base hover:bg-white/90 transition-colors">
+                <Link to="/signup" className="landing-btn-primary text-base px-8 py-3.5 rounded-xl">
                   Get started free
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link to="/login" className="inline-flex items-center gap-2 bg-transparent text-white/80 font-medium px-8 py-3 rounded-lg text-base border border-white/20 hover:bg-white/10 transition-colors">
+                <Link to="/login" className="inline-flex items-center gap-2 bg-transparent text-white/80 font-medium px-8 py-3.5 rounded-xl text-base border border-white/20 hover:bg-white/10 transition-colors">
                   Sign in
                 </Link>
               </div>
@@ -919,7 +890,29 @@ export function LandingPage() {
 
         /* Dashboard glow */
         .landing-dashboard-glow {
-          box-shadow: 0 32px 80px -12px rgba(0,0,0,0.6), 0 0 120px -40px rgba(139, 92, 246, 0.15), 0 0 120px -40px rgba(6, 182, 212, 0.1);
+          box-shadow: 0 32px 80px -12px rgba(0,0,0,0.6), 0 0 120px -40px rgba(139, 92, 246, 0.2), 0 0 120px -40px rgba(6, 182, 212, 0.12);
+        }
+
+        /* Landing page brand button */
+        .landing-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          font-weight: 600;
+          font-size: inherit;
+          background: linear-gradient(135deg, #7C3AED, #8B5CF6);
+          color: white;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+        }
+        .landing-btn-primary:hover {
+          background: linear-gradient(135deg, #6D28D9, #7C3AED);
+          box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
+          transform: translateY(-1px);
+        }
+        .landing-btn-primary:active {
+          transform: translateY(0);
         }
       `}</style>
     </div>
