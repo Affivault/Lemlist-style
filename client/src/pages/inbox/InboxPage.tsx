@@ -44,6 +44,8 @@ import {
   CloudSun,
   Briefcase,
   CalendarClock,
+  ChevronLeft,
+  ChevronUp,
 } from 'lucide-react';
 
 /* ─── Types ────────────────────────────────────────── */
@@ -467,12 +469,198 @@ function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (ht
   );
 }
 
+/* ─── Custom Calendar Grid ────────────────────────── */
+function CustomCalendar({ selected, onSelect }: { selected: Date | null; onSelect: (d: Date) => void }) {
+  const [viewDate, setViewDate] = useState(() => selected || new Date());
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const monthLabel = viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const days = useMemo(() => {
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrev = new Date(year, month, 0).getDate();
+    const cells: { day: number; current: boolean; date: Date }[] = [];
+
+    // Previous month trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const d = daysInPrev - i;
+      cells.push({ day: d, current: false, date: new Date(year, month - 1, d) });
+    }
+    // Current month
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ day: d, current: true, date: new Date(year, month, d) });
+    }
+    // Next month leading days
+    const remaining = 7 - (cells.length % 7);
+    if (remaining < 7) {
+      for (let d = 1; d <= remaining; d++) {
+        cells.push({ day: d, current: false, date: new Date(year, month + 1, d) });
+      }
+    }
+    return cells;
+  }, [year, month]);
+
+  const isSameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const isPast = (d: Date) => d < today;
+
+  return (
+    <div>
+      {/* Month navigation */}
+      <div className="flex items-center justify-between mb-3">
+        <button
+          onClick={() => setViewDate(new Date(year, month - 1, 1))}
+          className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </button>
+        <span className="text-[13px] font-semibold text-[var(--text-primary)]">{monthLabel}</span>
+        <button
+          onClick={() => setViewDate(new Date(year, month + 1, 1))}
+          className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+          <div key={d} className="text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase py-1">{d}</div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7">
+        {days.map((cell, i) => {
+          const isSelected = selected && isSameDay(cell.date, selected);
+          const isToday = isSameDay(cell.date, today);
+          const disabled = isPast(cell.date) || !cell.current;
+          return (
+            <button
+              key={i}
+              disabled={disabled}
+              onClick={() => onSelect(cell.date)}
+              className={`relative w-full aspect-square flex items-center justify-center text-[12px] rounded-lg transition-all ${
+                isSelected
+                  ? 'bg-[var(--accent)] text-[var(--bg-app)] font-semibold shadow-sm'
+                  : isToday
+                    ? 'font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/10'
+                    : !cell.current
+                      ? 'text-[var(--text-muted)]'
+                      : disabled
+                        ? 'text-[var(--text-muted)] cursor-not-allowed'
+                        : 'text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
+              }`}
+            >
+              {cell.day}
+              {isToday && !isSelected && (
+                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Custom Time Picker ─────────────────────────── */
+function CustomTimePicker({ value, onChange }: { value: { hour: number; minute: number }; onChange: (v: { hour: number; minute: number }) => void }) {
+  const isPM = value.hour >= 12;
+  const display12 = value.hour === 0 ? 12 : value.hour > 12 ? value.hour - 12 : value.hour;
+
+  const hours12 = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  const minutes = [0, 15, 30, 45];
+
+  const setHour12 = (h12: number) => {
+    let h24 = h12;
+    if (isPM) h24 = h12 === 12 ? 12 : h12 + 12;
+    else h24 = h12 === 12 ? 0 : h12;
+    onChange({ hour: h24, minute: value.minute });
+  };
+
+  const togglePeriod = () => {
+    onChange({ hour: (value.hour + 12) % 24, minute: value.minute });
+  };
+
+  return (
+    <div>
+      {/* Period toggle + selected time display */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+          <span className="text-[13px] font-semibold text-[var(--text-primary)]">
+            {display12}:{String(value.minute).padStart(2, '0')} {isPM ? 'PM' : 'AM'}
+          </span>
+        </div>
+        <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden">
+          <button
+            onClick={() => { if (isPM) togglePeriod(); }}
+            className={`px-2.5 py-1 text-[11px] font-semibold transition-all ${
+              !isPM ? 'bg-[var(--accent)] text-[var(--bg-app)]' : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >AM</button>
+          <button
+            onClick={() => { if (!isPM) togglePeriod(); }}
+            className={`px-2.5 py-1 text-[11px] font-semibold transition-all border-l border-[var(--border-subtle)] ${
+              isPM ? 'bg-[var(--accent)] text-[var(--bg-app)]' : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >PM</button>
+        </div>
+      </div>
+
+      {/* Hour grid */}
+      <div className="mb-2">
+        <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1.5 block">Hour</span>
+        <div className="grid grid-cols-6 gap-1">
+          {hours12.map(h => (
+            <button
+              key={h}
+              onClick={() => setHour12(h)}
+              className={`py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                display12 === h
+                  ? 'bg-[var(--accent)] text-[var(--bg-app)] shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {h}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Minute grid */}
+      <div>
+        <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1.5 block">Minute</span>
+        <div className="grid grid-cols-4 gap-1">
+          {minutes.map(m => (
+            <button
+              key={m}
+              onClick={() => onChange({ ...value, minute: m })}
+              className={`py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                value.minute === m
+                  ? 'bg-[var(--accent)] text-[var(--bg-app)] shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              :{String(m).padStart(2, '0')}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Schedule Send Picker ────────────────────────── */
 function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string) => void; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [showCustom, setShowCustom] = useState(false);
-  const [customDate, setCustomDate] = useState('');
-  const [customTime, setCustomTime] = useState('09:00');
+  const [view, setView] = useState<'presets' | 'calendar' | 'time'>('presets');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState({ hour: 9, minute: 0 });
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -526,130 +714,120 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
     return items;
   }, []);
 
-  const handleCustomSchedule = () => {
-    if (!customDate) return;
-    const dt = new Date(`${customDate}T${customTime}:00`);
+  const handleConfirmSchedule = () => {
+    if (!selectedDate) return;
+    const dt = new Date(selectedDate);
+    dt.setHours(selectedTime.hour, selectedTime.minute, 0, 0);
     if (dt <= new Date()) return;
     onSchedule(dt.toISOString());
   };
 
-  const customDateFormatted = customDate
-    ? new Date(customDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  const selectedDateLabel = selectedDate
+    ? selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
     : '';
 
-  const customTimeFormatted = customTime
-    ? new Date(`2000-01-01T${customTime}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    : '';
+  const isPM = selectedTime.hour >= 12;
+  const display12 = selectedTime.hour === 0 ? 12 : selectedTime.hour > 12 ? selectedTime.hour - 12 : selectedTime.hour;
+  const selectedTimeLabel = `${display12}:${String(selectedTime.minute).padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`;
 
   return (
     <div ref={ref} className="absolute bottom-full left-0 mb-2 w-80 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl z-50 overflow-hidden" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)' }}>
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
-            <CalendarClock className="h-3.5 w-3.5 text-[var(--accent)]" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-[var(--text-primary)]">Schedule Send</p>
-            <p className="text-[11px] text-[var(--text-tertiary)]">Choose when to deliver</p>
+          {view !== 'presets' && (
+            <button
+              onClick={() => setView(view === 'time' ? 'calendar' : 'presets')}
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--bg-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {view === 'presets' && (
+            <div className="w-7 h-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
+              <CalendarClock className="h-3.5 w-3.5 text-[var(--accent)]" />
+            </div>
+          )}
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">
+              {view === 'presets' ? 'Schedule Send' : view === 'calendar' ? 'Pick a Date' : 'Pick a Time'}
+            </p>
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              {view === 'presets' ? 'Choose when to deliver' : view === 'calendar' ? 'Select your send date' : selectedDateLabel}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Quick Presets */}
-      <div className="p-2">
-        {presets.map((p, i) => {
-          const Icon = p.icon;
-          return (
+      {/* Presets View */}
+      {view === 'presets' && (
+        <>
+          <div className="p-2">
+            {presets.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <button
+                  key={i}
+                  onClick={() => onSchedule(p.date.toISOString())}
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
+                    <Icon className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[13px] font-medium text-[var(--text-primary)] block">{p.label}</span>
+                    <span className="text-[11px] text-[var(--text-tertiary)]">{p.sublabel}</span>
+                  </div>
+                  <ChevronRight className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
+                </button>
+              );
+            })}
+          </div>
+          <div className="mx-3 border-t border-[var(--border-subtle)]" />
+          <div className="p-2">
             <button
-              key={i}
-              onClick={() => onSchedule(p.date.toISOString())}
+              onClick={() => setView('calendar')}
               className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
             >
               <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
-                <Icon className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
+                <Calendar className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-[13px] font-medium text-[var(--text-primary)] block">{p.label}</span>
-                <span className="text-[11px] text-[var(--text-tertiary)]">{p.sublabel}</span>
+              <div className="flex-1">
+                <span className="text-[13px] font-medium text-[var(--text-primary)]">Custom date & time</span>
+                <span className="text-[11px] text-[var(--text-tertiary)] block">Pick a specific date and time</span>
               </div>
               <ChevronRight className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
             </button>
-          );
-        })}
-      </div>
-
-      {/* Divider */}
-      <div className="mx-3 border-t border-[var(--border-subtle)]" />
-
-      {/* Custom Date & Time */}
-      <div className="p-2">
-        {!showCustom ? (
-          <button
-            onClick={() => setShowCustom(true)}
-            className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
-              <Calendar className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
-            </div>
-            <div className="flex-1">
-              <span className="text-[13px] font-medium text-[var(--text-primary)]">Custom date & time</span>
-              <span className="text-[11px] text-[var(--text-tertiary)] block">Pick a specific date and time</span>
-            </div>
-            <ChevronRight className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
-          </button>
-        ) : (
-          <div className="px-3 py-2.5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">Custom date & time</span>
-              <button onClick={() => setShowCustom(false)} className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
-                Cancel
-              </button>
-            </div>
-            <div className="space-y-2">
-              <div className="relative">
-                <label className="text-[11px] font-medium text-[var(--text-tertiary)] mb-1 block">Date</label>
-                <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)] pointer-events-none" />
-                  <input
-                    type="date"
-                    value={customDate}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={e => setCustomDate(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/10 transition-all"
-                  />
-                </div>
-                {customDate && (
-                  <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{customDateFormatted}</span>
-                )}
-              </div>
-              <div>
-                <label className="text-[11px] font-medium text-[var(--text-tertiary)] mb-1 block">Time</label>
-                <div className="relative">
-                  <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)] pointer-events-none" />
-                  <input
-                    type="time"
-                    value={customTime}
-                    onChange={e => setCustomTime(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/10 transition-all"
-                  />
-                </div>
-                {customTime && (
-                  <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">{customTimeFormatted}</span>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={handleCustomSchedule}
-              disabled={!customDate}
-              className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-[13px] font-semibold hover:bg-[var(--accent-hover)] disabled:opacity-30 transition-all shadow-sm hover:shadow-md disabled:shadow-none"
-            >
-              <CalendarClock className="h-3.5 w-3.5" />
-              Schedule for {customDate && customTime ? `${customDateFormatted} · ${customTimeFormatted}` : '...'}
-            </button>
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      {/* Calendar View */}
+      {view === 'calendar' && (
+        <div className="p-3">
+          <CustomCalendar
+            selected={selectedDate}
+            onSelect={(d) => {
+              setSelectedDate(d);
+              setView('time');
+            }}
+          />
+        </div>
+      )}
+
+      {/* Time View */}
+      {view === 'time' && (
+        <div className="p-3">
+          <CustomTimePicker value={selectedTime} onChange={setSelectedTime} />
+          <button
+            onClick={handleConfirmSchedule}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-[13px] font-semibold hover:bg-[var(--accent-hover)] transition-all shadow-sm hover:shadow-md"
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+            Schedule for {selectedDateLabel} · {selectedTimeLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
