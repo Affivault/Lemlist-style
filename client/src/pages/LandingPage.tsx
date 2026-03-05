@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Check,
   BarChart3,
   Users,
-  Mail,
   Shield,
   Zap,
   Globe,
@@ -14,11 +13,6 @@ import {
   TrendingUp,
   Lock,
   ChevronRight,
-  Rocket,
-  Clock,
-  Send,
-  Target,
-  MessageSquare,
   Quote,
 } from 'lucide-react';
 import { SkySendLogo } from '../components/SkySendLogo';
@@ -28,37 +22,31 @@ const features = [
     icon: Zap,
     title: 'Intelligent Sequences',
     description: 'Multi-step campaigns with AI-optimized send times, smart delays, and conditional branching that adapts to recipient behavior.',
-    color: '#8B5CF6',
   },
   {
     icon: Users,
     title: 'Contact Intelligence',
     description: 'Import, enrich, and segment contacts with AI-powered field mapping. Automatic deduplication keeps your data pristine.',
-    color: '#8B5CF6',
   },
   {
     icon: BarChart3,
     title: 'Real-time Analytics',
     description: 'Granular performance dashboards with A/B testing insights. Track every touchpoint across your pipeline.',
-    color: '#8B5CF6',
   },
   {
     icon: Shield,
     title: 'Deliverability Engine',
     description: 'Built-in warmup, reputation monitoring, and domain health scoring. Every email lands in the primary inbox.',
-    color: '#8B5CF6',
   },
   {
     icon: Sparkles,
     title: 'AI-Powered Inbox',
     description: 'Smart email tagging automatically classifies replies by intent. AI reply assist helps you draft responses in seconds.',
-    color: '#8B5CF6',
   },
   {
     icon: Lock,
     title: 'Enterprise Security',
     description: 'SOC 2 compliant with end-to-end encryption, SSO integration, and granular role-based access controls.',
-    color: '#8B5CF6',
   },
 ];
 
@@ -75,8 +63,8 @@ const testimonials = [
     author: "Sarah Chen",
     role: "Head of Sales",
     company: "TechCorp",
-    metric: "6x reply rate",
-    metricDetail: "in 3 weeks",
+    metric: "6x",
+    metricLabel: "Reply rate increase",
     avatar: "SC",
   },
   {
@@ -84,8 +72,8 @@ const testimonials = [
     author: "Marcus Johnson",
     role: "VP Sales",
     company: "GrowthLabs",
-    metric: "42% more meetings",
-    metricDetail: "quarter over quarter",
+    metric: "98.7%",
+    metricLabel: "Deliverability rate",
     avatar: "MJ",
   },
   {
@@ -93,9 +81,36 @@ const testimonials = [
     author: "Emily Park",
     role: "Director of Marketing",
     company: "ScaleUp",
-    metric: "85% time saved",
-    metricDetail: "on reply management",
+    metric: "12x",
+    metricLabel: "Faster response time",
     avatar: "EP",
+  },
+  {
+    quote: "We replaced three tools with SkySend. The unified platform approach saved us $40K annually while improving every metric across the board.",
+    author: "David Kim",
+    role: "CRO",
+    company: "Meridian",
+    metric: "$40K",
+    metricLabel: "Annual savings",
+    avatar: "DK",
+  },
+  {
+    quote: "The contact enrichment is like magic. We imported 50K contacts and the AI mapped every field perfectly. Zero manual cleanup needed.",
+    author: "Lisa Morales",
+    role: "Growth Lead",
+    company: "Vertex AI",
+    metric: "50K",
+    metricLabel: "Contacts enriched",
+    avatar: "LM",
+  },
+  {
+    quote: "Our sales team doubled their meeting bookings within the first month. The intelligent sequencing adapts to each prospect automatically.",
+    author: "James Wright",
+    role: "Head of Revenue",
+    company: "Catalyst",
+    metric: "2x",
+    metricLabel: "More meetings booked",
+    avatar: "JW",
   },
 ];
 
@@ -127,61 +142,11 @@ function useIntersectionObserver() {
   return ref;
 }
 
-function AnimatedCounter({ target }: { target: string }) {
-  const [display, setDisplay] = useState(target);
-  const ref = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          const numericPart = target.replace(/[^0-9.]/g, '');
-          const num = parseFloat(numericPart);
-          const prefix = target.match(/^[^0-9]*/)?.[0] || '';
-          const suffixPart = target.match(/[^0-9.]*$/)?.[0] || '';
-
-          if (!isNaN(num)) {
-            const duration = 1500;
-            const startTime = performance.now();
-            const animate = (now: number) => {
-              const elapsed = now - startTime;
-              const progress = Math.min(elapsed / duration, 1);
-              const eased = 1 - Math.pow(1 - progress, 3);
-              const current = num * eased;
-
-              if (num >= 100) {
-                setDisplay(`${prefix}${Math.round(current).toLocaleString()}${suffixPart}`);
-              } else {
-                setDisplay(`${prefix}${current.toFixed(1)}${suffixPart}`);
-              }
-
-              if (progress < 1) {
-                requestAnimationFrame(animate);
-              } else {
-                setDisplay(target);
-              }
-            };
-            requestAnimationFrame(animate);
-          }
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-
-  return <span ref={ref}>{display}</span>;
-}
-
 export function LandingPage() {
   const pageRef = useIntersectionObserver();
 
   return (
-    <div ref={pageRef} className="landing-page min-h-screen bg-[var(--bg-app)]">
+    <div ref={pageRef} className="min-h-screen bg-[var(--bg-app)]">
       {/* Navbar */}
       <nav className="fixed top-0 z-50 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-6">
@@ -192,7 +157,6 @@ export function LandingPage() {
 
             <div className="hidden items-center gap-8 md:flex">
               <a href="#features" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Features</a>
-              <a href="#rocket-send" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Rocket Send</a>
               <a href="#testimonials" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Testimonials</a>
               <a href="#pricing" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Pricing</a>
             </div>
@@ -201,8 +165,8 @@ export function LandingPage() {
               <Link to="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors px-3 py-2">
                 Log in
               </Link>
-              <Link to="/signup" className="landing-cta-btn text-sm px-5 py-2.5 rounded-lg font-medium">
-                Start for free
+              <Link to="/signup" className="btn-primary text-sm px-4 py-2 rounded-lg">
+                Get Started Free
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -211,45 +175,78 @@ export function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="landing-hero-bg" />
+      <section className="relative pt-40 pb-24 overflow-hidden">
+        {/* Animated gradient orbs - purple, blue, green */}
+        <div className="landing-gradient-orb landing-gradient-orb-1" />
+        <div className="landing-gradient-orb landing-gradient-orb-2" />
+        <div className="landing-gradient-orb landing-gradient-orb-3" />
 
-        <div className="mx-auto max-w-6xl px-6 relative z-10">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-1.5 mb-8 opacity-0 animate-fade-up">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-              <span className="text-sm text-[var(--text-secondary)]">
-                Trusted by <span className="font-semibold text-[var(--text-primary)]">500+</span> revenue teams
-              </span>
+        {/* Rocket SVG background */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.04 }}>
+          <svg viewBox="0 0 800 800" className="w-[900px] h-[900px]" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Rocket body */}
+            <path d="M400 100 C400 100, 340 200, 340 400 C340 500, 360 580, 400 650 C440 580, 460 500, 460 400 C460 200, 400 100, 400 100Z" fill="currentColor" className="text-[var(--text-primary)]" />
+            {/* Rocket nose cone */}
+            <ellipse cx="400" cy="130" rx="30" ry="50" fill="currentColor" className="text-[var(--text-primary)]" />
+            {/* Left fin */}
+            <path d="M340 480 C340 480, 280 520, 270 600 C270 600, 310 570, 340 540Z" fill="currentColor" className="text-[var(--text-primary)]" />
+            {/* Right fin */}
+            <path d="M460 480 C460 480, 520 520, 530 600 C530 600, 490 570, 460 540Z" fill="currentColor" className="text-[var(--text-primary)]" />
+            {/* Window */}
+            <circle cx="400" cy="280" r="25" fill="none" stroke="currentColor" strokeWidth="6" className="text-[var(--text-primary)]" />
+            {/* Exhaust flames */}
+            <path d="M380 650 C380 650, 370 720, 400 750 C430 720, 420 650, 420 650" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.5" />
+            <path d="M390 650 C390 650, 385 700, 400 730 C415 700, 410 650, 410 650" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.3" />
+            {/* Stars scattered around */}
+            <circle cx="200" cy="200" r="3" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="600" cy="150" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="150" cy="400" r="2.5" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="650" cy="350" r="3" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="250" cy="600" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="550" cy="550" r="2.5" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="100" cy="300" r="1.5" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="700" cy="250" r="1.5" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="300" cy="150" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
+            <circle cx="500" cy="650" r="2" fill="currentColor" className="text-[var(--text-primary)]" />
+            {/* Trail particles */}
+            <circle cx="390" cy="700" r="4" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.3" />
+            <circle cx="410" cy="710" r="3" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.2" />
+            <circle cx="395" cy="730" r="5" fill="currentColor" className="text-[var(--text-primary)]" opacity="0.15" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] px-4 py-1.5 mb-8 opacity-0 animate-fade-up">
+              <span className="text-sm text-[var(--text-secondary)]">Trusted by <span className="font-medium text-[var(--text-primary)]">500+</span> enterprise teams</span>
               <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
             </div>
 
-            <h1 className="text-display-xl sm:text-[5rem] lg:text-[5.5rem] leading-[1] tracking-[-0.03em] font-semibold opacity-0 animate-fade-up-delay-1">
-              <span className="text-[var(--text-primary)]">Cold emails that</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-[4.5rem] font-semibold tracking-tight leading-[1.05] text-[var(--text-primary)] opacity-0 animate-fade-up-delay-1">
+              Outreach that
               <br />
-              <span className="text-[var(--text-primary)]">actually get </span>
-              <span className="text-[#8B5CF6]">replies</span>
+              actually converts.
             </h1>
 
-            <p className="mt-6 text-lg sm:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed opacity-0 animate-fade-up-delay-2">
-              The AI-powered outreach platform that automates your campaigns,
-              enriches your pipeline, and turns cold prospects into warm conversations.
+            <p className="mt-6 text-lg text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed opacity-0 animate-fade-up-delay-2">
+              The intelligent email platform that automates your outreach, enriches your pipeline,
+              and turns cold prospects into warm conversations.
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up-delay-3">
-              <Link to="/signup" className="landing-cta-btn text-base px-8 py-3.5 rounded-xl font-medium shadow-lg landing-cta-shadow">
-                Start for free
+              <Link to="/signup" className="btn-primary text-base px-8 py-3 rounded-lg">
+                Get started free
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/login" className="group inline-flex items-center gap-2 text-base px-8 py-3.5 rounded-xl font-medium border border-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all">
-                Watch demo
+              <Link to="/login" className="btn-secondary text-base px-8 py-3 rounded-lg">
+                Sign in
               </Link>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-[var(--text-tertiary)]">
+            <div className="mt-8 flex items-center justify-center gap-8 text-sm text-[var(--text-tertiary)]">
               {['Free forever plan', 'No credit card required', 'Setup in 5 minutes'].map((item) => (
                 <div key={item} className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-[#10B981]" strokeWidth={2.5} />
+                  <Check className="h-3.5 w-3.5 text-[var(--text-secondary)]" strokeWidth={2} />
                   {item}
                 </div>
               ))}
@@ -258,7 +255,7 @@ export function LandingPage() {
 
           {/* Dashboard Preview */}
           <div className="mt-20 opacity-0 animate-fade-up-delay-3">
-            <div className="landing-mockup-container rounded-2xl p-1.5">
+            <div className="rounded-2xl border border-[var(--border-default)] bg-[#0A0A0B] p-1.5 shadow-[0_32px_80px_-12px_rgba(0,0,0,0.6)] landing-dashboard-glow">
               <div className="rounded-xl bg-[#111114] overflow-hidden" style={{ aspectRatio: '16/9.2' }}>
                 {/* Browser chrome */}
                 <div className="h-10 border-b border-[#1C1C21] flex items-center px-4 gap-2 bg-[#0D0D10]">
@@ -290,18 +287,60 @@ export function LandingPage() {
                         { name: 'Inbox', active: false, icon: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4' },
                         { name: 'Analytics', active: false, icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
                       ].map((item) => (
-                        <div key={item.name} className={`h-7 rounded-md flex items-center px-2.5 gap-2 ${item.active ? 'bg-[#1C1C21]' : ''}`}>
+                        <div
+                          key={item.name}
+                          className={`h-7 rounded-md flex items-center px-2.5 gap-2 ${
+                            item.active ? 'bg-[#1C1C21]' : ''
+                          }`}
+                        >
                           <svg className={`w-3.5 h-3.5 ${item.active ? 'text-[#FAFAFB]' : 'text-[#4A4A54]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d={item.icon} />
                           </svg>
-                          <span className={`text-[10px] font-medium ${item.active ? 'text-[#FAFAFB]' : 'text-[#6B6B76]'}`}>{item.name}</span>
+                          <span className={`text-[10px] font-medium ${item.active ? 'text-[#FAFAFB]' : 'text-[#6B6B76]'}`}>
+                            {item.name}
+                          </span>
                         </div>
                       ))}
+
+                      <div className="pt-3 mt-3 border-t border-[#1C1C21]">
+                        <div className="px-2.5 mb-1.5">
+                          <span className="text-[8px] font-medium text-[#3A3A42] uppercase tracking-widest">Tools</span>
+                        </div>
+                        {[
+                          { name: 'SARA AI', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                          { name: 'Webhooks', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101' },
+                        ].map((item) => (
+                          <div key={item.name} className="h-7 rounded-md flex items-center px-2.5 gap-2">
+                            <svg className="w-3.5 h-3.5 text-[#4A4A54]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d={item.icon} />
+                            </svg>
+                            <span className="text-[10px] font-medium text-[#6B6B76]">{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-3 mt-3 border-t border-[#1C1C21]">
+                        <div className="px-2.5 mb-1.5">
+                          <span className="text-[8px] font-medium text-[#3A3A42] uppercase tracking-widest">Configure</span>
+                        </div>
+                        {[
+                          { name: 'SMTP', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                          { name: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+                        ].map((item) => (
+                          <div key={item.name} className="h-7 rounded-md flex items-center px-2.5 gap-2">
+                            <svg className="w-3.5 h-3.5 text-[#4A4A54]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d={item.icon} />
+                            </svg>
+                            <span className="text-[10px] font-medium text-[#6B6B76]">{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
                     <div className="border-t border-[#1C1C21] p-2">
-                      <div className="flex items-center gap-2 px-2 py-1.5 rounded-md">
-                        <div className="w-6 h-6 rounded-full bg-[#8B5CF6] flex items-center justify-center">
-                          <span className="text-[8px] font-semibold text-white">JD</span>
+                      <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#16161A] transition-colors">
+                        <div className="w-6 h-6 rounded-full bg-[#1C1C21] border border-[#24242A] flex items-center justify-center">
+                          <span className="text-[8px] font-semibold text-[#9B9BA5]">JD</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-[9px] font-medium text-[#FAFAFB] truncate">john.doe</div>
@@ -317,17 +356,25 @@ export function LandingPage() {
                       <div className="flex items-center h-7 w-52 rounded-lg border border-[#1C1C21] bg-[#111114] px-2.5 gap-2">
                         <svg className="w-3 h-3 text-[#4A4A54]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                         <span className="text-[9px] text-[#4A4A54]">Search anything...</span>
-                        <span className="ml-auto text-[7px] text-[#3A3A42] bg-[#16161A] border border-[#1C1C21] rounded px-1.5 py-0.5 font-mono">K</span>
+                        <span className="ml-auto text-[7px] text-[#3A3A42] bg-[#16161A] border border-[#1C1C21] rounded px-1.5 py-0.5 font-mono">⌘K</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <div className="relative w-7 h-7 rounded-lg flex items-center justify-center">
+                        <div className="relative w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#16161A] transition-colors">
                           <svg className="w-3.5 h-3.5 text-[#6B6B76]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                          <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
+                          <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FAFAFB]" />
+                        </div>
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#16161A] transition-colors">
+                          <svg className="w-3.5 h-3.5 text-[#6B6B76]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </div>
+                        <div className="w-px h-5 bg-[#1C1C21] mx-1" />
+                        <div className="flex items-center gap-2 pl-1">
+                          <div className="w-6 h-6 rounded-full bg-[#1C1C21] border border-[#24242A] flex items-center justify-center">
+                            <span className="text-[7px] font-semibold text-[#9B9BA5]">JD</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Dashboard content */}
                     <div className="flex-1 p-5 overflow-hidden bg-[#111114]">
                       <div className="flex items-center justify-between mb-5">
                         <div>
@@ -335,14 +382,17 @@ export function LandingPage() {
                           <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">Dashboard</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="h-7 px-3 bg-[#8B5CF6] rounded-lg flex items-center gap-1.5">
-                            <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4v16m8-8H4"/></svg>
-                            <span className="text-[10px] font-medium text-white">New Campaign</span>
+                          <div className="h-7 px-3 bg-[#16161A] border border-[#1C1C21] rounded-lg flex items-center gap-1.5">
+                            <svg className="w-3 h-3 text-[#6B6B76]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span className="text-[9px] font-medium text-[#9B9BA5]">Export</span>
+                          </div>
+                          <div className="h-7 px-3 bg-[#FAFAFB] rounded-lg flex items-center gap-1.5">
+                            <svg className="w-3 h-3 text-[#0A0A0B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4v16m8-8H4"/></svg>
+                            <span className="text-[10px] font-medium text-[#0A0A0B]">New Campaign</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Stats row */}
                       <div className="grid grid-cols-4 gap-3 mb-5">
                         {[
                           { label: 'Total Campaigns', val: '24', change: '+12%', trend: [30,35,28,42,38,45,52,48,55,62] },
@@ -352,24 +402,36 @@ export function LandingPage() {
                         ].map((stat) => (
                           <div key={stat.label} className="p-3 bg-[#0C0C0F] rounded-lg border border-[#1C1C21]">
                             <div className="flex items-start justify-between mb-1.5">
-                              <div className="text-[8px] text-[#6B6B76]">{stat.label}</div>
+                              <div className="w-3.5 h-3.5 rounded bg-[#1C1C21]" />
                               <span className="text-[8px] font-medium text-[#4ADE80]">{stat.change}</span>
                             </div>
-                            <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight mb-2">{stat.val}</div>
+                            <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">{stat.val}</div>
+                            <div className="text-[8px] text-[#6B6B76] mt-0.5 mb-2">{stat.label}</div>
                             <svg className="w-full h-4" viewBox="0 0 100 40" preserveAspectRatio="none">
-                              <polyline fill="none" stroke="#3A3A42" strokeWidth="2" points={stat.trend.map((v, i) => `${i * 11.1},${40 - v * 0.6}`).join(' ')} />
-                              <polyline fill="none" stroke="#8B5CF6" strokeWidth="2" strokeOpacity="0.6" strokeLinecap="round" strokeLinejoin="round" points={stat.trend.slice(-4).map((v, i) => `${(i + 6) * 11.1},${40 - v * 0.6}`).join(' ')} />
+                              <polyline
+                                fill="none"
+                                stroke="#3A3A42"
+                                strokeWidth="2"
+                                points={stat.trend.map((v, i) => `${i * 11.1},${40 - v * 0.6}`).join(' ')}
+                              />
+                              <polyline
+                                fill="none"
+                                stroke="#FAFAFB"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                points={stat.trend.slice(-4).map((v, i) => `${(i + 6) * 11.1},${40 - v * 0.6}`).join(' ')}
+                              />
                             </svg>
                           </div>
                         ))}
                       </div>
 
-                      {/* Content grid */}
                       <div className="grid grid-cols-5 gap-4">
                         <div className="col-span-3">
                           <div className="flex items-center justify-between mb-2.5">
                             <span className="text-[10px] font-semibold text-[#FAFAFB]">Recent Campaigns</span>
-                            <span className="text-[9px] text-[#6B6B76]">View all</span>
+                            <span className="text-[9px] text-[#6B6B76] hover:text-[#9B9BA5] cursor-pointer transition-colors">View all &rarr;</span>
                           </div>
                           <div className="border border-[#1C1C21] rounded-lg bg-[#0C0C0F] overflow-hidden">
                             <div className="flex items-center px-3.5 py-2 border-b border-[#1C1C21] bg-[#0A0A0D]">
@@ -385,13 +447,26 @@ export function LandingPage() {
                               { name: 'Re-engagement Series', status: 'Paused', statusColor: '#FACC15', sent: '856', opens: '45%', replies: '2.1%' },
                               { name: 'December Newsletter', status: 'Done', statusColor: '#6B6B76', sent: '5,420', opens: '61%', replies: '3.4%' },
                             ].map((campaign, i) => (
-                              <div key={campaign.name} className={`flex items-center px-3.5 py-2.5 hover:bg-[#111114] transition-colors ${i < 3 ? 'border-b border-[#1C1C21]' : ''}`}>
+                              <div
+                                key={campaign.name}
+                                className={`flex items-center px-3.5 py-2.5 hover:bg-[#111114] transition-colors ${
+                                  i < 3 ? 'border-b border-[#1C1C21]' : ''
+                                }`}
+                              >
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                   <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: campaign.statusColor }} />
                                   <span className="text-[10px] font-medium text-[#FAFAFB] truncate">{campaign.name}</span>
                                 </div>
                                 <div className="w-16 flex justify-center">
-                                  <span className="text-[8px] font-medium px-1.5 py-0.5 rounded" style={{ color: campaign.statusColor, backgroundColor: campaign.statusColor + '12' }}>{campaign.status}</span>
+                                  <span
+                                    className="text-[8px] font-medium px-1.5 py-0.5 rounded"
+                                    style={{
+                                      color: campaign.statusColor,
+                                      backgroundColor: campaign.statusColor + '12',
+                                    }}
+                                  >
+                                    {campaign.status}
+                                  </span>
                                 </div>
                                 <span className="text-[9px] text-[#9B9BA5] w-14 text-right font-mono">{campaign.sent}</span>
                                 <span className="text-[9px] text-[#9B9BA5] w-14 text-right font-mono">{campaign.opens}</span>
@@ -400,22 +475,27 @@ export function LandingPage() {
                             ))}
                           </div>
                         </div>
+
                         <div className="col-span-2">
                           <span className="text-[10px] font-semibold text-[#FAFAFB] block mb-2.5">Engagement Overview</span>
                           <div className="space-y-2">
                             {[
-                              { label: 'Open Rate', value: '68.2%', pct: 68 },
-                              { label: 'Click Rate', value: '12.4%', pct: 24 },
-                              { label: 'Reply Rate', value: '4.8%', pct: 10 },
-                              { label: 'Bounce Rate', value: '1.2%', pct: 2 },
+                              { label: 'Open Rate', value: '68.2%', pct: 68, prev: '64.1%' },
+                              { label: 'Click Rate', value: '12.4%', pct: 24, prev: '10.8%' },
+                              { label: 'Reply Rate', value: '4.8%', pct: 10, prev: '4.2%' },
+                              { label: 'Bounce Rate', value: '1.2%', pct: 2, prev: '1.5%' },
                             ].map((metric) => (
                               <div key={metric.label} className="p-2.5 bg-[#0C0C0F] rounded-lg border border-[#1C1C21]">
                                 <div className="flex items-center justify-between">
                                   <div className="text-[8px] text-[#6B6B76]">{metric.label}</div>
+                                  <div className="text-[7px] text-[#4A4A54]">prev: {metric.prev}</div>
                                 </div>
                                 <div className="text-[13px] font-semibold text-[#FAFAFB] tracking-tight mt-0.5 mb-1.5">{metric.value}</div>
                                 <div className="w-full h-1 rounded-full bg-[#1C1C21]">
-                                  <div className="h-1 rounded-full bg-[#8B5CF6] transition-all duration-1000" style={{ width: `${metric.pct}%` }} />
+                                  <div
+                                    className="h-1 rounded-full bg-[#FAFAFB] transition-all duration-1000"
+                                    style={{ width: `${metric.pct}%` }}
+                                  />
                                 </div>
                               </div>
                             ))}
@@ -455,16 +535,10 @@ export function LandingPage() {
       {/* Stats */}
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, i) => (
-              <div
-                key={stat.label}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 text-center p-8 rounded-2xl landing-card"
-                style={{ transitionDelay: `${i * 80}ms` }}
-              >
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-                  <AnimatedCounter target={stat.value} />
-                </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
+            {stats.map((stat) => (
+              <div key={stat.label} className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 text-center p-8 bg-[var(--bg-surface)]">
+                <div className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">{stat.value}</div>
                 <div className="mt-1.5 text-sm text-[var(--text-secondary)]">{stat.label}</div>
               </div>
             ))}
@@ -476,9 +550,11 @@ export function LandingPage() {
       <section id="features" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Platform</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-              Everything you need to dominate outreach
+            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Platform</p>
+            <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
+              Everything you need to
+              <br />
+              dominate outreach
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
               Stop juggling tools. SkySend brings your entire outreach workflow into one
@@ -486,16 +562,14 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-card p-7 rounded-2xl"
+                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 p-8 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] transition-colors"
                 style={{ transitionDelay: `${i * 60}ms` }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
-                  <feature.icon className="h-5 w-5 text-[#8B5CF6]" strokeWidth={1.5} />
-                </div>
+                <feature.icon className="h-5 w-5 text-[var(--text-primary)] mb-4" strokeWidth={1.5} />
                 <h3 className="text-base font-semibold text-[var(--text-primary)] mb-2">{feature.title}</h3>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{feature.description}</p>
               </div>
@@ -504,132 +578,12 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Rocket Send */}
-      <section id="rocket-send" className="py-24 border-t border-[var(--border-subtle)] relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-              <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Rocket Send</p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight mb-6">
-                Launch campaigns at lightspeed
-              </h2>
-              <p className="text-lg text-[var(--text-secondary)] leading-relaxed mb-8">
-                Rocket Send intelligently distributes your emails across optimal time windows,
-                warming up sending patterns and maximizing deliverability. Set your audience,
-                craft your message, and watch your pipeline ignite.
-              </p>
-
-              <div className="space-y-5">
-                {[
-                  {
-                    icon: Clock,
-                    title: 'AI-Optimized Timing',
-                    description: 'Machine learning analyzes recipient behavior to send each email at the perfect moment.',
-                  },
-                  {
-                    icon: Shield,
-                    title: 'Smart Throttling',
-                    description: 'Automatic rate limiting protects your sender reputation while maximizing throughput.',
-                  },
-                  {
-                    icon: Target,
-                    title: 'Adaptive Sequences',
-                    description: 'Dynamically adjust follow-up cadence based on engagement signals and intent data.',
-                  },
-                ].map((item) => (
-                  <div key={item.title} className="flex gap-4">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
-                      <item.icon className="h-4.5 w-4.5 text-[#8B5CF6]" strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-1">{item.title}</h4>
-                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{item.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8">
-                <Link to="/signup" className="landing-cta-btn text-sm px-6 py-3 rounded-xl font-medium">
-                  Try Rocket Send
-                  <Rocket className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Rocket Send visual */}
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: '150ms' }}>
-              <div className="landing-card rounded-2xl p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-[#8B5CF6] flex items-center justify-center">
-                    <Rocket className="h-5 w-5 text-white" strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-[var(--text-primary)]">Rocket Send</div>
-                    <div className="text-xs text-[var(--text-tertiary)]">Q1 Enterprise Campaign</div>
-                  </div>
-                  <div className="ml-auto px-2.5 py-1 rounded-full bg-[#10B981]/10 text-[10px] font-medium text-[#10B981]">Live</div>
-                </div>
-
-                {/* Send progress */}
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs text-[var(--text-secondary)]">Delivery progress</span>
-                      <span className="text-xs font-semibold text-[var(--text-primary)]">2,847 / 4,200</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-[var(--bg-elevated)]">
-                      <div className="h-2 rounded-full bg-[#8B5CF6]" style={{ width: '68%' }} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timeline */}
-                <div className="space-y-3">
-                  {[
-                    { time: '09:14 AM', action: 'Batch 1 delivered', count: '842 emails', status: 'done' },
-                    { time: '11:30 AM', action: 'Batch 2 delivered', count: '1,205 emails', status: 'done' },
-                    { time: '02:45 PM', action: 'Batch 3 sending', count: '800 emails', status: 'active' },
-                    { time: '05:00 PM', action: 'Batch 4 scheduled', count: '1,353 emails', status: 'pending' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        item.status === 'done' ? 'bg-[#10B981]' :
-                        item.status === 'active' ? 'bg-[#8B5CF6] animate-pulse' :
-                        'bg-[var(--border-default)]'
-                      }`} />
-                      <span className="text-xs text-[var(--text-tertiary)] w-16 font-mono">{item.time}</span>
-                      <span className="text-xs text-[var(--text-primary)] flex-1">{item.action}</span>
-                      <span className="text-xs text-[var(--text-tertiary)]">{item.count}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Metrics row */}
-                <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-[var(--border-subtle)]">
-                  {[
-                    { label: 'Open Rate', value: '72.4%' },
-                    { label: 'Reply Rate', value: '6.2%' },
-                    { label: 'Bounce Rate', value: '0.3%' },
-                  ].map((m) => (
-                    <div key={m.label} className="text-center">
-                      <div className="text-lg font-bold text-[var(--text-primary)]">{m.value}</div>
-                      <div className="text-[10px] text-[var(--text-tertiary)]">{m.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* How it works */}
       <section className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">How it works</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
+            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Process</p>
+            <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
               From cold list to closed deal
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
@@ -637,7 +591,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 step: '01',
@@ -654,21 +608,15 @@ export function LandingPage() {
               {
                 step: '03',
                 title: 'Engage & Convert',
-                description: 'AI classifies every reply, drafts responses, and surfaces the hottest leads. Focus on conversations that close.',
+                description: 'SARA AI classifies every reply, drafts responses, and surfaces the hottest leads. Focus on conversations that close.',
                 icon: TrendingUp,
               },
             ].map((step, i) => (
-              <div
-                key={step.step}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500"
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
-                <div className="landing-card p-8 rounded-2xl h-full relative overflow-hidden">
-                  <div className="absolute top-6 right-6 text-6xl font-bold text-[var(--border-subtle)] leading-none opacity-50">{step.step}</div>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
-                    <step.icon className="h-6 w-6 text-[#8B5CF6]" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3">{step.title}</h3>
+              <div key={step.step} className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
+                <div className="p-8 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] h-full">
+                  <div className="text-5xl font-semibold text-[var(--border-default)] mb-6">{step.step}</div>
+                  <step.icon className="h-5 w-5 text-[var(--text-primary)] mb-4" strokeWidth={1.5} />
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{step.title}</h3>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{step.description}</p>
                 </div>
               </div>
@@ -677,51 +625,58 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="py-24 border-t border-[var(--border-subtle)]">
-        <div className="mx-auto max-w-6xl px-6">
+      {/* Testimonials - Premium design */}
+      <section id="testimonials" className="py-24 border-t border-[var(--border-subtle)] relative overflow-hidden">
+        {/* Subtle gradient background for testimonials */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: 'radial-gradient(circle, #8B5CF6, transparent)' }} />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: 'radial-gradient(circle, #06B6D4, transparent)' }} />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Testimonials</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-              Trusted by revenue leaders
+            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Testimonials</p>
+            <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
+              Loved by revenue teams
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
-              See how teams are transforming their outreach with SkySend.
+              See why the fastest-growing companies trust SkySend to power their outreach.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Masonry-style testimonial grid */}
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
             {testimonials.map((testimonial, i) => (
               <div
                 key={testimonial.author}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-testimonial-card rounded-2xl overflow-hidden"
-                style={{ transitionDelay: `${i * 100}ms` }}
+                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 break-inside-avoid"
+                style={{ transitionDelay: `${i * 80}ms` }}
               >
-                {/* Metric banner */}
-                <div className="px-6 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center">
-                      <TrendingUp className="h-5 w-5 text-[#8B5CF6]" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-[var(--text-primary)]">{testimonial.metric}</div>
-                      <div className="text-xs text-[var(--text-tertiary)]">{testimonial.metricDetail}</div>
-                    </div>
+                <div className="group rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 hover:border-[var(--border-default)] transition-all duration-300 hover:shadow-[var(--shadow-lg)]">
+                  {/* Metric highlight */}
+                  <div className="mb-5 pb-5 border-b border-[var(--border-subtle)]">
+                    <div className="text-3xl font-bold landing-gradient-text">{testimonial.metric}</div>
+                    <div className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">{testimonial.metricLabel}</div>
                   </div>
-                </div>
 
-                <div className="p-6">
-                  <div className="flex gap-1 mb-4">
+                  {/* Quote */}
+                  <div className="relative mb-6">
+                    <Quote className="absolute -top-1 -left-1 h-6 w-6 text-[var(--text-muted)] opacity-40" />
+                    <p className="text-sm text-[var(--text-primary)] leading-relaxed pl-7">
+                      {testimonial.quote}
+                    </p>
+                  </div>
+
+                  {/* Stars */}
+                  <div className="flex gap-0.5 mb-5">
                     {[...Array(5)].map((_, j) => (
-                      <Star key={j} className="h-3.5 w-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+                      <Star key={j} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
 
-                  <Quote className="h-5 w-5 text-[var(--border-default)] mb-3" />
-                  <p className="text-sm text-[var(--text-primary)] leading-relaxed mb-6">{testimonial.quote}</p>
-
-                  <div className="flex items-center gap-3 pt-4 border-t border-[var(--border-subtle)]">
-                    <div className="h-10 w-10 rounded-full bg-[#8B5CF6] flex items-center justify-center text-xs font-bold text-white">
+                  {/* Author */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold text-white landing-avatar-gradient">
                       {testimonial.avatar}
                     </div>
                     <div>
@@ -740,8 +695,8 @@ export function LandingPage() {
       <section id="pricing" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Pricing</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
+            <p className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-3">Pricing</p>
+            <h2 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tracking-tight">
               Simple, transparent pricing
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
@@ -751,28 +706,26 @@ export function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Free Plan */}
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-card p-8 rounded-2xl">
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 p-8 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-[var(--text-primary)]">Free</h3>
-                <p className="text-sm text-[var(--text-secondary)] mt-1">Everything you need to get started.</p>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Free</h3>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">Everything you need to get started with outreach.</p>
               </div>
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-bold text-[var(--text-primary)]">&pound;0</span>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-semibold text-[var(--text-primary)]">&pound;0</span>
                 <span className="text-sm text-[var(--text-tertiary)]">forever</span>
               </div>
               <Link
                 to="/signup"
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border border-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all mb-8"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium border border-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors mb-6"
               >
                 Get started
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-              <div className="space-y-3.5">
+              <div className="space-y-3">
                 {['1,000 emails/month', '500 contacts', 'Basic sequences', 'Email support', 'Analytics dashboard'].map((feature) => (
                   <div key={feature} className="flex items-center gap-2.5 text-sm text-[var(--text-secondary)]">
-                    <div className="w-4 h-4 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center flex-shrink-0">
-                      <Check className="h-2.5 w-2.5 text-[var(--text-tertiary)]" strokeWidth={3} />
-                    </div>
+                    <Check className="h-4 w-4 text-[var(--text-tertiary)] flex-shrink-0" strokeWidth={2} />
                     {feature}
                   </div>
                 ))}
@@ -780,31 +733,29 @@ export function LandingPage() {
             </div>
 
             {/* Lifetime Plan */}
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 relative landing-card-featured p-8 rounded-2xl" style={{ transitionDelay: '100ms' }}>
-              <div className="absolute -top-3 left-6 px-4 py-1 rounded-full bg-[#8B5CF6] text-white text-xs font-semibold">
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 relative p-8 rounded-xl border-2 border-[var(--text-primary)] bg-[var(--bg-surface)]" style={{ transitionDelay: '100ms' }}>
+              <div className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium">
                 Best value
               </div>
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-[var(--text-primary)]">Lifetime</h3>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Lifetime</h3>
                 <p className="text-sm text-[var(--text-secondary)] mt-1">Unlimited access. One payment. No recurring fees.</p>
               </div>
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-bold text-[var(--text-primary)]">&pound;299</span>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-semibold text-[var(--text-primary)]">&pound;299</span>
                 <span className="text-sm text-[var(--text-tertiary)]">one-time</span>
               </div>
               <Link
                 to="/signup"
-                className="w-full landing-cta-btn flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium mb-8"
+                className="w-full btn-primary flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium mb-6"
               >
                 Get lifetime access
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-              <div className="space-y-3.5">
-                {['Unlimited emails', 'Unlimited contacts', 'AI assistant', 'A/B testing', 'API access', 'Priority support', 'Custom domains', 'SSO & SAML'].map((feature) => (
+              <div className="space-y-3">
+                {['Unlimited emails', 'Unlimited contacts', 'SARA AI assistant', 'A/B testing', 'API access', 'Priority support', 'Custom domains', 'SSO & SAML'].map((feature) => (
                   <div key={feature} className="flex items-center gap-2.5 text-sm text-[var(--text-secondary)]">
-                    <div className="w-4 h-4 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-2.5 w-2.5 text-[#8B5CF6]" strokeWidth={3} />
-                    </div>
+                    <Check className="h-4 w-4 text-[var(--text-primary)] flex-shrink-0" strokeWidth={2} />
                     {feature}
                   </div>
                 ))}
@@ -817,22 +768,22 @@ export function LandingPage() {
       {/* CTA */}
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="landing-cta-section rounded-3xl p-12 sm:p-20 text-center relative overflow-hidden">
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[#0A0A0B] p-12 sm:p-20 text-center relative overflow-hidden">
+            {/* Subtle gradient glow in CTA */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-[0.08]" style={{ background: 'radial-gradient(ellipse, #8B5CF6, #06B6D4, transparent)' }} />
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
-                Ready to transform
-                <br />
-                your outreach?
+              <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight mb-4">
+                Ready to transform your outreach?
               </h2>
               <p className="text-lg text-white/60 max-w-xl mx-auto mb-10">
                 Join thousands of revenue teams using SkySend to book more meetings and close more deals.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-white text-[#0A0A0B] font-semibold px-8 py-3.5 rounded-xl text-base hover:bg-white/90 transition-all shadow-lg">
-                  Start for free
+                <Link to="/signup" className="inline-flex items-center gap-2 bg-white text-[#0A0A0B] font-medium px-8 py-3 rounded-lg text-base hover:bg-white/90 transition-colors">
+                  Get started free
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link to="/login" className="inline-flex items-center gap-2 bg-transparent text-white/80 font-medium px-8 py-3.5 rounded-xl text-base border border-white/20 hover:bg-white/10 transition-all">
+                <Link to="/login" className="inline-flex items-center gap-2 bg-transparent text-white/80 font-medium px-8 py-3 rounded-lg text-base border border-white/20 hover:bg-white/10 transition-colors">
                   Sign in
                 </Link>
               </div>
@@ -854,7 +805,7 @@ export function LandingPage() {
               </p>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Product</h4>
+              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-4">Product</h4>
               <div className="space-y-2.5">
                 <a href="#features" className="block text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Features</a>
                 <a href="#pricing" className="block text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Pricing</a>
@@ -863,7 +814,7 @@ export function LandingPage() {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Company</h4>
+              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-4">Company</h4>
               <div className="space-y-2.5">
                 <a href="#" className="block text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">About</a>
                 <a href="#" className="block text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Blog</a>
@@ -872,7 +823,7 @@ export function LandingPage() {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Legal</h4>
+              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-4">Legal</h4>
               <div className="space-y-2.5">
                 <a href="#" className="block text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Privacy</a>
                 <a href="#" className="block text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Terms</a>
@@ -902,104 +853,73 @@ export function LandingPage() {
           transform: translateY(0) !important;
         }
 
-        /* Hero background - subtle */
-        .landing-hero-bg {
+        /* Animated gradient orbs - purple, blue, green color-changing */
+        .landing-gradient-orb {
           position: absolute;
-          inset: 0;
-          overflow: hidden;
+          border-radius: 50%;
+          filter: blur(120px);
           pointer-events: none;
         }
-        .landing-hero-bg::before {
-          content: '';
-          position: absolute;
-          top: -20%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 800px;
+        .landing-gradient-orb-1 {
+          width: 600px;
           height: 600px;
-          background: radial-gradient(ellipse, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
-          border-radius: 50%;
-        }
-        .landing-hero-bg::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
-        }
-
-        /* CTA Button */
-        .landing-cta-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
+          top: -200px;
+          left: -100px;
           background: #8B5CF6;
-          color: white;
-          transition: all 0.2s ease;
+          opacity: 0.08;
+          animation: landing-orb-float-1 12s ease-in-out infinite;
         }
-        .landing-cta-btn:hover {
-          background: #7C3AED;
-          transform: translateY(-1px);
+        .landing-gradient-orb-2 {
+          width: 500px;
+          height: 500px;
+          top: -100px;
+          right: -100px;
+          background: #06B6D4;
+          opacity: 0.06;
+          animation: landing-orb-float-2 15s ease-in-out infinite;
         }
-        .landing-cta-shadow {
-          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
-        }
-
-        /* Mockup container */
-        .landing-mockup-container {
-          border: 1px solid var(--border-default);
-          background: #0A0A0B;
-          box-shadow: 0 32px 80px -12px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Shared card style */
-        .landing-card {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-subtle);
-          transition: all 0.3s ease;
-        }
-        .landing-card:hover {
-          border-color: var(--border-strong);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-        }
-        .dark .landing-card:hover {
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        .landing-gradient-orb-3 {
+          width: 400px;
+          height: 400px;
+          bottom: -100px;
+          left: 30%;
+          background: #10B981;
+          opacity: 0.05;
+          animation: landing-orb-float-3 18s ease-in-out infinite;
         }
 
-        /* Featured card (pricing) */
-        .landing-card-featured {
-          background: var(--bg-surface);
-          border: 2px solid #8B5CF6;
-          transition: all 0.3s ease;
-          box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 8px 30px rgba(139, 92, 246, 0.06);
+        @keyframes landing-orb-float-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.08; background: #8B5CF6; }
+          33% { transform: translate(80px, 40px) scale(1.1); opacity: 0.10; background: #7C3AED; }
+          66% { transform: translate(-40px, 60px) scale(0.95); opacity: 0.06; background: #A78BFA; }
         }
-        .landing-card-featured:hover {
-          box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.15), 0 12px 40px rgba(139, 92, 246, 0.1);
-          transform: translateY(-2px);
+        @keyframes landing-orb-float-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.06; background: #06B6D4; }
+          33% { transform: translate(-60px, 30px) scale(1.15); opacity: 0.08; background: #0EA5E9; }
+          66% { transform: translate(40px, -20px) scale(0.9); opacity: 0.05; background: #22D3EE; }
         }
-
-        /* Testimonial card */
-        .landing-testimonial-card {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-subtle);
-          transition: all 0.3s ease;
-        }
-        .landing-testimonial-card:hover {
-          border-color: var(--border-strong);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-        }
-        .dark .landing-testimonial-card:hover {
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        @keyframes landing-orb-float-3 {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.05; background: #10B981; }
+          33% { transform: translate(60px, -40px) scale(1.1); opacity: 0.07; background: #34D399; }
+          66% { transform: translate(-30px, -20px) scale(0.95); opacity: 0.04; background: #059669; }
         }
 
-        /* CTA section */
-        .landing-cta-section {
-          background: linear-gradient(135deg, #1a0a2e 0%, #0A0A0B 50%, #0a1628 100%);
-          border: 1px solid rgba(139, 92, 246, 0.1);
+        /* Gradient text for testimonial metrics */
+        .landing-gradient-text {
+          background: linear-gradient(135deg, #8B5CF6, #06B6D4, #10B981);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        /* Avatar gradient */
+        .landing-avatar-gradient {
+          background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+        }
+
+        /* Dashboard glow */
+        .landing-dashboard-glow {
+          box-shadow: 0 32px 80px -12px rgba(0,0,0,0.6), 0 0 120px -40px rgba(139, 92, 246, 0.15), 0 0 120px -40px rgba(6, 182, 212, 0.1);
         }
       `}</style>
     </div>
