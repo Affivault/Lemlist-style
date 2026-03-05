@@ -14,12 +14,12 @@ import {
   TrendingUp,
   Lock,
   ChevronRight,
-  Play,
-  MousePointerClick,
-  MessageSquare,
-  Target,
+  Rocket,
   Clock,
-  Layers,
+  Send,
+  Target,
+  MessageSquare,
+  Quote,
 } from 'lucide-react';
 import { SkySendLogo } from '../components/SkySendLogo';
 
@@ -27,75 +27,75 @@ const features = [
   {
     icon: Zap,
     title: 'Intelligent Sequences',
-    description: 'Multi-step campaigns with AI-optimized send times, smart delays, and conditional branching.',
+    description: 'Multi-step campaigns with AI-optimized send times, smart delays, and conditional branching that adapts to recipient behavior.',
     color: '#8B5CF6',
-    bgColor: 'rgba(139, 92, 246, 0.08)',
   },
   {
     icon: Users,
     title: 'Contact Intelligence',
-    description: 'Import, enrich, and segment contacts with AI-powered field mapping and deduplication.',
-    color: '#06B6D4',
-    bgColor: 'rgba(6, 182, 212, 0.08)',
+    description: 'Import, enrich, and segment contacts with AI-powered field mapping. Automatic deduplication keeps your data pristine.',
+    color: '#8B5CF6',
   },
   {
     icon: BarChart3,
     title: 'Real-time Analytics',
-    description: 'Granular performance dashboards with A/B testing insights across every touchpoint.',
-    color: '#F59E0B',
-    bgColor: 'rgba(245, 158, 11, 0.08)',
+    description: 'Granular performance dashboards with A/B testing insights. Track every touchpoint across your pipeline.',
+    color: '#8B5CF6',
   },
   {
     icon: Shield,
     title: 'Deliverability Engine',
-    description: 'Built-in warmup, reputation monitoring, and domain health scoring for inbox placement.',
-    color: '#10B981',
-    bgColor: 'rgba(16, 185, 129, 0.08)',
+    description: 'Built-in warmup, reputation monitoring, and domain health scoring. Every email lands in the primary inbox.',
+    color: '#8B5CF6',
   },
   {
     icon: Sparkles,
     title: 'AI-Powered Inbox',
-    description: 'Smart email tagging classifies replies by intent. AI reply assist drafts responses instantly.',
-    color: '#EC4899',
-    bgColor: 'rgba(236, 72, 153, 0.08)',
+    description: 'Smart email tagging automatically classifies replies by intent. AI reply assist helps you draft responses in seconds.',
+    color: '#8B5CF6',
   },
   {
     icon: Lock,
     title: 'Enterprise Security',
-    description: 'SOC 2 compliant with end-to-end encryption, SSO integration, and role-based access.',
-    color: '#6366F1',
-    bgColor: 'rgba(99, 102, 241, 0.08)',
+    description: 'SOC 2 compliant with end-to-end encryption, SSO integration, and granular role-based access controls.',
+    color: '#8B5CF6',
   },
 ];
 
 const stats = [
-  { value: '10M+', label: 'Emails delivered monthly', icon: Mail },
-  { value: '98.7%', label: 'Average deliverability', icon: Target },
-  { value: '3.2x', label: 'Reply rate improvement', icon: TrendingUp },
-  { value: '500+', label: 'Enterprise teams active', icon: Users },
+  { value: '10M+', label: 'Emails delivered monthly' },
+  { value: '98.7%', label: 'Average deliverability' },
+  { value: '3.2x', label: 'Reply rate improvement' },
+  { value: '500+', label: 'Enterprise teams active' },
 ];
 
 const testimonials = [
   {
-    quote: "SkySend transformed our outbound pipeline. We went from 2% to 12% reply rates in three weeks.",
+    quote: "SkySend transformed our outbound pipeline. We went from 2% to 12% reply rates in three weeks. The AI-driven send optimization alone was worth the switch.",
     author: "Sarah Chen",
     role: "Head of Sales",
     company: "TechCorp",
     metric: "6x reply rate",
+    metricDetail: "in 3 weeks",
+    avatar: "SC",
   },
   {
-    quote: "Finally, an outreach tool built for enterprise. The analytics granularity gives us confidence at scale.",
+    quote: "Finally, an outreach tool built for enterprise. The analytics granularity and deliverability monitoring give us confidence at scale.",
     author: "Marcus Johnson",
     role: "VP Sales",
     company: "GrowthLabs",
     metric: "42% more meetings",
+    metricDetail: "quarter over quarter",
+    avatar: "MJ",
   },
   {
-    quote: "AI tagging has fundamentally changed how we handle replies. Hours of work now done in minutes.",
+    quote: "SARA AI has fundamentally changed how we handle replies. What took our team hours now happens in minutes with better accuracy.",
     author: "Emily Park",
     role: "Director of Marketing",
     company: "ScaleUp",
     metric: "85% time saved",
+    metricDetail: "on reply management",
+    avatar: "EP",
   },
 ];
 
@@ -127,7 +127,7 @@ function useIntersectionObserver() {
   return ref;
 }
 
-function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: string }) {
+function AnimatedCounter({ target }: { target: string }) {
   const [display, setDisplay] = useState(target);
   const ref = useRef<HTMLSpanElement>(null);
   const hasAnimated = useRef(false);
@@ -143,14 +143,13 @@ function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: str
           const suffixPart = target.match(/[^0-9.]*$/)?.[0] || '';
 
           if (!isNaN(num)) {
-            let start = 0;
             const duration = 1500;
             const startTime = performance.now();
             const animate = (now: number) => {
               const elapsed = now - startTime;
               const progress = Math.min(elapsed / duration, 1);
               const eased = 1 - Math.pow(1 - progress, 3);
-              const current = start + (num - start) * eased;
+              const current = num * eased;
 
               if (num >= 100) {
                 setDisplay(`${prefix}${Math.round(current).toLocaleString()}${suffixPart}`);
@@ -175,12 +174,11 @@ function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: str
     return () => observer.disconnect();
   }, [target]);
 
-  return <span ref={ref}>{display}{suffix}</span>;
+  return <span ref={ref}>{display}</span>;
 }
 
 export function LandingPage() {
   const pageRef = useIntersectionObserver();
-  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
 
   return (
     <div ref={pageRef} className="landing-page min-h-screen bg-[var(--bg-app)]">
@@ -194,7 +192,7 @@ export function LandingPage() {
 
             <div className="hidden items-center gap-8 md:flex">
               <a href="#features" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Features</a>
-              <a href="#how-it-works" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">How it works</a>
+              <a href="#rocket-send" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Rocket Send</a>
               <a href="#testimonials" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Testimonials</a>
               <a href="#pricing" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Pricing</a>
             </div>
@@ -214,25 +212,23 @@ export function LandingPage() {
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 overflow-hidden">
-        {/* Background gradient orbs */}
         <div className="landing-hero-bg" />
 
         <div className="mx-auto max-w-6xl px-6 relative z-10">
           <div className="mx-auto max-w-4xl text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full landing-badge px-4 py-1.5 mb-8 opacity-0 animate-fade-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-1.5 mb-8 opacity-0 animate-fade-up">
               <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
               <span className="text-sm text-[var(--text-secondary)]">
-                Join <span className="font-semibold landing-gradient-text">500+</span> teams already using SkySend
+                Trusted by <span className="font-semibold text-[var(--text-primary)]">500+</span> revenue teams
               </span>
               <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
             </div>
 
-            {/* Main headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] opacity-0 animate-fade-up-delay-1">
+            <h1 className="text-display-xl sm:text-[5rem] lg:text-[5.5rem] leading-[1] tracking-[-0.03em] font-semibold opacity-0 animate-fade-up-delay-1">
               <span className="text-[var(--text-primary)]">Cold emails that</span>
               <br />
-              <span className="landing-gradient-text">actually get replies</span>
+              <span className="text-[var(--text-primary)]">actually get </span>
+              <span className="text-[#8B5CF6]">replies</span>
             </h1>
 
             <p className="mt-6 text-lg sm:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed opacity-0 animate-fade-up-delay-2">
@@ -240,25 +236,20 @@ export function LandingPage() {
               enriches your pipeline, and turns cold prospects into warm conversations.
             </p>
 
-            {/* CTA buttons */}
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up-delay-3">
               <Link to="/signup" className="landing-cta-btn text-base px-8 py-3.5 rounded-xl font-medium shadow-lg landing-cta-shadow">
                 Start for free
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/login" className="group inline-flex items-center gap-2 text-base px-8 py-3.5 rounded-xl font-medium border border-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all">
-                <Play className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)] transition-colors" />
                 Watch demo
               </Link>
             </div>
 
-            {/* Trust signals */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-[var(--text-tertiary)]">
               {['Free forever plan', 'No credit card required', 'Setup in 5 minutes'].map((item) => (
                 <div key={item} className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#10B981]/10 flex items-center justify-center">
-                    <Check className="h-2.5 w-2.5 text-[#10B981]" strokeWidth={3} />
-                  </div>
+                  <Check className="h-3.5 w-3.5 text-[#10B981]" strokeWidth={2.5} />
                   {item}
                 </div>
               ))}
@@ -309,7 +300,7 @@ export function LandingPage() {
                     </div>
                     <div className="border-t border-[#1C1C21] p-2">
                       <div className="flex items-center gap-2 px-2 py-1.5 rounded-md">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-[#8B5CF6] flex items-center justify-center">
                           <span className="text-[8px] font-semibold text-white">JD</span>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -344,7 +335,7 @@ export function LandingPage() {
                           <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">Dashboard</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="h-7 px-3 bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] rounded-lg flex items-center gap-1.5">
+                          <div className="h-7 px-3 bg-[#8B5CF6] rounded-lg flex items-center gap-1.5">
                             <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4v16m8-8H4"/></svg>
                             <span className="text-[10px] font-medium text-white">New Campaign</span>
                           </div>
@@ -354,21 +345,20 @@ export function LandingPage() {
                       {/* Stats row */}
                       <div className="grid grid-cols-4 gap-3 mb-5">
                         {[
-                          { label: 'Total Campaigns', val: '24', change: '+12%', trend: [30,35,28,42,38,45,52,48,55,62], color: '#8B5CF6' },
-                          { label: 'Total Contacts', val: '8,431', change: '+8%', trend: [40,42,45,43,48,52,55,58,56,60], color: '#06B6D4' },
-                          { label: 'Emails Sent', val: '42,156', change: '+24%', trend: [20,25,22,35,40,38,50,55,60,68], color: '#10B981' },
-                          { label: 'Reply Rate', val: '4.8%', change: '+0.6%', trend: [32,35,30,38,42,40,45,48,46,50], color: '#F59E0B' },
+                          { label: 'Total Campaigns', val: '24', change: '+12%', trend: [30,35,28,42,38,45,52,48,55,62] },
+                          { label: 'Total Contacts', val: '8,431', change: '+8%', trend: [40,42,45,43,48,52,55,58,56,60] },
+                          { label: 'Emails Sent', val: '42,156', change: '+24%', trend: [20,25,22,35,40,38,50,55,60,68] },
+                          { label: 'Reply Rate', val: '4.8%', change: '+0.6%', trend: [32,35,30,38,42,40,45,48,46,50] },
                         ].map((stat) => (
                           <div key={stat.label} className="p-3 bg-[#0C0C0F] rounded-lg border border-[#1C1C21]">
                             <div className="flex items-start justify-between mb-1.5">
-                              <div className="w-3.5 h-3.5 rounded" style={{ backgroundColor: stat.color + '20' }} />
+                              <div className="text-[8px] text-[#6B6B76]">{stat.label}</div>
                               <span className="text-[8px] font-medium text-[#4ADE80]">{stat.change}</span>
                             </div>
-                            <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight">{stat.val}</div>
-                            <div className="text-[8px] text-[#6B6B76] mt-0.5 mb-2">{stat.label}</div>
+                            <div className="text-[14px] font-semibold text-[#FAFAFB] tracking-tight mb-2">{stat.val}</div>
                             <svg className="w-full h-4" viewBox="0 0 100 40" preserveAspectRatio="none">
                               <polyline fill="none" stroke="#3A3A42" strokeWidth="2" points={stat.trend.map((v, i) => `${i * 11.1},${40 - v * 0.6}`).join(' ')} />
-                              <polyline fill="none" stroke={stat.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={stat.trend.slice(-4).map((v, i) => `${(i + 6) * 11.1},${40 - v * 0.6}`).join(' ')} />
+                              <polyline fill="none" stroke="#8B5CF6" strokeWidth="2" strokeOpacity="0.6" strokeLinecap="round" strokeLinejoin="round" points={stat.trend.slice(-4).map((v, i) => `${(i + 6) * 11.1},${40 - v * 0.6}`).join(' ')} />
                             </svg>
                           </div>
                         ))}
@@ -414,10 +404,10 @@ export function LandingPage() {
                           <span className="text-[10px] font-semibold text-[#FAFAFB] block mb-2.5">Engagement Overview</span>
                           <div className="space-y-2">
                             {[
-                              { label: 'Open Rate', value: '68.2%', pct: 68, color: '#8B5CF6' },
-                              { label: 'Click Rate', value: '12.4%', pct: 24, color: '#06B6D4' },
-                              { label: 'Reply Rate', value: '4.8%', pct: 10, color: '#10B981' },
-                              { label: 'Bounce Rate', value: '1.2%', pct: 2, color: '#F87171' },
+                              { label: 'Open Rate', value: '68.2%', pct: 68 },
+                              { label: 'Click Rate', value: '12.4%', pct: 24 },
+                              { label: 'Reply Rate', value: '4.8%', pct: 10 },
+                              { label: 'Bounce Rate', value: '1.2%', pct: 2 },
                             ].map((metric) => (
                               <div key={metric.label} className="p-2.5 bg-[#0C0C0F] rounded-lg border border-[#1C1C21]">
                                 <div className="flex items-center justify-between">
@@ -425,7 +415,7 @@ export function LandingPage() {
                                 </div>
                                 <div className="text-[13px] font-semibold text-[#FAFAFB] tracking-tight mt-0.5 mb-1.5">{metric.value}</div>
                                 <div className="w-full h-1 rounded-full bg-[#1C1C21]">
-                                  <div className="h-1 rounded-full transition-all duration-1000" style={{ width: `${metric.pct}%`, backgroundColor: metric.color }} />
+                                  <div className="h-1 rounded-full bg-[#8B5CF6] transition-all duration-1000" style={{ width: `${metric.pct}%` }} />
                                 </div>
                               </div>
                             ))}
@@ -469,10 +459,9 @@ export function LandingPage() {
             {stats.map((stat, i) => (
               <div
                 key={stat.label}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 text-center p-8 rounded-2xl landing-stat-card"
+                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 text-center p-8 rounded-2xl landing-card"
                 style={{ transitionDelay: `${i * 80}ms` }}
               >
-                <stat.icon className="h-5 w-5 mx-auto mb-3 landing-gradient-text-icon" strokeWidth={1.5} />
                 <div className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
                   <AnimatedCounter target={stat.value} />
                 </div>
@@ -487,14 +476,9 @@ export function LandingPage() {
       <section id="features" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <div className="inline-flex items-center gap-2 rounded-full landing-badge px-3 py-1 mb-4">
-              <Layers className="h-3.5 w-3.5 text-[#8B5CF6]" />
-              <span className="text-xs font-medium text-[var(--text-secondary)]">Platform</span>
-            </div>
+            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Platform</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-              Everything you need to
-              <br />
-              <span className="landing-gradient-text">dominate outreach</span>
+              Everything you need to dominate outreach
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
               Stop juggling tools. SkySend brings your entire outreach workflow into one
@@ -506,19 +490,11 @@ export function LandingPage() {
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-feature-card p-7 rounded-2xl cursor-default"
+                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-card p-7 rounded-2xl"
                 style={{ transitionDelay: `${i * 60}ms` }}
-                onMouseEnter={() => setHoveredFeature(i)}
-                onMouseLeave={() => setHoveredFeature(null)}
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all duration-300"
-                  style={{
-                    backgroundColor: feature.bgColor,
-                    transform: hoveredFeature === i ? 'scale(1.1)' : 'scale(1)',
-                  }}
-                >
-                  <feature.icon className="h-5 w-5" style={{ color: feature.color }} strokeWidth={1.5} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
+                  <feature.icon className="h-5 w-5 text-[#8B5CF6]" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-base font-semibold text-[var(--text-primary)] mb-2">{feature.title}</h3>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{feature.description}</p>
@@ -528,17 +504,133 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="py-24 border-t border-[var(--border-subtle)] relative overflow-hidden">
-        <div className="landing-section-glow" />
+      {/* Rocket Send */}
+      <section id="rocket-send" className="py-24 border-t border-[var(--border-subtle)] relative overflow-hidden">
         <div className="mx-auto max-w-6xl px-6 relative z-10">
-          <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <div className="inline-flex items-center gap-2 rounded-full landing-badge px-3 py-1 mb-4">
-              <MousePointerClick className="h-3.5 w-3.5 text-[#06B6D4]" />
-              <span className="text-xs font-medium text-[var(--text-secondary)]">How it works</span>
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
+              <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Rocket Send</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight mb-6">
+                Launch campaigns at lightspeed
+              </h2>
+              <p className="text-lg text-[var(--text-secondary)] leading-relaxed mb-8">
+                Rocket Send intelligently distributes your emails across optimal time windows,
+                warming up sending patterns and maximizing deliverability. Set your audience,
+                craft your message, and watch your pipeline ignite.
+              </p>
+
+              <div className="space-y-5">
+                {[
+                  {
+                    icon: Clock,
+                    title: 'AI-Optimized Timing',
+                    description: 'Machine learning analyzes recipient behavior to send each email at the perfect moment.',
+                  },
+                  {
+                    icon: Shield,
+                    title: 'Smart Throttling',
+                    description: 'Automatic rate limiting protects your sender reputation while maximizing throughput.',
+                  },
+                  {
+                    icon: Target,
+                    title: 'Adaptive Sequences',
+                    description: 'Dynamically adjust follow-up cadence based on engagement signals and intent data.',
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="flex gap-4">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
+                      <item.icon className="h-4.5 w-4.5 text-[#8B5CF6]" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-1">{item.title}</h4>
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8">
+                <Link to="/signup" className="landing-cta-btn text-sm px-6 py-3 rounded-xl font-medium">
+                  Try Rocket Send
+                  <Rocket className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
+
+            {/* Rocket Send visual */}
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: '150ms' }}>
+              <div className="landing-card rounded-2xl p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-[#8B5CF6] flex items-center justify-center">
+                    <Rocket className="h-5 w-5 text-white" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-[var(--text-primary)]">Rocket Send</div>
+                    <div className="text-xs text-[var(--text-tertiary)]">Q1 Enterprise Campaign</div>
+                  </div>
+                  <div className="ml-auto px-2.5 py-1 rounded-full bg-[#10B981]/10 text-[10px] font-medium text-[#10B981]">Live</div>
+                </div>
+
+                {/* Send progress */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-[var(--text-secondary)]">Delivery progress</span>
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">2,847 / 4,200</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-[var(--bg-elevated)]">
+                      <div className="h-2 rounded-full bg-[#8B5CF6]" style={{ width: '68%' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="space-y-3">
+                  {[
+                    { time: '09:14 AM', action: 'Batch 1 delivered', count: '842 emails', status: 'done' },
+                    { time: '11:30 AM', action: 'Batch 2 delivered', count: '1,205 emails', status: 'done' },
+                    { time: '02:45 PM', action: 'Batch 3 sending', count: '800 emails', status: 'active' },
+                    { time: '05:00 PM', action: 'Batch 4 scheduled', count: '1,353 emails', status: 'pending' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                        item.status === 'done' ? 'bg-[#10B981]' :
+                        item.status === 'active' ? 'bg-[#8B5CF6] animate-pulse' :
+                        'bg-[var(--border-default)]'
+                      }`} />
+                      <span className="text-xs text-[var(--text-tertiary)] w-16 font-mono">{item.time}</span>
+                      <span className="text-xs text-[var(--text-primary)] flex-1">{item.action}</span>
+                      <span className="text-xs text-[var(--text-tertiary)]">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Metrics row */}
+                <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-[var(--border-subtle)]">
+                  {[
+                    { label: 'Open Rate', value: '72.4%' },
+                    { label: 'Reply Rate', value: '6.2%' },
+                    { label: 'Bounce Rate', value: '0.3%' },
+                  ].map((m) => (
+                    <div key={m.label} className="text-center">
+                      <div className="text-lg font-bold text-[var(--text-primary)]">{m.value}</div>
+                      <div className="text-[10px] text-[var(--text-tertiary)]">{m.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-24 border-t border-[var(--border-subtle)]">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
+            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">How it works</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-              From cold list to <span className="landing-gradient-text">closed deal</span>
+              From cold list to closed deal
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
               Three steps to transform your outreach pipeline.
@@ -552,21 +644,18 @@ export function LandingPage() {
                 title: 'Import & Enrich',
                 description: 'Upload your contact list or connect your CRM. AI maps fields, deduplicates entries, and enriches profiles automatically.',
                 icon: Users,
-                color: '#8B5CF6',
               },
               {
                 step: '02',
                 title: 'Build & Launch',
                 description: 'Create multi-step email sequences with the visual builder. Set conditions, A/B test, and let AI optimize send times.',
                 icon: Zap,
-                color: '#06B6D4',
               },
               {
                 step: '03',
                 title: 'Engage & Convert',
                 description: 'AI classifies every reply, drafts responses, and surfaces the hottest leads. Focus on conversations that close.',
                 icon: TrendingUp,
-                color: '#10B981',
               },
             ].map((step, i) => (
               <div
@@ -574,13 +663,10 @@ export function LandingPage() {
                 className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500"
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <div className="landing-step-card p-8 rounded-2xl h-full relative overflow-hidden">
-                  <div className="absolute top-6 right-6 text-6xl font-bold landing-step-number">{step.step}</div>
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-6"
-                    style={{ backgroundColor: step.color + '15' }}
-                  >
-                    <step.icon className="h-6 w-6" style={{ color: step.color }} strokeWidth={1.5} />
+                <div className="landing-card p-8 rounded-2xl h-full relative overflow-hidden">
+                  <div className="absolute top-6 right-6 text-6xl font-bold text-[var(--border-subtle)] leading-none opacity-50">{step.step}</div>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
+                    <step.icon className="h-6 w-6 text-[#8B5CF6]" strokeWidth={1.5} />
                   </div>
                   <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3">{step.title}</h3>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{step.description}</p>
@@ -595,40 +681,53 @@ export function LandingPage() {
       <section id="testimonials" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <div className="inline-flex items-center gap-2 rounded-full landing-badge px-3 py-1 mb-4">
-              <MessageSquare className="h-3.5 w-3.5 text-[#EC4899]" />
-              <span className="text-xs font-medium text-[var(--text-secondary)]">Testimonials</span>
-            </div>
+            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Testimonials</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-              Loved by <span className="landing-gradient-text">revenue teams</span>
+              Trusted by revenue leaders
             </h2>
+            <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
+              See how teams are transforming their outreach with SkySend.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((testimonial, i) => (
               <div
                 key={testimonial.author}
-                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-testimonial-card p-6 rounded-2xl"
+                className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-testimonial-card rounded-2xl overflow-hidden"
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                {/* Metric highlight */}
-                <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-4" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
-                  <TrendingUp className="h-3 w-3 text-[#8B5CF6]" />
-                  <span className="text-xs font-semibold text-[#8B5CF6]">{testimonial.metric}</span>
-                </div>
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-3.5 w-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-                  ))}
-                </div>
-                <p className="text-sm text-[var(--text-primary)] leading-relaxed mb-6">"{testimonial.quote}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-[var(--border-subtle)]">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
-                    {testimonial.author.split(' ').map(n => n[0]).join('')}
+                {/* Metric banner */}
+                <div className="px-6 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-[#8B5CF6]" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-[var(--text-primary)]">{testimonial.metric}</div>
+                      <div className="text-xs text-[var(--text-tertiary)]">{testimonial.metricDetail}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-[var(--text-primary)]">{testimonial.author}</div>
-                    <div className="text-xs text-[var(--text-tertiary)]">{testimonial.role}, {testimonial.company}</div>
+                </div>
+
+                <div className="p-6">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="h-3.5 w-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+                    ))}
+                  </div>
+
+                  <Quote className="h-5 w-5 text-[var(--border-default)] mb-3" />
+                  <p className="text-sm text-[var(--text-primary)] leading-relaxed mb-6">{testimonial.quote}</p>
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-[var(--border-subtle)]">
+                    <div className="h-10 w-10 rounded-full bg-[#8B5CF6] flex items-center justify-center text-xs font-bold text-white">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-[var(--text-primary)]">{testimonial.author}</div>
+                      <div className="text-xs text-[var(--text-tertiary)]">{testimonial.role}, {testimonial.company}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -641,12 +740,9 @@ export function LandingPage() {
       <section id="pricing" className="py-24 border-t border-[var(--border-subtle)]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16 animate-on-scroll opacity-0 translate-y-4 transition-all duration-500">
-            <div className="inline-flex items-center gap-2 rounded-full landing-badge px-3 py-1 mb-4">
-              <Sparkles className="h-3.5 w-3.5 text-[#F59E0B]" />
-              <span className="text-xs font-medium text-[var(--text-secondary)]">Pricing</span>
-            </div>
+            <p className="text-sm font-medium text-[#8B5CF6] mb-3 uppercase tracking-wider">Pricing</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-              Simple, <span className="landing-gradient-text">transparent</span> pricing
+              Simple, transparent pricing
             </h2>
             <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
               Start free. Upgrade once. Own it forever.
@@ -655,7 +751,7 @@ export function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Free Plan */}
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-pricing-card p-8 rounded-2xl">
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 landing-card p-8 rounded-2xl">
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-[var(--text-primary)]">Free</h3>
                 <p className="text-sm text-[var(--text-secondary)] mt-1">Everything you need to get started.</p>
@@ -684,8 +780,8 @@ export function LandingPage() {
             </div>
 
             {/* Lifetime Plan */}
-            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 relative landing-pricing-card-featured p-8 rounded-2xl" style={{ transitionDelay: '100ms' }}>
-              <div className="absolute -top-3 left-6 px-4 py-1 rounded-full landing-cta-btn text-xs font-semibold">
+            <div className="animate-on-scroll opacity-0 translate-y-4 transition-all duration-500 relative landing-card-featured p-8 rounded-2xl" style={{ transitionDelay: '100ms' }}>
+              <div className="absolute -top-3 left-6 px-4 py-1 rounded-full bg-[#8B5CF6] text-white text-xs font-semibold">
                 Best value
               </div>
               <div className="mb-6">
@@ -693,7 +789,7 @@ export function LandingPage() {
                 <p className="text-sm text-[var(--text-secondary)] mt-1">Unlimited access. One payment. No recurring fees.</p>
               </div>
               <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-bold landing-gradient-text">&pound;299</span>
+                <span className="text-5xl font-bold text-[var(--text-primary)]">&pound;299</span>
                 <span className="text-sm text-[var(--text-tertiary)]">one-time</span>
               </div>
               <Link
@@ -722,7 +818,6 @@ export function LandingPage() {
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="landing-cta-section rounded-3xl p-12 sm:p-20 text-center relative overflow-hidden">
-            <div className="landing-cta-glow" />
             <div className="relative z-10">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
                 Ready to transform
@@ -807,19 +902,7 @@ export function LandingPage() {
           transform: translateY(0) !important;
         }
 
-        /* Gradient text */
-        .landing-gradient-text {
-          background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 50%, #10B981 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .landing-gradient-text-icon {
-          color: #8B5CF6;
-        }
-
-        /* Hero background */
+        /* Hero background - subtle */
         .landing-hero-bg {
           position: absolute;
           inset: 0;
@@ -834,7 +917,7 @@ export function LandingPage() {
           transform: translateX(-50%);
           width: 800px;
           height: 600px;
-          background: radial-gradient(ellipse, rgba(139, 92, 246, 0.08) 0%, rgba(6, 182, 212, 0.04) 40%, transparent 70%);
+          background: radial-gradient(ellipse, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
           border-radius: 50%;
         }
         .landing-hero-bg::after {
@@ -846,98 +929,56 @@ export function LandingPage() {
           height: 1px;
           background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
         }
-        .dark .landing-hero-bg::before {
-          background: radial-gradient(ellipse, rgba(139, 92, 246, 0.12) 0%, rgba(6, 182, 212, 0.06) 40%, transparent 70%);
-        }
-
-        /* Badge */
-        .landing-badge {
-          border: 1px solid var(--border-default);
-          background: var(--bg-surface);
-        }
 
         /* CTA Button */
         .landing-cta-btn {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+          background: #8B5CF6;
           color: white;
           transition: all 0.2s ease;
         }
         .landing-cta-btn:hover {
-          background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+          background: #7C3AED;
           transform: translateY(-1px);
         }
         .landing-cta-shadow {
-          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
         }
 
         /* Mockup container */
         .landing-mockup-container {
           border: 1px solid var(--border-default);
           background: #0A0A0B;
-          box-shadow: 0 32px 80px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.05);
-        }
-        .dark .landing-mockup-container {
-          box-shadow: 0 32px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(139, 92, 246, 0.1);
+          box-shadow: 0 32px 80px -12px rgba(0, 0, 0, 0.4);
         }
 
-        /* Stat card */
-        .landing-stat-card {
+        /* Shared card style */
+        .landing-card {
           background: var(--bg-surface);
           border: 1px solid var(--border-subtle);
           transition: all 0.3s ease;
         }
-        .landing-stat-card:hover {
-          border-color: rgba(139, 92, 246, 0.3);
-          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.06);
-          transform: translateY(-2px);
-        }
-
-        /* Feature card */
-        .landing-feature-card {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-subtle);
-          transition: all 0.3s ease;
-        }
-        .landing-feature-card:hover {
+        .landing-card:hover {
           border-color: var(--border-strong);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
           transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
         }
-        .dark .landing-feature-card:hover {
+        .dark .landing-card:hover {
           box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
 
-        /* Step card */
-        .landing-step-card {
+        /* Featured card (pricing) */
+        .landing-card-featured {
           background: var(--bg-surface);
-          border: 1px solid var(--border-subtle);
+          border: 2px solid #8B5CF6;
           transition: all 0.3s ease;
+          box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 8px 30px rgba(139, 92, 246, 0.06);
         }
-        .landing-step-card:hover {
-          border-color: var(--border-strong);
+        .landing-card-featured:hover {
+          box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.15), 0 12px 40px rgba(139, 92, 246, 0.1);
           transform: translateY(-2px);
-        }
-        .landing-step-number {
-          color: var(--border-subtle);
-          line-height: 1;
-        }
-
-        /* Section glow */
-        .landing-section-glow {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 600px;
-          height: 400px;
-          background: radial-gradient(ellipse, rgba(6, 182, 212, 0.04) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .dark .landing-section-glow {
-          background: radial-gradient(ellipse, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
         }
 
         /* Testimonial card */
@@ -949,42 +990,16 @@ export function LandingPage() {
         .landing-testimonial-card:hover {
           border-color: var(--border-strong);
           transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
         }
-
-        /* Pricing card */
-        .landing-pricing-card {
-          background: var(--bg-surface);
-          border: 1px solid var(--border-subtle);
-          transition: all 0.3s ease;
-        }
-        .landing-pricing-card:hover {
-          border-color: var(--border-strong);
-        }
-
-        .landing-pricing-card-featured {
-          background: var(--bg-surface);
-          border: 2px solid #8B5CF6;
-          transition: all 0.3s ease;
-          box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 8px 30px rgba(139, 92, 246, 0.08);
-        }
-        .landing-pricing-card-featured:hover {
-          box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.15), 0 12px 40px rgba(139, 92, 246, 0.12);
+        .dark .landing-testimonial-card:hover {
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
 
         /* CTA section */
         .landing-cta-section {
-          background: linear-gradient(135deg, #0F0720 0%, #0A0A0B 40%, #0B1520 100%);
-          border: 1px solid rgba(139, 92, 246, 0.15);
-        }
-        .landing-cta-glow {
-          position: absolute;
-          top: -50%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 600px;
-          height: 400px;
-          background: radial-gradient(ellipse, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
-          pointer-events: none;
+          background: linear-gradient(135deg, #1a0a2e 0%, #0A0A0B 50%, #0a1628 100%);
+          border: 1px solid rgba(139, 92, 246, 0.1);
         }
       `}</style>
     </div>
