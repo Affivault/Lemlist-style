@@ -5,410 +5,259 @@ import {
   Check,
   BarChart3,
   Users,
-  Shield,
   Zap,
   Sparkles,
-  Lock,
   ChevronRight,
   TrendingUp,
-  RefreshCw,
   Mail,
+  Shield,
 } from 'lucide-react';
 import { SkySendLogo } from '../components/SkySendLogo';
 
-// ─── Data ──────────────────────────────────────────────────────────────────
+// ─── Static data ────────────────────────────────────────────────────────────
 
-const features = [
-  {
-    icon: Zap,
-    title: 'Intelligent Sequences',
-    description:
-      'Multi-step campaigns with AI-optimised send times, smart delays, and conditional branching that adapts to every prospect\'s behaviour.',
-  },
-  {
-    icon: Users,
-    title: 'Contact Intelligence',
-    description:
-      'Import, enrich, and segment contacts at scale. AI-powered field mapping and automatic deduplication keeps your data pristine.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Real-time Analytics',
-    description:
-      'Granular dashboards with A/B testing insights. Track every open, click, and reply across the full length of your pipeline.',
-  },
-  {
-    icon: Shield,
-    title: 'Deliverability Engine',
-    description:
-      'Built-in email warmup, reputation monitoring, and domain health scoring ensures your emails land in the primary inbox every time.',
-  },
-  {
-    icon: Sparkles,
-    title: 'SARA AI Inbox',
-    description:
-      'Smart reply classification automatically tags intent. AI response drafting turns hours of inbox triage into seconds.',
-  },
-  {
-    icon: Lock,
-    title: 'Enterprise Security',
-    description:
-      'SOC 2 compliant with end-to-end encryption, SSO integration, and granular role-based access controls built for large teams.',
-  },
-];
+const logos = ['Vercel', 'Stripe', 'Linear', 'Figma', 'Notion', 'Loom', 'Raycast', 'Arc'];
 
 const stats = [
-  { value: '10M+', label: 'Emails delivered monthly', icon: Mail },
-  { value: '98.7%', label: 'Average deliverability rate', icon: TrendingUp },
-  { value: '3.2×', label: 'Reply rate improvement', icon: RefreshCw },
-  { value: '500+', label: 'Enterprise teams active', icon: Users },
+  { value: '10M+', label: 'Emails sent monthly' },
+  { value: '98.7%', label: 'Deliverability rate' },
+  { value: '3.2×', label: 'Reply rate lift' },
+  { value: '500+', label: 'Enterprise teams' },
 ];
 
-const testimonials = [
-  {
-    quote:
-      'SkySend transformed our outbound pipeline. We went from 2% to 12% reply rates in three weeks. The AI-driven send optimisation alone was worth the switch.',
-    author: 'Sarah Chen',
-    role: 'Head of Sales',
-    company: 'TechCorp',
-    metric: '6×',
-    metricLabel: 'Reply rate increase',
-    initials: 'SC',
-  },
-  {
-    quote:
-      'We replaced three tools with SkySend. The unified platform saved us $40K annually while improving every metric across the board.',
-    author: 'David Kim',
-    role: 'CRO',
-    company: 'Meridian',
-    metric: '$40K',
-    metricLabel: 'Annual savings',
-    initials: 'DK',
-  },
-  {
-    quote:
-      'Our team doubled meeting bookings in the first month. The intelligent sequencing adapts to each prospect automatically — it feels like an extra SDR.',
-    author: 'James Wright',
-    role: 'Head of Revenue',
-    company: 'Catalyst',
-    metric: '2×',
-    metricLabel: 'More meetings booked',
-    initials: 'JW',
-  },
-  {
-    quote:
-      'SARA AI changed how we handle replies. What took hours now happens in minutes with better accuracy. The most impactful feature we have ever adopted.',
-    author: 'Emily Park',
-    role: 'Director of Marketing',
-    company: 'ScaleUp',
-    metric: '12×',
-    metricLabel: 'Faster response time',
-    initials: 'EP',
-  },
-  {
-    quote:
-      'The contact enrichment is remarkable. We imported 50K contacts and the AI mapped every field perfectly. Zero manual cleanup required.',
-    author: 'Lisa Morales',
-    role: 'Growth Lead',
-    company: 'Vertex AI',
-    metric: '50K',
-    metricLabel: 'Contacts enriched',
-    initials: 'LM',
-  },
-  {
-    quote:
-      'Deliverability went from 89% to 98.7% in two weeks after enabling the warmup engine. Our open rates followed immediately.',
-    author: 'Marcus Johnson',
-    role: 'VP Sales',
-    company: 'GrowthLabs',
-    metric: '98.7%',
-    metricLabel: 'Deliverability rate',
-    initials: 'MJ',
-  },
-];
-
-const plans = [
+const pricingPlans = [
   {
     name: 'Starter',
     price: '$49',
-    period: '/month',
-    description: 'For solo founders and small teams starting cold outreach.',
-    features: [
-      '2 team members',
-      '5,000 emails per month',
-      'AI-optimised sending',
-      'Basic analytics dashboard',
-      'Email support',
-    ],
+    period: '/mo',
+    description: 'For founders running their first outreach campaigns.',
+    features: ['2 seats', '5,000 emails / month', 'AI send-time optimisation', 'Analytics dashboard', 'Email support'],
     cta: 'Start free trial',
-    highlighted: false,
+    featured: false,
   },
   {
     name: 'Professional',
     price: '$149',
-    period: '/month',
-    description: 'For growing sales teams that need more power and AI.',
-    features: [
-      '10 team members',
-      '50,000 emails per month',
-      'SARA AI inbox',
-      'Advanced analytics & A/B testing',
-      'Custom domain warmup',
-      'Priority support',
-    ],
+    period: '/mo',
+    description: 'For growing teams that need advanced AI and scale.',
+    features: ['10 seats', '50,000 emails / month', 'SARA AI inbox', 'A/B testing', 'Custom domain warmup', 'Priority support'],
     cta: 'Start free trial',
-    highlighted: true,
-    badge: 'Most Popular',
+    featured: true,
   },
   {
     name: 'Enterprise',
     price: 'Custom',
     period: '',
-    description: 'Unlimited scale with dedicated infrastructure and a CSM.',
-    features: [
-      'Unlimited team members',
-      'Unlimited emails',
-      'Dedicated IP pools',
-      'SSO & SAML',
-      'SLA guarantee',
-      'Dedicated success manager',
-    ],
+    description: 'Dedicated infrastructure, SLA, and a committed CSM.',
+    features: ['Unlimited seats', 'Unlimited emails', 'Dedicated IP pools', 'SSO / SAML', 'SLA guarantee', 'Dedicated CSM'],
     cta: 'Talk to sales',
-    highlighted: false,
+    featured: false,
   },
 ];
 
-const steps = [
+const testimonials = [
   {
-    number: '01',
-    title: 'Import & Enrich Your Contacts',
-    description:
-      'Upload your prospect list and our AI automatically maps, enriches, and deduplicates every contact — no manual cleanup needed.',
-    icon: Users,
+    quote: 'We replaced three tools with SkySend. The platform saved us $40K annually while improving every metric across the board.',
+    author: 'David Kim',
+    role: 'CRO, Meridian',
+    metric: '$40K',
+    metricLabel: 'saved annually',
+    initials: 'DK',
   },
   {
-    number: '02',
-    title: 'Build Intelligent Sequences',
-    description:
-      'Create multi-step campaigns with AI-optimised timing and conditional logic that adapts in real time to each prospect\'s behaviour.',
-    icon: Zap,
+    quote: 'SARA AI handles our reply triage. What used to take my team 3 hours a day now takes 15 minutes — with better accuracy.',
+    author: 'Emily Park',
+    role: 'Director of Marketing, ScaleUp',
+    metric: '12×',
+    metricLabel: 'faster triage',
+    initials: 'EP',
   },
   {
-    number: '03',
-    title: 'Monitor, Reply & Close',
-    description:
-      'Track every touchpoint live. SARA AI handles reply triage while you focus on the conversations that move deals forward.',
-    icon: BarChart3,
+    quote: 'Deliverability went from 89% to 98.7% in under two weeks. Our meeting rate followed immediately.',
+    author: 'Marcus Johnson',
+    role: 'VP Sales, GrowthLabs',
+    metric: '98.7%',
+    metricLabel: 'deliverability',
+    initials: 'MJ',
   },
 ];
 
-const mockCampaigns = [
-  { name: 'Q4 Outreach — Series A Prospects', sent: '2,847', open: '67.2', reply: '18.4', active: true },
-  { name: 'Partnership Discovery Campaign', sent: '1,203', open: '72.8', reply: '22.1', active: true },
-  { name: 'Enterprise Demo Requests', sent: '892', open: '81.4', reply: '31.8', active: true },
-  { name: 'Investor Relations — Round B', sent: '334', open: '88.3', reply: '41.2', active: false },
-];
+const mockBarData = [38, 52, 47, 68, 61, 79, 72, 88, 83, 94, 89, 97];
+const mockDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
-const logos = ['TechCorp', 'GrowthLabs', 'Meridian', 'Vertex AI', 'Catalyst', 'NexGen', 'Prism', 'ScaleUp'];
+// ─── Scroll reveal ──────────────────────────────────────────────────────────
 
-// ─── Hook ──────────────────────────────────────────────────────────────────
-
-function useScrollReveal() {
+function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('lp-revealed');
-          }
-        });
-      },
-      { threshold: 0.06, rootMargin: '0px 0px -48px 0px' }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-visible')),
+      { threshold: 0.07, rootMargin: '0px 0px -60px 0px' }
     );
-
-    const elements = ref.current?.querySelectorAll('.lp-reveal');
-    elements?.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
+    ref.current?.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
-
   return ref;
 }
 
-// ─── Component ─────────────────────────────────────────────────────────────
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export function LandingPage() {
-  const pageRef = useScrollReveal();
+  const page = useReveal();
 
   return (
-    <div ref={pageRef} className="lp-root">
+    <div ref={page} className="lp">
 
-      {/* ══ NAVBAR ══════════════════════════════════════════════════════════ */}
-      <nav className="lp-nav">
-        <div className="lp-nav-inner">
-          <div className="lp-nav-content">
+      {/* ══════════════════════════ NAV ══════════════════════════════════════ */}
+      <header className="lp-header">
+        <div className="lp-header__inner">
+          <Link to="/" className="lp-header__logo"><SkySendLogo inverted /></Link>
 
-            <Link to="/" className="lp-nav-logo">
-              <SkySendLogo inverted />
+          <nav className="lp-header__nav">
+            <a href="#features" className="lp-header__link">Features</a>
+            <a href="#pricing"  className="lp-header__link">Pricing</a>
+            <a href="#reviews"  className="lp-header__link">Reviews</a>
+          </nav>
+
+          <div className="lp-header__actions">
+            <Link to="/login"  className="lp-header__login">Log in</Link>
+            <Link to="/signup" className="lp-btn lp-btn--primary">
+              Get started <ArrowRight size={14} />
             </Link>
-
-            <div className="lp-nav-links">
-              {[
-                { label: 'Features', href: '#features' },
-                { label: 'How It Works', href: '#how-it-works' },
-                { label: 'Customers', href: '#testimonials' },
-                { label: 'Pricing', href: '#pricing' },
-              ].map((item) => (
-                <a key={item.label} href={item.href} className="lp-nav-link">
-                  {item.label}
-                </a>
-              ))}
-            </div>
-
-            <div className="lp-nav-actions">
-              <Link to="/login" className="lp-nav-login">Log in</Link>
-              <Link to="/signup" className="lp-btn-primary">
-                Get started free
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ══ HERO ════════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════ HERO ═════════════════════════════════════ */}
       <section className="lp-hero">
-        <div className="lp-hero-grid" />
-        <div className="lp-hero-glow" />
+        {/* Grid + glow */}
+        <div className="lp-hero__grid" />
+        <div className="lp-hero__glow" />
 
-        <div className="lp-container lp-z1">
-          <div className="lp-hero-inner">
+        <div className="lp-wrap lp-hero__body">
 
-            {/* Announcement pill */}
-            <div className="lp-badge animate-fade-up">
-              <span className="lp-badge-dot" />
-              <span className="lp-badge-new">New</span>
-              <span className="lp-badge-sep" />
-              <span className="lp-badge-text">SARA AI now powered by GPT-4o</span>
-              <ChevronRight size={12} className="lp-badge-arrow" />
-            </div>
-
-            {/* Headline */}
-            <h1 className="lp-hero-headline animate-fade-up-delay-1">
-              Turn Cold Contacts Into{' '}
-              <span className="lp-gradient-text">Closed Deals</span>
-            </h1>
-
-            {/* Sub */}
-            <p className="lp-hero-sub animate-fade-up-delay-2">
-              The AI-powered outreach platform trusted by 500+ enterprise sales teams.
-              Higher deliverability, better reply rates, less manual work.
-            </p>
-
-            {/* CTAs */}
-            <div className="lp-hero-ctas animate-fade-up-delay-2">
-              <Link to="/signup" className="lp-btn-hero-primary">
-                Start for free
-                <ArrowRight size={16} />
-              </Link>
-              <Link to="/login" className="lp-btn-hero-ghost">
-                View live dashboard
-              </Link>
-            </div>
-
-            <p className="lp-hero-trust animate-fade-up-delay-3">
-              Free 14-day trial&nbsp;·&nbsp;No credit card required&nbsp;·&nbsp;Cancel anytime
-            </p>
-
+          {/* Announcement */}
+          <div className="lp-pill lp-hero__pill">
+            <span className="lp-pill__dot" />
+            <span className="lp-pill__label">New</span>
+            <span className="lp-pill__divider" />
+            <span className="lp-pill__text">SARA AI now powered by GPT-4o</span>
+            <ChevronRight size={12} className="lp-pill__arrow" />
           </div>
 
-          {/* ── Product Mockup ─────────────────────────────────────────────── */}
-          <div className="lp-mockup-wrap animate-fade-up-delay-3">
-            <div className="lp-mockup">
+          {/* Headline */}
+          <h1 className="lp-hero__headline">
+            Cold outreach,<br />
+            <em className="lp-hero__em">engineered</em> to convert.
+          </h1>
 
-              {/* Window chrome */}
-              <div className="lp-mockup-chrome">
-                <div className="lp-mockup-dots">
-                  <span className="lp-dot" />
-                  <span className="lp-dot" />
-                  <span className="lp-dot" />
-                </div>
-                <span className="lp-mockup-title">SkySend — Active Campaigns</span>
-                <div className="lp-mockup-live">
-                  <span className="lp-live-dot" />
-                  <span className="lp-live-label">3 campaigns live</span>
-                </div>
+          <p className="lp-hero__sub">
+            The AI-powered outreach platform that puts every email in the primary inbox
+            and turns cold prospects into booked meetings — at enterprise scale.
+          </p>
+
+          <div className="lp-hero__ctas">
+            <Link to="/signup" className="lp-btn lp-btn--hero">
+              Start for free <ArrowRight size={16} />
+            </Link>
+            <Link to="/login" className="lp-btn lp-btn--ghost">
+              View dashboard
+            </Link>
+          </div>
+
+          <p className="lp-hero__trust">
+            Free 14-day trial · No credit card required · Cancel anytime
+          </p>
+
+        </div>
+
+        {/* ── App Mockup ── */}
+        <div className="lp-wrap lp-hero__mockup-wrap">
+          <div className="lp-mockup">
+
+            {/* Chrome bar */}
+            <div className="lp-mockup__chrome">
+              <span className="lp-mockup__dot" />
+              <span className="lp-mockup__dot" />
+              <span className="lp-mockup__dot" />
+              <span className="lp-mockup__chrome-title">SkySend · Campaign Analytics</span>
+              <div className="lp-mockup__chrome-live">
+                <span className="lp-mockup__live-dot" />
+                Live
               </div>
+            </div>
 
-              {/* Body */}
-              <div className="lp-mockup-body">
+            {/* Dashboard layout */}
+            <div className="lp-mockup__layout">
 
-                <div className="lp-dash-topbar">
-                  <div>
-                    <div className="lp-dash-title">Campaign Overview</div>
-                    <div className="lp-dash-subtitle">Last updated: just now</div>
-                  </div>
-                  <div className="lp-dash-new-btn">+ New Campaign</div>
-                </div>
-
-                <div className="lp-table-header-row">
-                  <span>Campaign</span>
-                  <span>Sent</span>
-                  <span>Open rate</span>
-                  <span>Reply rate</span>
-                </div>
-
-                {mockCampaigns.map((c, i) => (
-                  <div
-                    key={i}
-                    className="lp-campaign-row"
-                    style={{
-                      background:
-                        i === 0 ? 'rgba(99,102,241,0.07)'
-                        : i === 1 ? 'rgba(255,255,255,0.015)'
-                        : 'transparent',
-                      border:
-                        i === 0 ? '1px solid rgba(99,102,241,0.18)'
-                        : '1px solid transparent',
-                    }}
-                  >
-                    <div className="lp-campaign-name">
-                      <span
-                        className="lp-status-dot"
-                        style={{
-                          background: c.active ? '#22C55E' : '#3B3B3B',
-                          boxShadow: c.active ? '0 0 6px rgba(34,197,94,0.55)' : 'none',
-                        }}
-                      />
-                      {c.name}
-                    </div>
-                    <div className="lp-campaign-cell lp-cell-muted">{c.sent}</div>
-                    <div className="lp-campaign-cell lp-cell-bold">{c.open}%</div>
-                    <div
-                      className="lp-campaign-cell lp-cell-bold"
-                      style={{ color: parseFloat(c.reply) > 20 ? '#4ADE80' : '#E4E4E7' }}
-                    >
-                      {c.reply}%
-                    </div>
+              {/* Sidebar */}
+              <aside className="lp-mockup__sidebar">
+                {[Mail, Users, BarChart3, Sparkles, Shield].map((Icon, i) => (
+                  <div key={i} className={`lp-mockup__nav-item${i === 2 ? ' is-active' : ''}`}>
+                    <Icon size={16} />
                   </div>
                 ))}
+              </aside>
 
-                {/* Mini stat cards */}
-                <div className="lp-mini-stats">
+              {/* Main */}
+              <div className="lp-mockup__main">
+
+                {/* KPI row */}
+                <div className="lp-mockup__kpi-row">
                   {[
-                    { label: 'Total Emails Sent', value: '5,276', change: '+12.4%' },
-                    { label: 'Avg. Open Rate', value: '72.4%', change: '+8.1%' },
-                    { label: 'Avg. Reply Rate', value: '28.4%', change: '+19.3%' },
-                  ].map((s, i) => (
-                    <div key={i} className="lp-mini-stat-card">
-                      <div className="lp-mini-stat-label">{s.label}</div>
-                      <div className="lp-mini-stat-bottom">
-                        <span className="lp-mini-stat-value">{s.value}</span>
-                        <span className="lp-mini-stat-change">{s.change}</span>
+                    { label: 'Emails Sent', value: '5,276', delta: '+12%', up: true },
+                    { label: 'Open Rate',   value: '72.4%', delta: '+8%',  up: true },
+                    { label: 'Reply Rate',  value: '28.4%', delta: '+19%', up: true },
+                    { label: 'Booked',      value: '143',   delta: '+31%', up: true },
+                  ].map((k, i) => (
+                    <div key={i} className="lp-mockup__kpi">
+                      <span className="lp-mockup__kpi-label">{k.label}</span>
+                      <span className="lp-mockup__kpi-value">{k.value}</span>
+                      <span className="lp-mockup__kpi-delta">{k.delta}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Chart */}
+                <div className="lp-mockup__chart-wrap">
+                  <div className="lp-mockup__chart-header">
+                    <span className="lp-mockup__chart-title">Reply rate — last 14 days</span>
+                    <span className="lp-mockup__chart-legend">
+                      <span className="lp-mockup__legend-dot lp-mockup__legend-dot--indigo" />replies
+                    </span>
+                  </div>
+                  <div className="lp-mockup__chart">
+                    {mockBarData.map((h, i) => (
+                      <div key={i} className="lp-mockup__bar-wrap">
+                        <div
+                          className="lp-mockup__bar"
+                          style={{ height: `${h}%` }}
+                        />
+                        <span className="lp-mockup__bar-label">{mockDays[i]}</span>
                       </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Campaign rows */}
+                <div className="lp-mockup__table">
+                  <div className="lp-mockup__table-head">
+                    <span>Campaign</span><span>Open</span><span>Reply</span>
+                  </div>
+                  {[
+                    { name: 'Q4 Outreach — Series A', open: '67.2%', reply: '18.4%', live: true  },
+                    { name: 'Partnership Discovery',   open: '72.8%', reply: '22.1%', live: true  },
+                    { name: 'Enterprise Demos',        open: '81.4%', reply: '31.8%', live: true  },
+                  ].map((row, i) => (
+                    <div key={i} className={`lp-mockup__table-row${i === 0 ? ' is-selected' : ''}`}>
+                      <div className="lp-mockup__table-name">
+                        <span className={`lp-mockup__status${row.live ? ' is-live' : ''}`} />
+                        {row.name}
+                      </div>
+                      <span className="lp-mockup__table-cell">{row.open}</span>
+                      <span className={`lp-mockup__table-cell${parseFloat(row.reply) > 20 ? ' is-green' : ''}`}>
+                        {row.reply}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -416,116 +265,280 @@ export function LandingPage() {
               </div>
             </div>
           </div>
-
         </div>
+
       </section>
 
-      {/* ══ LOGO STRIP ══════════════════════════════════════════════════════ */}
-      <section className="lp-logos-section">
-        <div className="lp-container">
-          <p className="lp-logos-eyebrow">Trusted by teams at</p>
-          <div className="lp-logos-row">
-            {logos.map((name) => (
-              <span key={name} className="lp-logo-name">{name}</span>
-            ))}
+      {/* ══════════════════════════ LOGOS ════════════════════════════════════ */}
+      <div className="lp-logos">
+        <div className="lp-wrap lp-logos__inner">
+          <p className="lp-logos__eyebrow">Trusted by teams at</p>
+          <div className="lp-logos__row">
+            {logos.map((n) => <span key={n} className="lp-logos__name">{n}</span>)}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ══ STATS ═══════════════════════════════════════════════════════════ */}
-      <section className="lp-stats-section">
-        <div className="lp-container">
-          <div className="lp-stats-grid">
+      {/* ══════════════════════════ STATS ════════════════════════════════════ */}
+      <section className="lp-stats">
+        <div className="lp-wrap">
+          <div className="lp-stats__grid">
             {stats.map((s, i) => (
-              <div
-                key={i}
-                className="lp-reveal lp-stat-item"
-                style={{ borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}
-              >
-                <div className="lp-stat-big">{s.value}</div>
-                <div className="lp-stat-caption">{s.label}</div>
+              <div key={i} className="reveal lp-stats__item">
+                <span className="lp-stats__value">{s.value}</span>
+                <span className="lp-stats__label">{s.label}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══ FEATURES ════════════════════════════════════════════════════════ */}
-      <section id="features" className="lp-section">
-        <div className="lp-container">
-          <div className="lp-reveal lp-section-header">
-            <div className="lp-section-tag">Features</div>
-            <h2 className="lp-section-title">Everything you need to dominate outreach</h2>
-            <p className="lp-section-sub">
-              Built for enterprise sales teams who refuse to accept mediocre reply rates.
+      {/* ══════════════════════════ FEATURES ═════════════════════════════════ */}
+      <section id="features" className="lp-features">
+
+        {/* Header */}
+        <div className="lp-wrap">
+          <div className="reveal lp-features__header">
+            <h2 className="lp-h2">Everything serious<br />sales teams need.</h2>
+            <p className="lp-body lp-features__sub">
+              From the first send to the signed contract — one platform, zero compromises.
             </p>
           </div>
-          <div className="lp-features-grid">
-            {features.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <div key={i} className="lp-reveal lp-feature-card">
-                  <div className="lp-feature-icon-wrap">
-                    <Icon size={18} style={{ color: '#818CF8' }} />
+        </div>
+
+        {/* Feature 1 — Sequences */}
+        <div className="lp-feature-row lp-feature-row--normal">
+          <div className="lp-wrap lp-feature-row__inner">
+
+            <div className="reveal lp-feature-row__text">
+              <p className="lp-overline">01 — Intelligent Sequences</p>
+              <h3 className="lp-h3">Campaigns that adapt,<br />automatically.</h3>
+              <p className="lp-body">
+                Multi-step sequences with AI-optimised send windows, smart
+                delays, and conditional branching based on what each prospect
+                actually does. Set it once, let it run.
+              </p>
+              <ul className="lp-checklist">
+                {['AI send-time optimisation', 'Conditional branching on opens & clicks', 'Unlimited sequence steps', 'A/B test subjects and body copy'].map(f => (
+                  <li key={f} className="lp-checklist__item">
+                    <Check size={14} className="lp-checklist__icon" />{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="reveal lp-feature-row__visual">
+              {/* Sequence flow visual */}
+              <div className="lp-seq">
+                <div className="lp-seq__header">Email Sequence Builder</div>
+                {[
+                  { step: 1, label: 'Initial outreach',  delay: null,   status: 'sent' },
+                  { step: 2, label: 'Follow-up #1',      delay: '3 days', status: 'sent' },
+                  { step: 3, label: 'Follow-up #2',      delay: '5 days', status: 'active' },
+                  { step: 4, label: 'Break-up email',    delay: '7 days', status: 'pending' },
+                ].map((step, i) => (
+                  <div key={i} className="lp-seq__item">
+                    {step.delay && (
+                      <div className="lp-seq__delay">
+                        <span className="lp-seq__delay-line" />
+                        <span className="lp-seq__delay-label">{step.delay}</span>
+                      </div>
+                    )}
+                    <div className={`lp-seq__step lp-seq__step--${step.status}`}>
+                      <div className="lp-seq__step-num">{step.step}</div>
+                      <span className="lp-seq__step-label">{step.label}</span>
+                      <span className={`lp-seq__badge lp-seq__badge--${step.status}`}>
+                        {step.status === 'sent' ? 'Sent' : step.status === 'active' ? 'Active' : 'Scheduled'}
+                      </span>
+                    </div>
                   </div>
-                  <h3 className="lp-feature-title">{f.title}</h3>
-                  <p className="lp-feature-desc">{f.description}</p>
+                ))}
+                <div className="lp-seq__branch">
+                  <div className="lp-seq__branch-header">Conditional logic</div>
+                  <div className="lp-seq__branch-row">
+                    <div className="lp-seq__branch-card lp-seq__branch-card--positive">
+                      <Zap size={12} /> Opened → Send meeting link
+                    </div>
+                    <div className="lp-seq__branch-card lp-seq__branch-card--neutral">
+                      No open → Mark complete
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Feature 2 — Deliverability */}
+        <div className="lp-feature-row lp-feature-row--reverse">
+          <div className="lp-wrap lp-feature-row__inner">
+
+            <div className="reveal lp-feature-row__visual">
+              {/* Deliverability score visual */}
+              <div className="lp-deliv">
+                <div className="lp-deliv__header">
+                  <span>Deliverability Engine</span>
+                  <span className="lp-deliv__status">● Active</span>
+                </div>
+                <div className="lp-deliv__score">
+                  <div className="lp-deliv__score-ring">
+                    <svg viewBox="0 0 120 120" className="lp-deliv__svg">
+                      <circle cx="60" cy="60" r="50" className="lp-deliv__track" />
+                      <circle cx="60" cy="60" r="50" className="lp-deliv__arc"
+                        strokeDasharray="314" strokeDashoffset="4" />
+                    </svg>
+                    <div className="lp-deliv__score-inner">
+                      <span className="lp-deliv__pct">98.7%</span>
+                      <span className="lp-deliv__pct-label">delivered</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="lp-deliv__checks">
+                  {[
+                    { label: 'Domain health',    value: 'Excellent' },
+                    { label: 'Spam score',        value: '0.1 / 10'  },
+                    { label: 'Email warmup',      value: 'Active'    },
+                    { label: 'DKIM / SPF / DMARC',value: 'Passing'   },
+                  ].map((c, i) => (
+                    <div key={i} className="lp-deliv__check">
+                      <span className="lp-deliv__check-dot" />
+                      <span className="lp-deliv__check-label">{c.label}</span>
+                      <span className="lp-deliv__check-value">{c.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="reveal lp-feature-row__text">
+              <p className="lp-overline">02 — Deliverability Engine</p>
+              <h3 className="lp-h3">Primary inbox,<br />every time.</h3>
+              <p className="lp-body">
+                Built-in email warmup, reputation monitoring, and real-time
+                domain health scoring. We obsess over deliverability so
+                you never have to wonder where your emails went.
+              </p>
+              <ul className="lp-checklist">
+                {['Automated email warmup', 'Real-time spam score monitoring', 'Domain health & DKIM scoring', 'Inbox placement testing'].map(f => (
+                  <li key={f} className="lp-checklist__item">
+                    <Check size={14} className="lp-checklist__icon" />{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Feature 3 — SARA AI */}
+        <div className="lp-feature-row lp-feature-row--normal">
+          <div className="lp-wrap lp-feature-row__inner">
+
+            <div className="reveal lp-feature-row__text">
+              <p className="lp-overline">03 — SARA AI Inbox</p>
+              <h3 className="lp-h3">Reply faster.<br />Close more.</h3>
+              <p className="lp-body">
+                SARA automatically classifies every reply by intent and
+                drafts context-aware responses in seconds. Your team focuses
+                on conversations that close — not inbox admin.
+              </p>
+              <ul className="lp-checklist">
+                {['Automatic intent classification', 'AI-drafted replies in seconds', 'One-click send or edit', 'Full thread context awareness'].map(f => (
+                  <li key={f} className="lp-checklist__item">
+                    <Check size={14} className="lp-checklist__icon" />{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="reveal lp-feature-row__visual">
+              {/* SARA AI inbox visual */}
+              <div className="lp-sara">
+                <div className="lp-sara__header">
+                  <Sparkles size={14} style={{ color: '#818CF8' }} />
+                  SARA AI · Reply Assistant
+                </div>
+                <div className="lp-sara__email">
+                  <div className="lp-sara__email-from">
+                    <div className="lp-sara__avatar">JD</div>
+                    <div>
+                      <div className="lp-sara__email-name">James Dalton</div>
+                      <div className="lp-sara__email-sub">Re: Your outreach · 2 min ago</div>
+                    </div>
+                    <div className="lp-sara__intent-badge">Interested</div>
+                  </div>
+                  <p className="lp-sara__email-body">
+                    "Thanks for reaching out! We've been looking for a solution
+                    like this. Can you send over pricing and a quick demo slot?"
+                  </p>
+                </div>
+                <div className="lp-sara__divider">
+                  <span className="lp-sara__divider-label">
+                    <Sparkles size={11} /> AI draft ready
+                  </span>
+                </div>
+                <div className="lp-sara__draft">
+                  <p className="lp-sara__draft-body">
+                    Hi James, great to hear from you! I'd love to show you SkySend
+                    in action. Here's a link to book a 20-minute demo at your
+                    convenience: [calendly link]. Pricing starts at $149/mo for
+                    the Professional plan...
+                  </p>
+                </div>
+                <div className="lp-sara__actions">
+                  <button className="lp-sara__send">Send reply</button>
+                  <button className="lp-sara__edit">Edit</button>
+                  <button className="lp-sara__discard">Discard</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      {/* ══════════════════════════ HERO QUOTE ═══════════════════════════════ */}
+      <section className="lp-hero-quote">
+        <div className="lp-wrap">
+          <div className="reveal lp-hero-quote__inner">
+            <div className="lp-hero-quote__mark">"</div>
+            <blockquote className="lp-hero-quote__text">
+              We went from 2% to 12% reply rates in three weeks.
+              The AI-driven send optimisation alone was worth the switch.
+            </blockquote>
+            <div className="lp-hero-quote__author">
+              <div className="lp-hero-quote__avatar">SC</div>
+              <div>
+                <div className="lp-hero-quote__name">Sarah Chen</div>
+                <div className="lp-hero-quote__role">Head of Sales, TechCorp</div>
+              </div>
+              <div className="lp-hero-quote__metric">
+                <span className="lp-hero-quote__metric-num">6×</span>
+                <span className="lp-hero-quote__metric-label">reply rate increase</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ══ HOW IT WORKS ════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="lp-section lp-border-top">
-        <div className="lp-container">
-          <div className="lp-reveal lp-section-header">
-            <div className="lp-section-tag">How it works</div>
-            <h2 className="lp-section-title">
-              From cold prospect to booked meeting in 3 steps
-            </h2>
-          </div>
-          <div className="lp-steps-grid">
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <div key={i} className="lp-reveal lp-step-card">
-                  <div className="lp-step-num">{step.number}</div>
-                  <div className="lp-step-icon-wrap">
-                    <Icon size={20} style={{ color: '#818CF8' }} />
-                  </div>
-                  <h3 className="lp-step-title">{step.title}</h3>
-                  <p className="lp-step-desc">{step.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ TESTIMONIALS ════════════════════════════════════════════════════ */}
-      <section id="testimonials" className="lp-section lp-border-top">
-        <div className="lp-container">
-          <div className="lp-reveal lp-section-header">
-            <div className="lp-section-tag">Customer stories</div>
-            <h2 className="lp-section-title">Real results from real teams</h2>
-            <p className="lp-section-sub">
-              See how enterprise sales teams use SkySend to hit their pipeline goals consistently.
-            </p>
-          </div>
-          <div className="lp-testimonials-grid">
+      {/* ══════════════════════════ REVIEWS ══════════════════════════════════ */}
+      <section id="reviews" className="lp-reviews">
+        <div className="lp-wrap">
+          <h2 className="reveal lp-reviews__heading">Real teams. Real results.</h2>
+          <div className="lp-reviews__grid">
             {testimonials.map((t, i) => (
-              <div key={i} className="lp-reveal lp-testi-card">
-                <div className="lp-testi-metric">{t.metric}</div>
-                <div className="lp-testi-metric-label">{t.metricLabel}</div>
-                <div className="lp-testi-divider" />
-                <p className="lp-testi-quote">"{t.quote}"</p>
-                <div className="lp-testi-author">
-                  <div className="lp-testi-avatar">{t.initials}</div>
+              <div key={i} className="reveal lp-review-card">
+                <div className="lp-review-card__metric">{t.metric}</div>
+                <div className="lp-review-card__metric-label">{t.metricLabel}</div>
+                <div className="lp-review-card__rule" />
+                <p className="lp-review-card__quote">"{t.quote}"</p>
+                <div className="lp-review-card__author">
+                  <div className="lp-review-card__avatar">{t.initials}</div>
                   <div>
-                    <div className="lp-testi-name">{t.author}</div>
-                    <div className="lp-testi-role">{t.role}, {t.company}</div>
+                    <div className="lp-review-card__name">{t.author}</div>
+                    <div className="lp-review-card__role">{t.role}</div>
                   </div>
                 </div>
               </div>
@@ -534,104 +547,63 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ══ PRICING ═════════════════════════════════════════════════════════ */}
-      <section id="pricing" className="lp-section lp-border-top">
-        <div className="lp-container">
-          <div className="lp-reveal lp-section-header">
-            <div className="lp-section-tag">Pricing</div>
-            <h2 className="lp-section-title">Simple, transparent pricing</h2>
-            <p className="lp-section-sub">
-              Start free. Scale as you grow. No hidden fees, no surprises.
+      {/* ══════════════════════════ PRICING ══════════════════════════════════ */}
+      <section id="pricing" className="lp-pricing">
+        <div className="lp-wrap">
+          <div className="reveal lp-pricing__header">
+            <h2 className="lp-h2">Simple pricing.<br />No surprises.</h2>
+            <p className="lp-body lp-pricing__sub">
+              Start free. Scale as your pipeline grows.
             </p>
           </div>
-          <div className="lp-pricing-grid">
-            {plans.map((plan, i) => (
+
+          <div className="lp-pricing__grid">
+            {pricingPlans.map((plan, i) => (
               <div
                 key={i}
-                className="lp-reveal lp-pricing-card"
-                style={{
-                  background: plan.highlighted ? '#FFFFFF' : 'rgba(255,255,255,0.03)',
-                  border: plan.highlighted
-                    ? '1px solid rgba(255,255,255,0.95)'
-                    : '1px solid rgba(255,255,255,0.07)',
-                  transform: plan.highlighted ? 'scale(1.025)' : 'none',
-                }}
+                className={`reveal lp-pricing-card${plan.featured ? ' lp-pricing-card--featured' : ''}`}
               >
-                {plan.badge && <div className="lp-pricing-badge">{plan.badge}</div>}
+                {plan.featured && <div className="lp-pricing-card__badge">Most popular</div>}
 
-                <div
-                  className="lp-pricing-name"
-                  style={{ color: plan.highlighted ? '#0A0A0B' : '#F4F4F5' }}
-                >
+                <div className="lp-pricing-card__name"
+                  style={{ color: plan.featured ? '#0A0A0B' : '#F4F4F5' }}>
                   {plan.name}
                 </div>
 
-                <div className="lp-pricing-price-row">
-                  <span
-                    className="lp-pricing-price"
-                    style={{ color: plan.highlighted ? '#0A0A0B' : '#F8F8F9' }}
-                  >
+                <div className="lp-pricing-card__price-row">
+                  <span className="lp-pricing-card__price"
+                    style={{ color: plan.featured ? '#0A0A0B' : '#FFFFFF' }}>
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span
-                      className="lp-pricing-period"
-                      style={{ color: plan.highlighted ? '#71717A' : '#52525B' }}
-                    >
+                    <span className="lp-pricing-card__period"
+                      style={{ color: plan.featured ? '#71717A' : '#52525B' }}>
                       {plan.period}
                     </span>
                   )}
                 </div>
 
-                <p
-                  className="lp-pricing-desc"
-                  style={{ color: plan.highlighted ? '#52525B' : '#71717A' }}
-                >
+                <p className="lp-pricing-card__desc"
+                  style={{ color: plan.featured ? '#52525B' : '#71717A' }}>
                   {plan.description}
                 </p>
 
-                <Link
-                  to="/signup"
-                  className="lp-pricing-cta-btn"
-                  style={{
-                    background: plan.highlighted ? '#6366F1' : 'rgba(255,255,255,0.06)',
-                    color: '#FFFFFF',
-                    border: plan.highlighted ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                  }}
-                >
+                <Link to="/signup" className={`lp-pricing-card__cta${plan.featured ? ' lp-pricing-card__cta--featured' : ''}`}>
                   {plan.cta}
-                  {plan.highlighted && <ArrowRight size={14} />}
+                  {plan.featured && <ArrowRight size={14} />}
                 </Link>
 
-                <div
-                  className="lp-pricing-rule"
-                  style={{
-                    background: plan.highlighted ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)',
-                  }}
-                />
+                <div className="lp-pricing-card__rule"
+                  style={{ background: plan.featured ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)' }} />
 
-                <ul className="lp-pricing-features">
+                <ul className="lp-pricing-card__features">
                   {plan.features.map((f, fi) => (
-                    <li key={fi} className="lp-pricing-feature-item">
-                      <div
-                        className="lp-pricing-check-wrap"
-                        style={{
-                          background: plan.highlighted
-                            ? 'rgba(99,102,241,0.12)'
-                            : 'rgba(255,255,255,0.06)',
-                        }}
-                      >
-                        <Check
-                          size={11}
-                          style={{ color: plan.highlighted ? '#6366F1' : '#71717A' }}
-                        />
+                    <li key={fi} className="lp-pricing-card__feature">
+                      <div className="lp-pricing-card__check"
+                        style={{ background: plan.featured ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.06)' }}>
+                        <Check size={10} style={{ color: plan.featured ? '#6366F1' : '#52525B' }} />
                       </div>
-                      <span
-                        className="lp-pricing-feature-text"
-                        style={{ color: plan.highlighted ? '#3F3F46' : '#A1A1AA' }}
-                      >
-                        {f}
-                      </span>
+                      <span style={{ color: plan.featured ? '#3F3F46' : '#A1A1AA', fontSize: 13, lineHeight: 1.5 }}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -641,63 +613,54 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ══ FINAL CTA ═══════════════════════════════════════════════════════ */}
-      <section className="lp-section lp-border-top">
-        <div className="lp-container">
-          <div className="lp-reveal lp-cta-box">
-            <div className="lp-cta-glow" />
-            <h2 className="lp-cta-headline">Ready to 10× your reply rate?</h2>
-            <p className="lp-cta-sub">
-              Join 500+ enterprise teams using SkySend to fill their pipeline with qualified meetings.
+      {/* ══════════════════════════ FINAL CTA ════════════════════════════════ */}
+      <section className="lp-cta">
+        <div className="lp-wrap">
+          <div className="reveal lp-cta__inner">
+            <div className="lp-cta__glow" />
+            <p className="lp-overline lp-cta__eyebrow">Ready to grow?</p>
+            <h2 className="lp-cta__headline">
+              Start booking more<br />meetings today.
+            </h2>
+            <p className="lp-body lp-cta__sub">
+              Join 500+ enterprise sales teams that use SkySend to
+              hit their pipeline goals — consistently.
             </p>
-            <Link to="/signup" className="lp-btn-cta-final">
-              Start your free trial
-              <ArrowRight size={16} />
+            <Link to="/signup" className="lp-btn lp-btn--cta">
+              Start your free trial <ArrowRight size={16} />
             </Link>
-            <p className="lp-cta-trust">
-              No credit card required&nbsp;·&nbsp;14-day free trial&nbsp;·&nbsp;Cancel anytime
+            <p className="lp-cta__trust">
+              Free 14-day trial · No credit card · Cancel anytime
             </p>
           </div>
         </div>
       </section>
 
-      {/* ══ FOOTER ══════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════ FOOTER ═══════════════════════════════════ */}
       <footer className="lp-footer">
-        <div className="lp-container">
-          <div className="lp-footer-top">
-
-            <div className="lp-footer-brand">
-              <SkySendLogo inverted />
-              <p className="lp-footer-tagline">
-                The AI-powered cold outreach platform for serious B2B sales teams.
-              </p>
-            </div>
-
-            <div className="lp-footer-cols">
-              {[
-                { title: 'Product', links: ['Features', 'Pricing', 'Changelog', 'Roadmap'] },
-                { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
-                { title: 'Legal', links: ['Privacy', 'Terms', 'Security'] },
-              ].map((col) => (
-                <div key={col.title} className="lp-footer-col">
-                  <div className="lp-footer-col-title">{col.title}</div>
-                  <ul className="lp-footer-link-list">
-                    {col.links.map((link) => (
-                      <li key={link}>
-                        <a href="#" className="lp-footer-link">{link}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
+        <div className="lp-wrap lp-footer__inner">
+          <div className="lp-footer__brand">
+            <SkySendLogo inverted />
+            <p className="lp-footer__tagline">The AI-powered outreach platform for serious B2B sales teams.</p>
           </div>
-          <div className="lp-footer-rule" />
-          <div className="lp-footer-bottom">
-            <p className="lp-footer-copy">© 2024 SkySend. All rights reserved.</p>
-            <p className="lp-footer-copy">Built for the world's best sales teams.</p>
+          <div className="lp-footer__cols">
+            {[
+              { title: 'Product', links: ['Features', 'Pricing', 'Changelog', 'Roadmap'] },
+              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
+              { title: 'Legal',   links: ['Privacy', 'Terms', 'Security'] },
+            ].map((col) => (
+              <div key={col.title} className="lp-footer__col">
+                <p className="lp-footer__col-title">{col.title}</p>
+                <ul className="lp-footer__links">
+                  {col.links.map((l) => <li key={l}><a href="#" className="lp-footer__link">{l}</a></li>)}
+                </ul>
+              </div>
+            ))}
           </div>
+        </div>
+        <div className="lp-wrap lp-footer__bottom">
+          <p className="lp-footer__copy">© 2024 SkySend. All rights reserved.</p>
+          <p className="lp-footer__copy">Built for the world's best sales teams.</p>
         </div>
       </footer>
 
