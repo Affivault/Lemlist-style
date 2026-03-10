@@ -25,34 +25,17 @@ const stats = [
   { value: '500+', label: 'Enterprise teams' },
 ];
 
-const pricingPlans = [
-  {
-    name: 'Starter',
-    price: '$49',
-    period: '/mo',
-    description: 'For founders running their first outreach campaigns.',
-    features: ['2 seats', '5,000 emails / month', 'AI send-time optimisation', 'Analytics dashboard', 'Email support'],
-    cta: 'Start free trial',
-    featured: false,
-  },
-  {
-    name: 'Professional',
-    price: '$149',
-    period: '/mo',
-    description: 'For growing teams that need advanced AI and scale.',
-    features: ['10 seats', '50,000 emails / month', 'SARA AI inbox', 'A/B testing', 'Custom domain warmup', 'Priority support'],
-    cta: 'Start free trial',
-    featured: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    description: 'Dedicated infrastructure, SLA, and a committed CSM.',
-    features: ['Unlimited seats', 'Unlimited emails', 'Dedicated IP pools', 'SSO / SAML', 'SLA guarantee', 'Dedicated CSM'],
-    cta: 'Talk to sales',
-    featured: false,
-  },
+const lifetimeFeatures = [
+  'Unlimited email campaigns',
+  'Unlimited sequences & steps',
+  'AI send-time optimisation',
+  'AI Assist (inbox reply assistant)',
+  'Deliverability engine & warmup',
+  'Real-time analytics dashboard',
+  'A/B testing for subjects & body',
+  'Custom domain setup',
+  'All future updates included',
+  'Priority support',
 ];
 
 const testimonials = [
@@ -65,7 +48,7 @@ const testimonials = [
     initials: 'DK',
   },
   {
-    quote: 'SARA AI handles our reply triage. What used to take my team 3 hours a day now takes 15 minutes — with better accuracy.',
+    quote: 'AI Assist handles our reply triage. What used to take my team 3 hours a day now takes 15 minutes — with better accuracy.',
     author: 'Emily Park',
     role: 'Director of Marketing, ScaleUp',
     metric: '12×',
@@ -141,7 +124,7 @@ export function LandingPage() {
             <span className="lp-pill__dot" />
             <span className="lp-pill__label">New</span>
             <span className="lp-pill__divider" />
-            <span className="lp-pill__text">SARA AI now powered by GPT-4o</span>
+            <span className="lp-pill__text">AI Assist now powered by GPT-4o</span>
             <ChevronRight size={12} className="lp-pill__arrow" />
           </div>
 
@@ -436,10 +419,10 @@ export function LandingPage() {
           <div className="lp-wrap lp-feature-row__inner">
 
             <div className="reveal lp-feature-row__text">
-              <p className="lp-overline">03 — SARA AI Inbox</p>
+              <p className="lp-overline">03 — AI Assist</p>
               <h3 className="lp-h3">Reply faster.<br />Close more.</h3>
               <p className="lp-body">
-                SARA automatically classifies every reply by intent and
+                AI Assist automatically classifies every reply by intent and
                 drafts context-aware responses in seconds. Your team focuses
                 on conversations that close — not inbox admin.
               </p>
@@ -457,7 +440,7 @@ export function LandingPage() {
               <div className="lp-sara">
                 <div className="lp-sara__header">
                   <Sparkles size={14} style={{ color: '#818CF8' }} />
-                  SARA AI · Reply Assistant
+                  AI Assist · Reply Assistant
                 </div>
                 <div className="lp-sara__email">
                   <div className="lp-sara__email-from">
@@ -551,64 +534,66 @@ export function LandingPage() {
       <section id="pricing" className="lp-pricing">
         <div className="lp-wrap">
           <div className="reveal lp-pricing__header">
-            <h2 className="lp-h2">Simple pricing.<br />No surprises.</h2>
+            <h2 className="lp-h2">One price.<br />Yours forever.</h2>
             <p className="lp-body lp-pricing__sub">
-              Start free. Scale as your pipeline grows.
+              No subscriptions. No per-seat fees. No annual renewals. Pay once and own it.
             </p>
           </div>
 
-          <div className="lp-pricing__grid">
-            {pricingPlans.map((plan, i) => (
-              <div
-                key={i}
-                className={`reveal lp-pricing-card${plan.featured ? ' lp-pricing-card--featured' : ''}`}
-              >
-                {plan.featured && <div className="lp-pricing-card__badge">Most popular</div>}
+          <div className="lp-pricing__lifetime-wrap">
+            <div className="reveal lp-lifetime">
 
-                <div className="lp-pricing-card__name"
-                  style={{ color: plan.featured ? '#0A0A0B' : '#F4F4F5' }}>
-                  {plan.name}
-                </div>
-
-                <div className="lp-pricing-card__price-row">
-                  <span className="lp-pricing-card__price"
-                    style={{ color: plan.featured ? '#0A0A0B' : '#FFFFFF' }}>
-                    {plan.price}
-                  </span>
-                  {plan.period && (
-                    <span className="lp-pricing-card__period"
-                      style={{ color: plan.featured ? '#71717A' : '#52525B' }}>
-                      {plan.period}
-                    </span>
-                  )}
-                </div>
-
-                <p className="lp-pricing-card__desc"
-                  style={{ color: plan.featured ? '#52525B' : '#71717A' }}>
-                  {plan.description}
-                </p>
-
-                <Link to="/signup" className={`lp-pricing-card__cta${plan.featured ? ' lp-pricing-card__cta--featured' : ''}`}>
-                  {plan.cta}
-                  {plan.featured && <ArrowRight size={14} />}
-                </Link>
-
-                <div className="lp-pricing-card__rule"
-                  style={{ background: plan.featured ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)' }} />
-
-                <ul className="lp-pricing-card__features">
-                  {plan.features.map((f, fi) => (
-                    <li key={fi} className="lp-pricing-card__feature">
-                      <div className="lp-pricing-card__check"
-                        style={{ background: plan.featured ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.06)' }}>
-                        <Check size={10} style={{ color: plan.featured ? '#6366F1' : '#52525B' }} />
-                      </div>
-                      <span style={{ color: plan.featured ? '#3F3F46' : '#A1A1AA', fontSize: 13, lineHeight: 1.5 }}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="lp-lifetime__tag">
+                <span className="lp-lifetime__tag-dot" />
+                One-time payment · Lifetime access
               </div>
-            ))}
+
+              <div className="lp-lifetime__price-row">
+                <span className="lp-lifetime__currency">£</span>
+                <span className="lp-lifetime__amount">299</span>
+                <div className="lp-lifetime__after">
+                  <span className="lp-lifetime__forever">forever</span>
+                  <span className="lp-lifetime__note">one-time · no renewal</span>
+                </div>
+              </div>
+
+              <p className="lp-lifetime__desc">
+                Every feature SkySend offers, permanently unlocked. For your entire team. Today, tomorrow, always.
+              </p>
+
+              <Link to="/signup" className="lp-btn lp-btn--hero lp-lifetime__cta">
+                Get lifetime access <ArrowRight size={16} />
+              </Link>
+
+              <div className="lp-lifetime__rule" />
+
+              <div className="lp-lifetime__features">
+                {lifetimeFeatures.map((f) => (
+                  <div key={f} className="lp-lifetime__feature">
+                    <div className="lp-lifetime__check">
+                      <Check size={11} />
+                    </div>
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="lp-lifetime__trust">
+                <div className="lp-lifetime__trust-item">
+                  <Shield size={13} />
+                  <span>30-day money-back guarantee</span>
+                </div>
+                <div className="lp-lifetime__trust-item">
+                  <Zap size={13} />
+                  <span>Instant access after payment</span>
+                </div>
+                <div className="lp-lifetime__trust-item">
+                  <TrendingUp size={13} />
+                  <span>All future updates included</span>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </section>

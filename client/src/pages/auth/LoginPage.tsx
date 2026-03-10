@@ -28,10 +28,12 @@ export function LoginPage() {
       {/* Left Panel - Brand */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 bg-[#0A0A0B]">
         {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-white/10" />
-          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-white/10" />
-          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-white/10" />
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-white/[0.04]" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full border border-indigo-500/10" />
+          <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full border border-white/[0.03]" />
+          {/* Indigo glow */}
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)' }} />
         </div>
 
         <div className="relative z-10">
@@ -44,7 +46,7 @@ export function LoginPage() {
           <div className="mt-16">
             <h1 className="text-4xl font-bold text-white leading-tight">
               Outreach that<br />
-              actually converts.
+              <span style={{ color: '#818CF8' }}>actually converts.</span>
             </h1>
             <p className="mt-4 text-lg text-white/60 max-w-md">
               Join thousands of sales teams using SkySend to automate personalized email campaigns at scale.
@@ -54,21 +56,21 @@ export function LoginPage() {
           {/* Feature bullets */}
           <div className="mt-12 space-y-6">
             <div className="flex items-start gap-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <svg className="h-4 w-4" style={{ color: '#818CF8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
               </div>
               <div>
                 <p className="font-semibold text-white">Multi-channel sequences</p>
-                <p className="mt-1 text-sm text-white/60">Email, LinkedIn, and calls in one automated workflow</p>
+                <p className="mt-1 text-sm text-white/50">Email, LinkedIn, and calls in one automated workflow</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <svg className="h-4 w-4" style={{ color: '#818CF8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -77,13 +79,13 @@ export function LoginPage() {
               </div>
               <div>
                 <p className="font-semibold text-white">AI personalization</p>
-                <p className="mt-1 text-sm text-white/60">Every message feels hand-written with smart variables</p>
+                <p className="mt-1 text-sm text-white/50">Every message feels hand-written with smart variables</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                <svg className="h-4 w-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <svg className="h-4 w-4" style={{ color: '#818CF8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="20" x2="18" y2="10" />
                   <line x1="12" y1="20" x2="12" y2="4" />
                   <line x1="6" y1="20" x2="6" y2="14" />
@@ -91,7 +93,7 @@ export function LoginPage() {
               </div>
               <div>
                 <p className="font-semibold text-white">Real-time analytics</p>
-                <p className="mt-1 text-sm text-white/60">Track opens, clicks, and replies with detailed insights</p>
+                <p className="mt-1 text-sm text-white/50">Track opens, clicks, and replies with detailed insights</p>
               </div>
             </div>
           </div>
@@ -99,17 +101,17 @@ export function LoginPage() {
 
         {/* Testimonial */}
         <div className="relative z-10 mt-auto pt-12">
-          <div className="rounded-2xl bg-white/[0.06] backdrop-blur-sm p-6 border border-white/[0.08]">
-            <p className="text-white/90 text-sm leading-relaxed italic">
+          <div className="rounded-2xl p-6" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', backdropFilter: 'blur(12px)' }}>
+            <p className="text-white/80 text-sm leading-relaxed italic">
               "SkySend transformed our outbound strategy. We went from 2% to 18% reply rates in just two weeks. The automation saves our team 20+ hours per week."
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white font-semibold text-sm">
+              <div className="h-9 w-9 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ background: 'rgba(99,102,241,0.25)', border: '1px solid rgba(99,102,241,0.3)' }}>
                 SR
               </div>
               <div>
                 <p className="text-sm font-medium text-white">Sarah Rodriguez</p>
-                <p className="text-xs text-white/60">VP of Sales, TechCorp</p>
+                <p className="text-xs text-white/50">VP of Sales, TechCorp</p>
               </div>
             </div>
           </div>
@@ -189,7 +191,7 @@ export function LoginPage() {
                   <label htmlFor="password" className="block text-sm font-medium text-[var(--text-primary)]">
                     Password
                   </label>
-                  <a href="#" className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors">
+                  <a href="#" className="text-xs font-medium transition-colors" style={{ color: '#818CF8' }}>
                     Forgot password?
                   </a>
                 </div>
@@ -218,7 +220,7 @@ export function LoginPage() {
           {/* Signup link */}
           <p className="mt-8 text-center text-sm text-[var(--text-secondary)]">
             Don't have an account?{' '}
-            <Link to="/signup" className="font-semibold text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors">
+            <Link to="/signup" className="font-semibold transition-colors" style={{ color: '#818CF8' }}>
               Create a free account
             </Link>
           </p>
