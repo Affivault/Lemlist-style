@@ -49,9 +49,9 @@ function fmtRate(v: unknown): string {
   return safeNum(v).toFixed(1);
 }
 
-/* Monochrome palette for charts — separate light and dark palettes */
-const LIGHT_COLORS = ['#0A0A0B', '#6B6B76', '#9B9BA5', '#CDCDD6'];
-const DARK_COLORS = ['#FAFAFB', '#9B9BA5', '#6B6B76', '#3A3A42'];
+/* Indigo palette for charts */
+const LIGHT_COLORS = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE'];
+const DARK_COLORS  = ['#818CF8', '#6366F1', '#A5B4FC', '#4338CA'];
 
 const tooltipStyle = {
   backgroundColor: 'var(--bg-elevated)',
@@ -92,9 +92,10 @@ function StatCard({
     >
       <div className="relative flex items-center justify-between mb-4">
         <div
-          className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--bg-elevated)] transition-transform duration-300 group-hover:scale-110"
+          className="flex items-center justify-center h-10 w-10 rounded-xl transition-transform duration-300 group-hover:scale-110"
+          style={{ background: 'rgba(99,102,241,0.08)' }}
         >
-          <Icon className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={1.5} />
+          <Icon className="h-5 w-5 text-[#6366F1]" strokeWidth={1.5} />
         </div>
       </div>
 
@@ -200,8 +201,8 @@ async function downloadReport(url: string, filename: string) {
 export function AnalyticsDashboardPage() {
   const { theme } = useTheme();
   const COLORS = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
-  const primaryChartColor = theme === 'dark' ? '#FAFAFB' : '#0A0A0B';
-  const secondaryChartColor = theme === 'dark' ? '#9B9BA5' : '#6B6B76';
+  const primaryChartColor = '#6366F1';
+  const secondaryChartColor = '#818CF8';
 
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
@@ -513,7 +514,7 @@ export function AnalyticsDashboardPage() {
                 <select
                   value={selectedCampaignId}
                   onChange={(e) => setSelectedCampaignId(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--text-primary)] min-w-[220px] transition-all duration-200 cursor-pointer"
+                  className="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6366F1] min-w-[220px] transition-all duration-200 cursor-pointer"
                 >
                   <option value="">Choose a campaign...</option>
                   {campaigns.map((c: any) => (

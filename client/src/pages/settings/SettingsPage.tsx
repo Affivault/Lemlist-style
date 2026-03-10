@@ -238,11 +238,11 @@ export function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-left transition-all duration-200 ${
                     isActive
-                      ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'
+                      ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1]'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`} strokeWidth={1.5} />
+                  <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-[#6366F1]' : 'text-[var(--text-tertiary)]'}`} strokeWidth={1.5} />
                   {tab.label}
                 </button>
               );
@@ -395,7 +395,7 @@ export function SettingsPage() {
 
                 {/* Password Modal */}
                 {showPasswordModal && (
-                  <div className="p-5 rounded-xl border-2 border-[var(--accent)]/30 bg-[var(--bg-surface)] space-y-4">
+                  <div className="p-5 rounded-xl bg-[var(--bg-surface)] space-y-4" style={{ border: '2px solid rgba(99,102,241,0.25)' }}>
                     <h3 className="text-sm font-semibold text-[var(--text-primary)]">Change Password</h3>
                     <div>
                       <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">New Password</label>
@@ -600,7 +600,7 @@ export function SettingsPage() {
                         onClick={() => handleThemeChange(value)}
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 border ${
                           themeMode === value
-                            ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--text-primary)]'
+                            ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] border-[#6366F1]'
                             : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                         }`}
                       >
@@ -639,9 +639,9 @@ export function SettingsPage() {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[var(--accent)]/5 border border-[var(--accent)]/20">
+                <div className="p-4 rounded-xl border" style={{ background: 'rgba(99,102,241,0.05)', borderColor: 'rgba(99,102,241,0.2)' }}>
                   <div className="flex items-start gap-3">
-                    <Sparkles className="h-5 w-5 text-[var(--accent)] mt-0.5 flex-shrink-0" />
+                    <Sparkles className="h-5 w-5 text-[#6366F1] mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">Smart Email Tagging</p>
                       <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
@@ -665,7 +665,7 @@ export function SettingsPage() {
                     <div className="space-y-3">
                       <div className="px-1">
                         <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                          <Zap className="h-4 w-4 text-[var(--text-tertiary)]" />
+                          <Zap className="h-4 w-4 text-[#818CF8]" />
                           Auto-Tagging
                         </h3>
                       </div>
@@ -681,7 +681,7 @@ export function SettingsPage() {
                     <div className="space-y-3">
                       <div className="px-1">
                         <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                          <Zap className="h-4 w-4 text-[var(--text-tertiary)]" />
+                          <Zap className="h-4 w-4 text-[#818CF8]" />
                           Auto Actions
                         </h3>
                         <p className="text-xs text-[var(--text-tertiary)] mt-1">
@@ -773,7 +773,7 @@ function ToggleSetting({
       <button
         onClick={() => onChange(!checked)}
         className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-          checked ? 'bg-[var(--accent)]' : 'bg-[var(--border-default)]'
+          checked ? 'bg-[#6366F1]' : 'bg-[var(--border-default)]'
         }`}
       >
         <span

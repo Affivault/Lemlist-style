@@ -275,8 +275,8 @@
   }
   .input-field:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-subtle);
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   }
 
   .badge {
@@ -375,7 +375,7 @@
     background: var(--border-default);
   }
   .toggle.active {
-    background: var(--accent);
+    background: var(--indigo);
   }
   .toggle-thumb {
     @apply absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-150;
@@ -399,8 +399,8 @@
     color: var(--text-primary);
   }
   .tab-item.active {
-    border-color: var(--text-primary);
-    color: var(--text-primary);
+    border-color: var(--indigo);
+    color: var(--indigo);
   }
 }
 
