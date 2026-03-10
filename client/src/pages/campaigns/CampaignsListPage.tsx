@@ -103,7 +103,7 @@ export function CampaignsListPage() {
             className={cn(
               'px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px',
               statusFilter === tab.value
-                ? 'border-[var(--text-primary)] text-[var(--text-primary)]'
+                ? 'border-[#6366F1] text-[#6366F1]'
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             )}
           >
