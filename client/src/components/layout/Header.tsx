@@ -43,7 +43,7 @@ export function Header() {
       <div className="flex items-center gap-1">
         <button className="relative flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors">
           <Bell className="h-4 w-4" strokeWidth={1.5} />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[var(--text-primary)] ring-2 ring-[var(--bg-surface)]" />
+          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#6366F1] ring-2 ring-[var(--bg-surface)]" />
         </button>
 
         <button
