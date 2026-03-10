@@ -101,8 +101,8 @@ function MiniTrendChart({ data }: { data: TrendDataPoint[] }) {
       <AreaChart data={recent} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--text-primary)" stopOpacity={0.15} />
-            <stop offset="100%" stopColor="var(--text-primary)" stopOpacity={0} />
+            <stop offset="0%" stopColor="#6366F1" stopOpacity={0.18} />
+            <stop offset="100%" stopColor="#6366F1" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
@@ -120,8 +120,8 @@ function MiniTrendChart({ data }: { data: TrendDataPoint[] }) {
           labelStyle={{ color: 'var(--text-tertiary)', fontSize: '10px' }}
           formatter={(value: number, name: string) => [fmtNum(value), name.charAt(0).toUpperCase() + name.slice(1)]}
         />
-        <Area type="monotone" dataKey="sent" stroke="var(--text-primary)" strokeWidth={1.5} fill="url(#sentGrad)" />
-        <Area type="monotone" dataKey="opened" stroke="var(--accent)" strokeWidth={1.5} fill="none" strokeDasharray="4 2" />
+        <Area type="monotone" dataKey="sent" stroke="#6366F1" strokeWidth={1.5} fill="url(#sentGrad)" />
+        <Area type="monotone" dataKey="opened" stroke="#818CF8" strokeWidth={1.5} fill="none" strokeDasharray="4 2" />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -280,11 +280,11 @@ export function DashboardPage() {
           </ErrorBoundary>
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--border-subtle)]">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-[2px] rounded-full bg-[var(--text-primary)]" />
+              <div className="w-3 h-[2px] rounded-full bg-[#6366F1]" />
               <span className="text-[10px] text-[var(--text-tertiary)]">Sent</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-[2px] rounded-full bg-[var(--accent)]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, var(--accent) 0 4px, transparent 4px 6px)' }} />
+              <div className="w-3 h-[2px] rounded-full" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #818CF8 0 4px, transparent 4px 6px)' }} />
               <span className="text-[10px] text-[var(--text-tertiary)]">Opened</span>
             </div>
           </div>
@@ -400,7 +400,7 @@ export function DashboardPage() {
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-[var(--text-primary)]">Inbox</h2>
                 {unreadCount > 0 && (
-                  <span className="text-[10px] font-bold bg-[var(--text-primary)] text-[var(--bg-app)] rounded-full px-1.5 py-px">{unreadCount}</span>
+                  <span className="text-[10px] font-bold bg-[#6366F1] text-white rounded-full px-1.5 py-px">{unreadCount}</span>
                 )}
               </div>
               <Link to="/inbox" className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors">
@@ -421,7 +421,7 @@ export function DashboardPage() {
                       </span>
                     </div>
                     {!msg.is_read && (
-                      <div className="absolute -top-0.5 -left-0.5 w-2 h-2 rounded-full bg-[var(--accent)] border-[1.5px] border-[var(--bg-surface)]" />
+                      <div className="absolute -top-0.5 -left-0.5 w-2 h-2 rounded-full bg-[#6366F1] border-[1.5px] border-[var(--bg-surface)]" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -446,24 +446,24 @@ export function DashboardPage() {
           </div>
 
           {/* AI Features */}
-          <Link to="/inbox" className="group bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 hover:border-[var(--border-default)] transition-all">
+          <Link to="/inbox" className="group bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 hover:border-[rgba(99,102,241,0.3)] transition-all">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="p-2 rounded-lg bg-[var(--accent)]/10">
-                <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+              <div className="p-2 rounded-lg bg-[rgba(99,102,241,0.1)]">
+                <Sparkles className="h-4 w-4 text-[#6366F1]" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[var(--text-primary)]">AI Features</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">AI Assist</p>
                 <p className="text-[10px] text-[var(--text-tertiary)]">Smart tagging & reply assist</p>
               </div>
               <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--bg-elevated)]">
-                <Tag className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                <Tag className="h-3.5 w-3.5 text-[#818CF8]" />
                 <p className="text-xs text-[var(--text-secondary)]">Auto-tags emails by intent</p>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-lg bg-[var(--bg-elevated)]">
-                <Sparkles className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+                <Sparkles className="h-3.5 w-3.5 text-[#818CF8]" />
                 <p className="text-xs text-[var(--text-secondary)]">AI reply assist in composer</p>
               </div>
             </div>

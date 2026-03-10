@@ -28,6 +28,10 @@
     --accent-muted: #6B6B76;
     --accent-subtle: #F7F7F8;
 
+    --indigo: #6366F1;
+    --indigo-hover: #4F46E5;
+    --indigo-subtle: rgba(99, 102, 241, 0.08);
+
     /* Status - muted, enterprise-appropriate */
     --success: #22C55E;
     --success-bg: #F0FDF4;
@@ -79,6 +83,10 @@
     --accent-hover: #E4E4E7;
     --accent-muted: #9B9BA5;
     --accent-subtle: #16161A;
+
+    --indigo: #6366F1;
+    --indigo-hover: #4F46E5;
+    --indigo-subtle: rgba(99, 102, 241, 0.1);
 
     --success: #4ADE80;
     --success-bg: rgba(34, 197, 94, 0.08);
@@ -140,7 +148,7 @@
   }
 
   *:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--indigo);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -166,12 +174,14 @@
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-150;
-    background: var(--accent);
-    color: var(--bg-app);
+    background: var(--indigo);
+    color: #ffffff;
     border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
   }
   .btn-primary:hover {
-    background: var(--accent-hover);
+    background: var(--indigo-hover);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
   }
   .btn-primary:active {
     opacity: 0.9;
@@ -183,12 +193,14 @@
 
   .btn-brand {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-150;
-    background: var(--accent);
-    color: var(--bg-app);
+    background: var(--indigo);
+    color: #ffffff;
     border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
   }
   .btn-brand:hover {
-    background: var(--accent-hover);
+    background: var(--indigo-hover);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
   }
   .btn-brand:active {
     opacity: 0.9;

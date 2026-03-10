@@ -57,7 +57,7 @@ function NavItem({
         'flex items-center gap-3 py-2 text-[13px] font-medium rounded-lg transition-colors duration-150',
         collapsed ? 'justify-center px-2' : 'px-3',
         isActive
-          ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'
+          ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1]'
           : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
       )}
     >
