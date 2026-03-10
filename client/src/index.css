@@ -596,7 +596,7 @@
   align-items: center;
   justify-content: space-between;
 }
-.lp-header__logo { display: flex; align-items: center; text-decoration: none; }
+.lp-header__logo { display: flex; align-items: center; text-decoration: none; font-size: 22px; }
 .lp-header__nav  { display: flex; align-items: center; gap: 32px; }
 .lp-header__link {
   font-size: 14px;
@@ -1506,81 +1506,149 @@
   display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
 .lp-pricing__sub { text-align: center; }
-.lp-pricing__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  align-items: start;
+/* Lifetime single-plan layout */
+.lp-pricing__lifetime-wrap {
+  display: flex;
+  justify-content: center;
 }
-
-.lp-pricing-card {
-  border-radius: 18px;
-  padding: 32px;
+.lp-lifetime {
+  width: 100%;
+  max-width: 620px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 52px 56px;
   position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 0 120px rgba(99,102,241,0.07), 0 32px 64px rgba(0,0,0,0.3);
 }
-.lp-pricing-card--featured {
-  background: #FFFFFF !important;
-  border-color: rgba(255,255,255,0.95) !important;
-  transform: scale(1.03);
-  box-shadow: 0 0 80px rgba(255,255,255,0.06), 0 24px 48px rgba(0,0,0,0.3);
-}
-.lp-pricing-card__badge {
+.lp-lifetime::before {
+  content: '';
   position: absolute;
-  top: -13px; left: 50%;
-  transform: translateX(-50%);
-  background: var(--lp-indigo);
-  color: #fff;
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 4px 14px; border-radius: 100px;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.lp-lifetime__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
+  color: #818CF8;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.2);
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 32px;
+}
+.lp-lifetime__tag-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #818CF8;
+  box-shadow: 0 0 6px rgba(129,140,248,0.8);
+  animation: lpPulse 2s ease-in-out infinite;
+}
+@keyframes lpPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.lp-lifetime__price-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.lp-lifetime__currency {
+  font-size: 28px; font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  margin-top: 14px;
+  letter-spacing: -0.02em;
+}
+.lp-lifetime__amount {
+  font-size: 96px; font-weight: 800;
+  letter-spacing: -0.05em; line-height: 1;
+  color: #FFFFFF;
+}
+.lp-lifetime__after {
+  display: flex; flex-direction: column;
+  align-items: flex-start; justify-content: center;
+  gap: 2px; padding-top: 28px;
+}
+.lp-lifetime__forever {
+  font-size: 15px; font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+}
+.lp-lifetime__note {
+  font-size: 11px; font-weight: 500;
+  color: rgba(255,255,255,0.3);
+  text-transform: lowercase;
   white-space: nowrap;
 }
-.lp-pricing-card__name {
-  font-size: 15px; font-weight: 600; margin-bottom: 10px;
+.lp-lifetime__desc {
+  font-size: 15px; line-height: 1.7;
+  color: var(--lp-txt-2);
+  max-width: 420px;
+  margin: 0 auto 32px;
+  position: relative;
 }
-.lp-pricing-card__price-row {
-  display: flex; align-items: baseline; gap: 4px; margin-bottom: 12px;
+.lp-lifetime__cta {
+  width: 100%;
+  max-width: 340px;
+  box-sizing: border-box;
+  justify-content: center;
+  font-size: 16px;
+  padding: 16px 24px;
+  margin: 0 auto 36px;
+  display: flex;
+  position: relative;
 }
-.lp-pricing-card__price {
-  font-size: 40px; font-weight: 800;
-  letter-spacing: -0.045em; line-height: 1;
-}
-.lp-pricing-card__period { font-size: 14px; }
-.lp-pricing-card__desc {
-  font-size: 13px; line-height: 1.65; margin: 0 0 22px;
-}
-.lp-pricing-card__cta {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; box-sizing: border-box;
+.lp-lifetime__rule {
+  height: 1px;
   background: rgba(255,255,255,0.07);
-  color: #fff;
-  font-size: 14px; font-weight: 600;
-  padding: 12px; border-radius: 10px;
-  text-decoration: none; margin-bottom: 22px;
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: opacity 0.15s, transform 0.1s;
+  margin-bottom: 32px;
+  position: relative;
 }
-.lp-pricing-card__cta:hover { opacity: 0.85; transform: translateY(-1px); }
-.lp-pricing-card__cta--featured {
-  background: var(--lp-indigo);
-  border: none;
-  box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+.lp-lifetime__features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  text-align: left;
+  margin-bottom: 36px;
+  position: relative;
 }
-.lp-pricing-card__rule { height: 1px; margin-bottom: 22px; }
-.lp-pricing-card__features {
-  list-style: none; padding: 0; margin: 0;
-  display: flex; flex-direction: column; gap: 10px;
+.lp-lifetime__feature {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13.5px;
+  color: rgba(255,255,255,0.65);
 }
-.lp-pricing-card__feature {
-  display: flex; align-items: flex-start; gap: 10px;
-}
-.lp-pricing-card__check {
-  width: 18px; height: 18px; border-radius: 50%;
+.lp-lifetime__check {
+  width: 20px; height: 20px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; margin-top: 1px;
+  flex-shrink: 0;
+  background: rgba(99,102,241,0.15);
+  color: #818CF8;
 }
+.lp-lifetime__trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  position: relative;
+}
+.lp-lifetime__trust-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+}
+.lp-lifetime__trust-item svg { opacity: 0.5; }
 
 /* ─────────────────────────────────────────────────────────────────────────
    FINAL CTA
