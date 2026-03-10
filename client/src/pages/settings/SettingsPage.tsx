@@ -107,9 +107,6 @@ export function SettingsPage() {
       setAiAutoClassify(settings.sara_auto_classify ?? true);
       setAiAutoUnsubscribe(settings.sara_auto_unsubscribe ?? true);
       setAiAutoBounce(settings.sara_auto_bounce ?? true);
-      if (settings.theme && settings.theme !== themeMode) {
-        setThemeMode(settings.theme as 'light' | 'dark' | 'system');
-      }
       setHasChanges(false);
     }
   }, [settings]);

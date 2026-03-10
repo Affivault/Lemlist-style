@@ -369,7 +369,7 @@ function ComposeModal({ onClose, onSend, onSchedule, sending, smtpAccounts, temp
                 }
               }}
               disabled={!canSend}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-all disabled:opacity-40 shadow-sm hover:shadow-md"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#6366F1] text-[var(--bg-app)] text-sm font-semibold hover:bg-[#4F46E5] transition-all disabled:opacity-40 shadow-sm hover:shadow-md"
             >
               <Send className="h-3.5 w-3.5" />
               {sending ? 'Sending...' : 'Send'}
@@ -380,7 +380,7 @@ function ComposeModal({ onClose, onSend, onSchedule, sending, smtpAccounts, temp
                 disabled={!canSend}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 ${
                   showSchedule
-                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                    ? 'bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20'
                     : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]'
                 }`}
                 title="Schedule send"
@@ -421,7 +421,7 @@ function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (ht
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/5 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-tertiary)] hover:text-[#6366F1] hover:bg-[#6366F1]/5 transition-colors"
       >
         <Wand2 className="h-3.5 w-3.5" />
         AI Assist
@@ -430,8 +430,8 @@ function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (ht
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--accent)]/5">
-      <Wand2 className="h-4 w-4 text-[var(--accent)] flex-shrink-0" />
+    <div className="flex items-center gap-2 px-4 py-2.5 border-t border-[var(--border-subtle)] bg-[#6366F1]/5">
+      <Wand2 className="h-4 w-4 text-[#6366F1] flex-shrink-0" />
       <input
         value={prompt}
         onChange={e => setPrompt(e.target.value)}
@@ -452,7 +452,7 @@ function AiAssistBar({ messageId, onInsert }: { messageId: string; onInsert: (ht
           }
         }}
         disabled={!prompt.trim() || aiMut.isPending}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6366F1] text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
       >
         {aiMut.isPending ? (
           <><Loader2 className="h-3 w-3 animate-spin" /> Generating...</>
@@ -546,9 +546,9 @@ function CustomCalendar({ selected, onSelect }: { selected: Date | null; onSelec
               onClick={() => onSelect(cell.date)}
               className={`relative w-full aspect-square flex items-center justify-center text-[12px] rounded-lg transition-all ${
                 isSelected
-                  ? 'bg-[var(--accent)] text-[var(--bg-app)] font-semibold shadow-sm'
+                  ? 'bg-[#6366F1] text-[var(--bg-app)] font-semibold shadow-sm'
                   : isToday
-                    ? 'font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/10'
+                    ? 'font-semibold text-[#6366F1] hover:bg-[#6366F1]/10'
                     : !cell.current
                       ? 'text-[var(--text-muted)]'
                       : disabled
@@ -558,7 +558,7 @@ function CustomCalendar({ selected, onSelect }: { selected: Date | null; onSelec
             >
               {cell.day}
               {isToday && !isSelected && (
-                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
+                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#6366F1]" />
               )}
             </button>
           );
@@ -601,13 +601,13 @@ function CustomTimePicker({ value, onChange }: { value: { hour: number; minute: 
           <button
             onClick={() => { if (isPM) togglePeriod(); }}
             className={`px-2.5 py-1 text-[11px] font-semibold transition-all ${
-              !isPM ? 'bg-[var(--accent)] text-[var(--bg-app)]' : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
+              !isPM ? 'bg-[#6366F1] text-[var(--bg-app)]' : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
             }`}
           >AM</button>
           <button
             onClick={() => { if (!isPM) togglePeriod(); }}
             className={`px-2.5 py-1 text-[11px] font-semibold transition-all border-l border-[var(--border-subtle)] ${
-              isPM ? 'bg-[var(--accent)] text-[var(--bg-app)]' : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
+              isPM ? 'bg-[#6366F1] text-[var(--bg-app)]' : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]'
             }`}
           >PM</button>
         </div>
@@ -623,7 +623,7 @@ function CustomTimePicker({ value, onChange }: { value: { hour: number; minute: 
               onClick={() => setHour12(h)}
               className={`py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                 display12 === h
-                  ? 'bg-[var(--accent)] text-[var(--bg-app)] shadow-sm'
+                  ? 'bg-[#6366F1] text-[var(--bg-app)] shadow-sm'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -643,7 +643,7 @@ function CustomTimePicker({ value, onChange }: { value: { hour: number; minute: 
               onClick={() => onChange({ ...value, minute: m })}
               className={`py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                 value.minute === m
-                  ? 'bg-[var(--accent)] text-[var(--bg-app)] shadow-sm'
+                  ? 'bg-[#6366F1] text-[var(--bg-app)] shadow-sm'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -745,8 +745,8 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
             </button>
           )}
           {view === 'presets' && (
-            <div className="w-7 h-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
-              <CalendarClock className="h-3.5 w-3.5 text-[var(--accent)]" />
+            <div className="w-7 h-7 rounded-lg bg-[#6366F1]/10 flex items-center justify-center">
+              <CalendarClock className="h-3.5 w-3.5 text-[#6366F1]" />
             </div>
           )}
           <div className="flex-1">
@@ -772,8 +772,8 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
                   onClick={() => onSchedule(p.date.toISOString())}
                   className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
-                    <Icon className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
+                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[#6366F1]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[#6366F1]/20">
+                    <Icon className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[#6366F1] transition-colors" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-[13px] font-medium text-[var(--text-primary)] block">{p.label}</span>
@@ -790,8 +790,8 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
               onClick={() => setView('calendar')}
               className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[var(--bg-hover)] active:bg-[var(--bg-active)] transition-colors flex items-center gap-3 group"
             >
-              <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[var(--accent)]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/20">
-                <Calendar className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--accent)] transition-colors" />
+              <div className="w-8 h-8 rounded-lg bg-[var(--bg-elevated)] group-hover:bg-[#6366F1]/10 flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[#6366F1]/20">
+                <Calendar className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[#6366F1] transition-colors" />
               </div>
               <div className="flex-1">
                 <span className="text-[13px] font-medium text-[var(--text-primary)]">Custom date & time</span>
@@ -822,7 +822,7 @@ function ScheduleSendPicker({ onSchedule, onClose }: { onSchedule: (date: string
           <CustomTimePicker value={selectedTime} onChange={setSelectedTime} />
           <button
             onClick={handleConfirmSchedule}
-            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-[13px] font-semibold hover:bg-[var(--accent-hover)] transition-all shadow-sm hover:shadow-md"
+            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#6366F1] text-[var(--bg-app)] text-[13px] font-semibold hover:bg-[#4F46E5] transition-all shadow-sm hover:shadow-md"
           >
             <CalendarClock className="h-3.5 w-3.5" />
             Schedule for {selectedDateLabel} · {selectedTimeLabel}
@@ -862,7 +862,7 @@ function FolderSelector({ folders, active, onChange }: {
         <CurrentIcon className="h-3.5 w-3.5" />
         {current.label}
         {current.count ? (
-          <span className="text-[9px] bg-[var(--accent)] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{current.count}</span>
+          <span className="text-[9px] bg-[#6366F1] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{current.count}</span>
         ) : null}
         <ChevronDown className={`h-3 w-3 text-[var(--text-tertiary)] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -876,16 +876,16 @@ function FolderSelector({ folders, active, onChange }: {
                 key={f.id}
                 onClick={() => { onChange(f.id); setOpen(false); }}
                 className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors flex items-center gap-2.5 ${
-                  isActive ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+                  isActive ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                 }`}
               >
-                <FolderIcon className={`h-3.5 w-3.5 ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`} />
+                <FolderIcon className={`h-3.5 w-3.5 ${isActive ? 'text-[#6366F1]' : 'text-[var(--text-tertiary)]'}`} />
                 <span className="flex-1">{f.label}</span>
                 {f.count ? (
-                  <span className="text-[9px] bg-[var(--accent)] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{f.count}</span>
+                  <span className="text-[9px] bg-[#6366F1] text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 font-bold">{f.count}</span>
                 ) : null}
                 {isActive && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-primary)]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
                 )}
               </button>
             );
@@ -992,13 +992,13 @@ function CollapsibleThread({ thread, selectedId }: { thread: Message[]; selected
             className={`rounded-xl border overflow-hidden transition-all ${
               isCurrent
                 ? isOutbound
-                  ? 'border-[var(--accent)]/30 bg-[var(--bg-surface)]'
-                  : 'border-[var(--accent)]/30 bg-[var(--bg-elevated)]'
+                  ? 'border-[#6366F1]/30 bg-[var(--bg-surface)]'
+                  : 'border-[#6366F1]/30 bg-[var(--bg-elevated)]'
                 : isOutbound
                   ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)]'
                   : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)]'
             }`}
-            style={{ boxShadow: isCurrent ? '0 0 0 1px var(--accent)' : 'var(--shadow-card)' }}
+            style={{ boxShadow: isCurrent ? '0 0 0 1px #6366F1' : 'var(--shadow-card)' }}
           >
             {/* Clickable header — toggles collapse */}
             <button
@@ -1013,10 +1013,10 @@ function CollapsibleThread({ thread, selectedId }: { thread: Message[]; selected
                   <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
                 </div>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${
-                  isOutbound ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20' : 'bg-[var(--bg-surface)] border-[var(--border-default)]'
+                  isOutbound ? 'bg-[#6366F1]/10 border-[#6366F1]/20' : 'bg-[var(--bg-surface)] border-[var(--border-default)]'
                 }`}>
                   {isOutbound ? (
-                    <SendHorizontal className="h-3 w-3 text-[var(--accent)]" />
+                    <SendHorizontal className="h-3 w-3 text-[#6366F1]" />
                   ) : (
                     <span className="text-[11px] font-semibold text-[var(--text-primary)]">{senderInitial(msg)}</span>
                   )}
@@ -1028,7 +1028,7 @@ function CollapsibleThread({ thread, selectedId }: { thread: Message[]; selected
                     {isOutbound ? 'You' : senderName(msg)}
                   </span>
                   {isOutbound && (
-                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">Sent</span>
+                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1]">Sent</span>
                   )}
                   {!isOutbound && (
                     <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--text-tertiary)]/10 text-[var(--text-tertiary)]">Received</span>
@@ -1108,9 +1108,9 @@ function ScheduledEmailsPanel({ onCancel }: { onCancel: (id: string) => void }) 
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-3">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="h-5 w-5 text-[var(--accent)]" />
+          <Clock className="h-5 w-5 text-[#6366F1]" />
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Scheduled Emails</h2>
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">{emails.length}</span>
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1]">{emails.length}</span>
         </div>
         {emails.map((email: any) => {
           const scheduledDate = new Date(email.scheduled_at);
@@ -1122,14 +1122,14 @@ function ScheduledEmailsPanel({ onCancel }: { onCancel: (id: string) => void }) 
               style={{ boxShadow: 'var(--shadow-card)' }}
             >
               <div className="flex items-start gap-3 p-4">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-[var(--accent)]/10 border border-[var(--accent)]/20">
-                  <Clock className="h-4 w-4 text-[var(--accent)]" />
+                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-[#6366F1]/10 border border-[#6366F1]/20">
+                  <Clock className="h-4 w-4 text-[#6366F1]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-[var(--text-primary)]">To: {email.to_email}</span>
                     <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full ${
-                      isPast ? 'bg-amber-500/10 text-amber-500' : 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                      isPast ? 'bg-amber-500/10 text-amber-500' : 'bg-[#6366F1]/10 text-[#6366F1]'
                     }`}>
                       {isPast ? 'Sending soon...' : 'Scheduled'}
                     </span>
@@ -1520,14 +1520,14 @@ export function InboxPage() {
           {/* Header: Compose + Search + Actions */}
           <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
             <div className="flex items-center gap-2">
-              <button onClick={() => setShowCompose(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-semibold hover:opacity-90 transition-opacity flex-shrink-0">
+              <button onClick={() => setShowCompose(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#6366F1] text-white text-xs font-semibold hover:bg-[#4F46E5] transition-colors flex-shrink-0">
                 <Pencil className="h-3.5 w-3.5" />
                 Compose
               </button>
               <form onSubmit={handleSearch} className="flex-1 min-w-0">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)]" />
-                  <input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Search..." className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[var(--text-primary)] transition-colors" />
+                  <input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Search..." className="w-full pl-8 pr-3 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[#6366F1] transition-colors" />
                   {search && (
                     <button type="button" onClick={() => { setSearch(''); setSearchInput(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-[var(--bg-hover)]">
                       <X className="h-3 w-3 text-[var(--text-tertiary)]" />
@@ -1572,8 +1572,8 @@ export function InboxPage() {
             ) : folder === 'scheduled' ? (
               /* Scheduled folder: empty sidebar, detail panel shows scheduled list */
               <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mb-3 border border-[var(--accent)]/20">
-                  <Clock className="h-5 w-5 text-[var(--accent)]" />
+                <div className="w-12 h-12 rounded-2xl bg-[#6366F1]/10 flex items-center justify-center mb-3 border border-[#6366F1]/20">
+                  <Clock className="h-5 w-5 text-[#6366F1]" />
                 </div>
                 <p className="text-sm font-medium text-[var(--text-primary)]">Scheduled Emails</p>
                 <p className="text-xs text-[var(--text-tertiary)] mt-1">View and manage your scheduled emails in the panel</p>
@@ -1599,7 +1599,7 @@ export function InboxPage() {
                     key={conv.contactEmail}
                     onClick={() => selectMessage(msg)}
                     className={`w-full text-left px-3 py-2.5 border-b border-[var(--border-subtle)] transition-all duration-100 ${
-                      isSelected ? 'bg-[var(--bg-elevated)]' : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
+                      isSelected ? 'bg-[rgba(99,102,241,0.06)] border-l-2 border-l-[#6366F1]' : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
                     }`}
                   >
                     <div className="flex items-start gap-2.5">
@@ -1608,13 +1608,13 @@ export function InboxPage() {
                           isOutbound
                             ? 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)]'
                             : conv.hasUnread
-                              ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                              ? 'bg-[#6366F1]/10 text-[#6366F1]'
                               : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
                         }`}>
                           {isOutbound ? <SendHorizontal className="h-3 w-3" /> : senderInitial(msg)}
                         </div>
                         {conv.hasUnread && !isOutbound && (
-                          <div className="absolute -top-px -right-px w-2 h-2 rounded-full bg-[var(--accent)]" />
+                          <div className="absolute -top-px -right-px w-2 h-2 rounded-full bg-[#6366F1]" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1822,7 +1822,7 @@ export function InboxPage() {
                             disabled={
                               (replyMode === 'reply' ? replyEditor.isEmpty || replyMut.isPending : !forwardTo.trim() || forwardMut.isPending)
                             }
-                            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--accent)] text-[var(--bg-app)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-all disabled:opacity-40 shadow-sm hover:shadow-md"
+                            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#6366F1] text-[var(--bg-app)] text-sm font-semibold hover:bg-[#4F46E5] transition-all disabled:opacity-40 shadow-sm hover:shadow-md"
                           >
                             <Send className="h-3.5 w-3.5" />
                             {replyMut.isPending || forwardMut.isPending ? 'Sending...' : replyMode === 'reply' ? 'Send Reply' : 'Forward'}
@@ -1834,7 +1834,7 @@ export function InboxPage() {
                                 disabled={replyEditor.isEmpty || replyMut.isPending}
                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 ${
                                   showReplySchedule
-                                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                                    ? 'bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20'
                                     : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]'
                                 }`}
                                 title="Schedule send"

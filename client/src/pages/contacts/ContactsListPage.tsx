@@ -269,7 +269,7 @@ export function ContactsListPage() {
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                 !activeListId
-                  ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm"
+                  ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1]"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
               )}
             >
@@ -278,7 +278,7 @@ export function ContactsListPage() {
               <span className={cn(
                 "text-[11px] font-semibold px-2 py-0.5 rounded-full",
                 !activeListId
-                  ? "bg-[var(--bg-hover)] text-[var(--text-primary)]"
+                  ? "bg-[rgba(99,102,241,0.12)] text-[#6366F1]"
                   : "text-[var(--text-tertiary)]"
               )}>
                 {stats?.total || 0}
@@ -291,7 +291,7 @@ export function ContactsListPage() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                   activeListId === list.id
-                    ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm"
+                    ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1]"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
                 )}
               >
@@ -300,7 +300,7 @@ export function ContactsListPage() {
                 <span className={cn(
                   "text-[11px] font-semibold px-2 py-0.5 rounded-full",
                   activeListId === list.id
-                    ? "bg-[var(--bg-hover)] text-[var(--text-primary)]"
+                    ? "bg-[rgba(99,102,241,0.12)] text-[#6366F1]"
                     : "text-[var(--text-tertiary)]"
                 )}>
                   {list.contact_count || 0}
@@ -380,7 +380,7 @@ export function ContactsListPage() {
         {someSelected && (
           <div className="flex items-center gap-4 mb-5 px-4 py-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] animate-fade-in">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-[var(--text-primary)] text-[var(--bg-surface)] text-[11px] font-bold">
+              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-[#6366F1] text-white text-[11px] font-bold">
                 {selectedContacts.size}
               </span>
               <span className="text-sm font-medium text-[var(--text-primary)]">
@@ -421,8 +421,8 @@ export function ContactsListPage() {
         ) : contacts.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-[var(--bg-elevated)] mb-5">
-              <Users className="h-8 w-8 text-[var(--text-primary)]" strokeWidth={1.5} />
+            <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-[rgba(99,102,241,0.08)] mb-5 border border-[rgba(99,102,241,0.15)]">
+              <Users className="h-8 w-8 text-[#6366F1]" strokeWidth={1.5} />
             </div>
             <h3 className="text-heading-sm text-[var(--text-primary)] mb-2">No contacts yet</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-sm text-center">
