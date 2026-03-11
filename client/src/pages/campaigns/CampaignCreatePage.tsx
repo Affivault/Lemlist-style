@@ -86,7 +86,7 @@ function ToggleSwitch({
       </div>
       <div
         className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-          checked ? 'bg-[#6366F1]' : 'bg-[var(--border-default)]'
+          checked ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]' : 'bg-[var(--border-default)]'
         }`}
       >
         <span
@@ -395,10 +395,12 @@ export function CampaignCreatePage() {
     subtitle: string;
     action?: React.ReactNode;
   }) => (
-    <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
-      <Icon className="h-4 w-4 flex-shrink-0 text-[var(--text-tertiary)]" />
+    <div className="px-6 py-5 border-b border-[var(--border-subtle)] flex items-center gap-3">
+      <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center text-white flex-shrink-0">
+        <Icon className="h-4 w-4" />
+      </div>
       <div className="flex-1 min-w-0">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">{title}</h2>
+        <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide">{title}</h2>
         <p className="text-xs text-[var(--text-tertiary)]">{subtitle}</p>
       </div>
       {action}
@@ -446,22 +448,22 @@ export function CampaignCreatePage() {
                   className="flex flex-col items-center gap-2 group min-w-[80px]"
                 >
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors duration-200 ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
                       isCompleted
-                        ? 'bg-[#6366F1] border-[#6366F1] text-white'
+                        ? 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]'
                         : isCurrent
-                        ? 'bg-[#6366F1] border-[#6366F1] text-white'
-                        : 'bg-transparent border-[var(--border-default)] text-[var(--text-tertiary)]'
+                        ? 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)] ring-4 ring-[rgba(99,102,241,0.2)]'
+                        : 'bg-[var(--bg-elevated)] border-2 border-[var(--border-default)] text-[var(--text-tertiary)]'
                     }`}
                   >
                     {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                   </div>
                   <span
-                    className={`text-xs font-medium whitespace-nowrap transition-colors ${
+                    className={`text-xs whitespace-nowrap transition-colors ${
                       isCurrent
-                        ? 'text-[var(--text-primary)]'
+                        ? 'text-[#6366F1] font-semibold'
                         : isCompleted
-                        ? 'text-[var(--text-secondary)]'
+                        ? 'text-[var(--text-secondary)] font-medium'
                         : 'text-[var(--text-tertiary)]'
                     }`}
                   >
@@ -470,8 +472,8 @@ export function CampaignCreatePage() {
                 </button>
                 {i < WIZARD_STEPS.length - 1 && (
                   <div
-                    className={`min-w-[48px] h-0.5 mt-5 mx-1 transition-colors duration-500 ${
-                      i < wizardStep ? 'bg-[#6366F1]' : 'bg-[var(--border-subtle)]'
+                    className={`min-w-[48px] h-[2px] mt-5 mx-1 transition-colors duration-500 ${
+                      i < wizardStep ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]' : 'bg-[var(--border-subtle)]'
                     }`}
                   />
                 )}
@@ -488,7 +490,7 @@ export function CampaignCreatePage() {
         <div className="max-w-4xl mx-auto space-y-5">
 
           {/* Campaign Identity */}
-          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
             <CardHeader icon={Rocket} title="Campaign Identity" subtitle="Name your campaign and choose your sending account" />
             <div className="p-6 space-y-5">
               <div>
@@ -587,7 +589,7 @@ export function CampaignCreatePage() {
           {/* Schedule + Rate Controls — two columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Sending Schedule */}
-            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
               <CardHeader icon={Clock} title="Sending Schedule" subtitle="When emails will be delivered" />
               <div className="p-6 space-y-4">
                 <div>
@@ -667,7 +669,7 @@ export function CampaignCreatePage() {
             </div>
 
             {/* Rate Controls */}
-            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
               <CardHeader icon={Gauge} title="Rate Controls" subtitle="Protect your sender reputation" />
               <div className="p-6 space-y-5">
                 <div>
@@ -730,7 +732,7 @@ export function CampaignCreatePage() {
           </div>
 
           {/* Behaviour Toggles */}
-          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
             <CardHeader
               icon={Shield}
               title="Behaviour & Tracking"
@@ -770,7 +772,7 @@ export function CampaignCreatePage() {
 
           {/* Footer */}
           <div className="flex justify-end pt-2">
-            <Button onClick={() => setWizardStep(1)}>
+            <Button onClick={() => setWizardStep(1)} className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)] hover:opacity-95 hover:shadow-[0_4px_12px_rgba(99,102,241,0.4)]">
               Continue to Sequence
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -785,7 +787,7 @@ export function CampaignCreatePage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Flow Canvas */}
-            <div className="lg:col-span-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden flex flex-col">
+            <div className="lg:col-span-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card flex flex-col">
               <CardHeader
                 icon={Layers}
                 title="Campaign Sequence"
@@ -1053,7 +1055,7 @@ export function CampaignCreatePage() {
       ════════════════════════════════════════════════════════ */}
       {wizardStep === 2 && (
         <div className="max-w-2xl mx-auto space-y-5">
-          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
             <CardHeader
               icon={Users}
               title="Recipients"
@@ -1184,7 +1186,7 @@ export function CampaignCreatePage() {
               </div>
 
               {/* Campaign Summary */}
-              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
                 <CardHeader icon={Settings} title="Campaign Summary" subtitle="Review all settings before launch" />
                 <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                   {[
@@ -1251,7 +1253,7 @@ export function CampaignCreatePage() {
 
               {/* Sequence Timeline */}
               {steps.length > 0 && (
-                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-card">
                   <CardHeader
                     icon={Layers}
                     title="Sequence Timeline"
@@ -1337,7 +1339,7 @@ export function CampaignCreatePage() {
                           : toast.error('Resolve all issues before launching')
                       }
                       disabled={launching || createCampaignMutation.isPending}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#6366F1] text-white text-sm font-semibold hover:bg-[#4F46E5] transition-colors disabled:opacity-40"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-bold px-8 py-3 rounded-xl shadow-[0_4px_16px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.5)] hover:opacity-95 transition-all disabled:opacity-40"
                     >
                       <Rocket className="h-4 w-4" />
                       {launching ? 'Launching…' : 'Launch Campaign'}

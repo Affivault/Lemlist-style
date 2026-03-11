@@ -88,21 +88,21 @@ function AddStepMenu({ onAdd, showAbove }: AddStepMenuProps) {
   return (
     <div className="relative flex justify-center">
       {/* Connector line */}
-      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 bg-[var(--border-subtle)]" />
+      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b from-[var(--border-default)] to-[var(--border-subtle)]" />
 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-surface)] border-2 border-dashed border-[var(--border-default)] text-[var(--text-tertiary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all duration-200 my-2"
+        className="group relative z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-surface)] border-2 border-dashed border-[#6366F1]/30 hover:border-[#6366F1] hover:bg-[rgba(99,102,241,0.08)] transition-all duration-200 my-2"
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-4 w-4 text-[#6366F1]/40 group-hover:text-[#6366F1]" />
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-20" onClick={() => setIsOpen(false)} />
           <div className={cn(
-            "absolute z-30 w-56 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xl py-2 animate-fade-in",
+            "absolute z-30 w-56 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-2xl py-2 animate-fade-in",
             showAbove ? "bottom-full mb-2" : "top-full mt-2"
           )}>
             <p className="px-3 pb-2 pt-1 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
@@ -113,7 +113,7 @@ function AddStepMenu({ onAdd, showAbove }: AddStepMenuProps) {
               onClick={() => { onAdd(StepType.Email); setIsOpen(false); }}
               className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--bg-hover)] transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--bg-elevated)] text-[var(--text-primary)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white">
                 <Mail className="h-4 w-4" />
               </div>
               <div className="text-left">
@@ -126,7 +126,7 @@ function AddStepMenu({ onAdd, showAbove }: AddStepMenuProps) {
               onClick={() => { onAdd(StepType.Delay); setIsOpen(false); }}
               className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--bg-hover)] transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--bg-elevated)] text-[var(--text-primary)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white">
                 <Clock className="h-4 w-4" />
               </div>
               <div className="text-left">
@@ -140,7 +140,7 @@ function AddStepMenu({ onAdd, showAbove }: AddStepMenuProps) {
               onClick={() => { onAdd(StepType.Condition); setIsOpen(false); }}
               className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--bg-hover)] transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--bg-elevated)] text-[var(--text-primary)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white">
                 <GitBranch className="h-4 w-4" />
               </div>
               <div className="text-left">
@@ -153,7 +153,7 @@ function AddStepMenu({ onAdd, showAbove }: AddStepMenuProps) {
               onClick={() => { onAdd(StepType.WebhookWait); setIsOpen(false); }}
               className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--bg-hover)] transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--bg-elevated)] text-[var(--text-primary)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 text-white">
                 <Webhook className="h-4 w-4" />
               </div>
               <div className="text-left">
@@ -167,6 +167,41 @@ function AddStepMenu({ onAdd, showAbove }: AddStepMenuProps) {
     </div>
   );
 }
+
+const getStepColors = (stepType: string) => {
+  switch (stepType) {
+    case 'email':
+      return {
+        iconBg: 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6]',
+        borderColor: 'border-l-[3px] border-l-[#6366F1]',
+        badgeBg: 'bg-[#6366F1] text-white border-none',
+      };
+    case 'delay':
+      return {
+        iconBg: 'bg-gradient-to-br from-amber-400 to-orange-500',
+        borderColor: 'border-l-[3px] border-l-amber-400',
+        badgeBg: 'bg-amber-400 text-white border-none',
+      };
+    case 'condition':
+      return {
+        iconBg: 'bg-gradient-to-br from-violet-500 to-purple-600',
+        borderColor: 'border-l-[3px] border-l-violet-500',
+        badgeBg: 'bg-violet-500 text-white border-none',
+      };
+    case 'webhook_wait':
+      return {
+        iconBg: 'bg-gradient-to-br from-cyan-500 to-blue-500',
+        borderColor: 'border-l-[3px] border-l-cyan-500',
+        badgeBg: 'bg-cyan-500 text-white border-none',
+      };
+    default:
+      return {
+        iconBg: 'bg-gradient-to-br from-slate-400 to-slate-500',
+        borderColor: 'border-l-[3px] border-l-slate-400',
+        badgeBg: 'bg-slate-500 text-white border-none',
+      };
+  }
+};
 
 function FlowNode({
   step,
@@ -191,6 +226,7 @@ function FlowNode({
 }) {
   const config = stepTypeConfig[step.step_type] || stepTypeConfig.email;
   const Icon = config.icon;
+  const stepColors = getStepColors(step.step_type);
 
   const getStepSummary = () => {
     if (step.step_type === 'email') {
@@ -225,16 +261,20 @@ function FlowNode({
       {/* Node Card */}
       <div
         className={cn(
-          'group relative mx-auto max-w-xl rounded-2xl border-2 bg-[var(--bg-surface)] shadow-card transition-all duration-300',
+          'group relative mx-auto max-w-xl rounded-2xl border-2 bg-[var(--bg-surface)] shadow-card transition-all duration-300 overflow-hidden',
+          stepColors.borderColor,
           isEditing
             ? 'border-[var(--text-primary)] shadow-lg ring-4 ring-[var(--text-primary)]/20'
             : 'border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:shadow-card-hover'
         )}
       >
         {/* Step Number Badge */}
-        <div className="absolute -top-3 left-6 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)]">
+        <div className={cn(
+          'absolute -top-3 left-6 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold',
+          stepColors.badgeBg
+        )}>
           <span>Step {index + 1}</span>
-          <span className="opacity-50">/ {totalSteps}</span>
+          <span className="opacity-70">/ {totalSteps}</span>
         </div>
 
         <div className="p-5 pt-6">
@@ -244,7 +284,7 @@ function FlowNode({
               <button type="button" className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] cursor-grab active:cursor-grabbing">
                 <GripVertical className="h-4 w-4" />
               </button>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)]">
+              <div className={cn('flex h-11 w-11 items-center justify-center rounded-xl text-white', stepColors.iconBg)}>
                 <Icon className="h-6 w-6" />
               </div>
             </div>
@@ -456,8 +496,8 @@ export function FlowBuilder({ steps, onStepsChange, onEditStep, editingStep }: F
     return (
       <div className="flex flex-col items-center py-12">
         {/* Start node */}
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-default)] mb-4">
-          <Sparkles className="h-6 w-6" />
+        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[rgba(99,102,241,0.1)] to-[rgba(139,92,246,0.1)] border border-[rgba(99,102,241,0.15)] mb-4">
+          <Sparkles className="h-8 w-8 text-[#6366F1]" />
         </div>
         <p className="text-lg font-semibold text-[var(--text-primary)] mb-1">Campaign Start</p>
         <p className="text-sm text-[var(--text-tertiary)] mb-6">Add your first step to begin building the sequence</p>
@@ -468,7 +508,7 @@ export function FlowBuilder({ steps, onStepsChange, onEditStep, editingStep }: F
             onClick={() => addStep(StepType.Email)}
             className="flex items-center gap-3 px-6 py-4 bg-[var(--bg-surface)] rounded-2xl border-2 border-dashed border-[var(--border-default)] hover:border-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all duration-200 group"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] group-hover:shadow-lg transition-shadow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white group-hover:shadow-lg transition-shadow">
               <Mail className="h-5 w-5" />
             </div>
             <div className="text-left">
@@ -482,7 +522,7 @@ export function FlowBuilder({ steps, onStepsChange, onEditStep, editingStep }: F
             onClick={() => addStep(StepType.Delay)}
             className="flex items-center gap-3 px-6 py-4 bg-[var(--bg-surface)] rounded-2xl border-2 border-dashed border-[var(--border-default)] hover:border-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all duration-200 group"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] group-hover:shadow-lg transition-shadow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white group-hover:shadow-lg transition-shadow">
               <Clock className="h-5 w-5" />
             </div>
             <div className="text-left">
@@ -496,7 +536,7 @@ export function FlowBuilder({ steps, onStepsChange, onEditStep, editingStep }: F
             onClick={() => addStep(StepType.Condition)}
             className="flex items-center gap-3 px-6 py-4 bg-[var(--bg-surface)] rounded-2xl border-2 border-dashed border-[var(--border-default)] hover:border-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all duration-200 group"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] group-hover:shadow-lg transition-shadow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white group-hover:shadow-lg transition-shadow">
               <GitBranch className="h-5 w-5" />
             </div>
             <div className="text-left">
@@ -513,7 +553,7 @@ export function FlowBuilder({ steps, onStepsChange, onEditStep, editingStep }: F
     <div className="relative py-6">
       {/* Start Node */}
       <div className="flex justify-center mb-2">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--text-primary)] text-[var(--bg-surface)] text-sm font-semibold">
+        <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm font-semibold shadow-[0_2px_8px_rgba(99,102,241,0.35)]">
           <Sparkles className="h-4 w-4" />
           Campaign Start
         </div>
@@ -545,7 +585,7 @@ export function FlowBuilder({ steps, onStepsChange, onEditStep, editingStep }: F
 
       {/* End Node */}
       <div className="flex justify-center mt-2">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm font-semibold border border-[var(--border-subtle)]">
+        <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-[var(--bg-elevated)] text-[var(--text-tertiary)] text-sm font-semibold border border-[var(--border-default)] shadow-sm">
           <Settings className="h-4 w-4" />
           Campaign End
         </div>
