@@ -366,14 +366,14 @@ export function CampaignCreatePage() {
               onClick={() => setWizardStep(i)}
               className={`flex-1 flex items-center gap-3 rounded-md px-4 py-3 text-left transition-colors ${
                 wizardStep === i
-                  ? 'bg-[var(--text-primary)] text-[var(--bg-app)]'
+                  ? 'bg-[#6366F1] text-white'
                   : i < wizardStep
-                  ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-default)]'
+                  ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] border border-[rgba(99,102,241,0.2)]'
                   : 'bg-surface border border-subtle text-secondary hover:bg-hover'
               }`}
             >
               <div className={`flex h-8 w-8 items-center justify-center rounded-md ${
-                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-[var(--bg-hover)]' : 'bg-elevated'
+                wizardStep === i ? 'bg-white/20' : i < wizardStep ? 'bg-[rgba(99,102,241,0.15)]' : 'bg-elevated'
               }`}>
                 {i < wizardStep ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
               </div>
@@ -470,7 +470,7 @@ export function CampaignCreatePage() {
                       }}
                       className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                         (campaignForm.send_days || []).includes(day)
-                          ? 'bg-[var(--text-primary)] text-[var(--bg-app)]'
+                          ? 'bg-[#6366F1] text-white'
                           : 'bg-elevated text-secondary hover:text-primary'
                       }`}
                     >
@@ -755,7 +755,7 @@ export function CampaignCreatePage() {
                             }
                             setSendingTest(false);
                           }}
-                          className="px-3 py-1.5 rounded-md bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+                          className="px-3 py-1.5 rounded-md bg-[#6366F1] text-white text-xs font-medium disabled:opacity-40 hover:bg-[#4F46E5] transition-colors"
                         >
                           {sendingTest ? 'Sending...' : 'Send'}
                         </button>
@@ -850,7 +850,7 @@ export function CampaignCreatePage() {
               </div>
             ) : (
               <div className="rounded-md bg-[var(--bg-elevated)] border border-[var(--border-default)] p-4 text-center">
-                <CheckCircle2 className="h-8 w-8 text-[var(--text-primary)] mx-auto mb-2" />
+                <CheckCircle2 className="h-8 w-8 text-[#6366F1] mx-auto mb-2" />
                 <p className="font-medium text-[var(--text-primary)]">{selectedContactIds.length} contacts ready</p>
                 <p className="text-sm text-[var(--text-secondary)] mt-1">These contacts will receive all {steps.filter(s => s.step_type === 'email').length} emails.</p>
               </div>
@@ -1073,7 +1073,7 @@ export function CampaignCreatePage() {
               onClick={() => setContactModalTab('individual')}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 contactModalTab === 'individual'
-                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+                  ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -1084,7 +1084,7 @@ export function CampaignCreatePage() {
               onClick={() => setContactModalTab('lists')}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 contactModalTab === 'lists'
-                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+                  ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >

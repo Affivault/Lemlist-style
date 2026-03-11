@@ -115,10 +115,10 @@ export function CampaignDetailPage() {
 
   const chartData = analytics
     ? [
-        { name: 'Sent', value: analytics.sent, fill: '#888888' },
-        { name: 'Opened', value: analytics.opened, fill: '#888888' },
-        { name: 'Clicked', value: analytics.clicked, fill: '#888888' },
-        { name: 'Replied', value: analytics.replied, fill: '#888888' },
+        { name: 'Sent', value: analytics.sent, fill: '#6366F1' },
+        { name: 'Opened', value: analytics.opened, fill: '#818CF8' },
+        { name: 'Clicked', value: analytics.clicked, fill: '#A5B4FC' },
+        { name: 'Replied', value: analytics.replied, fill: '#6366F1' },
         { name: 'Bounced', value: analytics.bounced, fill: '#ef4444' },
       ]
     : [];
@@ -203,7 +203,7 @@ export function CampaignDetailPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
               activeTab === tab.id
-                ? 'border-[var(--text-primary)] text-primary'
+                ? 'border-[#6366F1] text-[#6366F1]'
                 : 'border-transparent text-secondary hover:text-primary'
             }`}
           >
@@ -309,7 +309,7 @@ export function CampaignDetailPage() {
             campaign.steps.map((step: CampaignStep, index: number) => (
               <div key={step.id} className="rounded-lg border border-subtle bg-surface p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-elevated text-xs font-medium text-secondary">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(99,102,241,0.1)] text-xs font-semibold text-[#6366F1]">
                     {index + 1}
                   </span>
                   {step.step_type === 'email' ? (
@@ -397,8 +397,10 @@ function StatCard({ icon: Icon, label, value, rate, isNegative }: {
 }) {
   return (
     <div className="rounded-lg border border-subtle bg-surface p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className={`h-4 w-4 ${isNegative ? 'text-[var(--error)]' : 'text-secondary'}`} />
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isNegative ? 'bg-red-500/10' : 'bg-[rgba(99,102,241,0.08)]'}`}>
+          <Icon className={`h-3.5 w-3.5 ${isNegative ? 'text-red-400' : 'text-[#6366F1]'}`} />
+        </div>
         <span className="text-sm text-secondary">{label}</span>
       </div>
       <p className="text-2xl font-semibold text-primary">{value}</p>

@@ -141,7 +141,7 @@ export function DeveloperPage() {
         <button
           onClick={() => setTab('webhooks')}
           className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'webhooks' ? 'border-[var(--text-primary)] text-[var(--text-primary)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            tab === 'webhooks' ? 'border-[#6366F1] text-[#6366F1]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           )}
         >
           <Webhook className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function DeveloperPage() {
         <button
           onClick={() => setTab('api-keys')}
           className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
-            tab === 'api-keys' ? 'border-[var(--text-primary)] text-[var(--text-primary)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            tab === 'api-keys' ? 'border-[#6366F1] text-[#6366F1]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           )}
         >
           <Key className="h-4 w-4" />
@@ -165,7 +165,7 @@ export function DeveloperPage() {
             <p className="text-sm text-[var(--text-secondary)]">Receive real-time notifications when events happen.</p>
             <button
               onClick={() => setShowCreateWebhook(true)}
-              className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 rounded-md bg-[#6366F1] px-4 py-2 text-sm font-medium text-white hover:bg-[#4F46E5] transition-colors"
             >
               <Plus className="h-4 w-4" />
               Add Webhook
@@ -201,7 +201,7 @@ export function DeveloperPage() {
                             onClick={() => toggleEvent(event)}
                             className={cn(
                               'rounded border px-2.5 py-1 text-xs transition-all',
-                              webhookEvents.includes(event) ? 'bg-[var(--bg-hover)] border-[var(--border-strong)] text-[var(--text-primary)]' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                              webhookEvents.includes(event) ? 'bg-[rgba(99,102,241,0.1)] border-[#6366F1] text-[#6366F1]' : 'bg-[var(--bg-elevated)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                             )}
                           >
                             {event}
@@ -215,7 +215,7 @@ export function DeveloperPage() {
               <button
                 onClick={() => createEndpointMutation.mutate()}
                 disabled={!webhookUrl || webhookEvents.length === 0 || createEndpointMutation.isPending}
-                className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-opacity"
+                className="flex items-center gap-2 rounded-md bg-[#6366F1] px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-[#4F46E5] transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create Webhook
@@ -225,7 +225,7 @@ export function DeveloperPage() {
 
           {loadingEndpoints ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[#6366F1]" />
             </div>
           ) : !endpoints || endpoints.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center border border-[var(--border-subtle)] rounded-lg">
@@ -240,7 +240,7 @@ export function DeveloperPage() {
               {endpoints.map((ep) => (
                 <div key={ep.id} className="rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4">
                   <div className="flex items-center gap-3">
-                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-[var(--text-primary)]' : 'bg-[var(--text-tertiary)]')} />
+                    <div className={cn('h-2.5 w-2.5 rounded-full', ep.is_active ? 'bg-[#6366F1]' : 'bg-[var(--text-tertiary)]')} />
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-[var(--text-primary)]">{ep.label}</h4>
                       <p className="text-xs text-[var(--text-tertiary)] truncate font-mono">{ep.url}</p>
@@ -262,7 +262,7 @@ export function DeveloperPage() {
                         <p className="text-xs text-[var(--text-tertiary)] text-center py-2">No deliveries yet</p>
                       ) : deliveries.map((d) => (
                         <div key={d.id} className="flex items-center gap-3 text-xs">
-                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-[var(--text-primary)] shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-[var(--text-tertiary)] shrink-0" />}
+                          {d.success ? <CheckCircle2 className="h-3.5 w-3.5 text-[#6366F1] shrink-0" /> : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
                           <span className="text-[var(--text-secondary)] font-mono">{d.event_type}</span>
                           <span className="text-[var(--text-tertiary)]">{d.status_code || 'ERR'}</span>
                           <span className="text-[var(--text-tertiary)] ml-auto">{formatDateTime(d.created_at)}</span>
@@ -284,7 +284,7 @@ export function DeveloperPage() {
             <p className="text-sm text-[var(--text-secondary)]">Manage API keys for headless access to SkySend.</p>
             <button
               onClick={() => setShowCreateKey(true)}
-              className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 rounded-md bg-[#6366F1] px-4 py-2 text-sm font-medium text-white hover:bg-[#4F46E5] transition-colors"
             >
               <Plus className="h-4 w-4" />
               Create Key
@@ -294,7 +294,7 @@ export function DeveloperPage() {
           {newRawKey && (
             <div className="rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-default)] p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[var(--text-primary)]" />
+                <CheckCircle2 className="h-4 w-4 text-[#6366F1]" />
                 <span className="text-sm font-medium text-[var(--text-primary)]">API key created. Copy it now - it will not be shown again.</span>
               </div>
               <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export function DeveloperPage() {
               <button
                 onClick={() => createKeyMutation.mutate()}
                 disabled={!keyName || createKeyMutation.isPending}
-                className="btn-primary flex items-center gap-2 rounded-md bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-app)] disabled:opacity-50 transition-opacity"
+                className="flex items-center gap-2 rounded-md bg-[#6366F1] px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-[#4F46E5] transition-colors"
               >
                 <Key className="h-4 w-4" />
                 Generate Key
@@ -340,7 +340,7 @@ export function DeveloperPage() {
 
           {loadingKeys ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-subtle)] border-t-[#6366F1]" />
             </div>
           ) : !apiKeys || apiKeys.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center border border-[var(--border-subtle)] rounded-lg">
