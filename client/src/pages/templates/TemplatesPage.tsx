@@ -404,7 +404,7 @@ function EmailEditorModal({
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value as TemplateCategory)}
-                className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
+                className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
               >
                 {TEMPLATE_CATEGORIES.map(c => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -526,7 +526,7 @@ function SequenceEditorModal({
             <select
               value={category}
               onChange={e => setCategory(e.target.value as TemplateCategory)}
-              className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
+              className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
             >
               {TEMPLATE_CATEGORIES.map(c => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -548,7 +548,7 @@ function SequenceEditorModal({
                   onClick={() => setActiveStep(idx)}
                   className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs transition-colors ${
                     activeStep === idx
-                      ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] font-medium'
+                      ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] font-medium'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
                   }`}
                 >
@@ -592,7 +592,7 @@ function SequenceEditorModal({
                     min={0}
                     value={current.delay_days}
                     onChange={e => updateStep(activeStep, { delay_days: parseInt(e.target.value) || 0 })}
-                    className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
+                    className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
                   />
                 </div>
                 <div>
@@ -602,7 +602,7 @@ function SequenceEditorModal({
                     min={0}
                     value={current.delay_hours}
                     onChange={e => updateStep(activeStep, { delay_hours: parseInt(e.target.value) || 0 })}
-                    className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
+                    className="w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
                   />
                 </div>
               </div>
@@ -714,7 +714,7 @@ function PreviewModal({
                   >
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
                       activeStep === idx
-                        ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                        ? 'bg-[#6366F1] text-white'
                         : 'bg-[var(--bg-elevated)] border border-[var(--border-subtle)]'
                     }`}>
                       <span className="text-[10px] font-bold">{idx + 1}</span>
@@ -907,7 +907,7 @@ export function TemplatesPage() {
           onClick={() => setTab('emails')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             tab === 'emails'
-              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+              ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] shadow-sm'
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
@@ -919,7 +919,7 @@ export function TemplatesPage() {
           onClick={() => setTab('sequences')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             tab === 'sequences'
-              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+              ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] shadow-sm'
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
@@ -938,7 +938,7 @@ export function TemplatesPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={tab === 'emails' ? 'Search email templates...' : 'Search sequences...'}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
           />
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -946,7 +946,7 @@ export function TemplatesPage() {
             onClick={() => setActiveCategory('all')}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               activeCategory === 'all'
-                ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                ? 'bg-[#6366F1] text-white'
                 : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
@@ -958,7 +958,7 @@ export function TemplatesPage() {
               onClick={() => setActiveCategory(cat.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 activeCategory === cat.value
-                  ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                  ? 'bg-[#6366F1] text-white'
                   : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >

@@ -305,7 +305,7 @@ export function SmtpAccountsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-medium text-primary flex items-center gap-2">
-              <Zap className="h-4 w-4" />
+              <Zap className="h-4 w-4 text-[#818CF8]" />
               Quick Connect
             </h2>
             <p className="text-sm text-secondary mt-0.5">Pre-configured settings for popular providers</p>
@@ -408,8 +408,8 @@ export function SmtpAccountsPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-md bg-[var(--bg-elevated)]">
-                    <Mail className="h-5 w-5 text-primary" />
+                  <div className="flex items-center justify-center w-10 h-10 rounded-md bg-[rgba(99,102,241,0.08)] border border-[rgba(99,102,241,0.12)]">
+                    <Mail className="h-5 w-5 text-[#6366F1]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -479,7 +479,7 @@ export function SmtpAccountsPage() {
                     </div>
                     <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${account.warmup_mode ? 'bg-amber-500' : 'bg-[var(--text-primary)]'}`}
+                        className={`h-full rounded-full transition-all ${account.warmup_mode ? 'bg-amber-500' : 'bg-[#6366F1]'}`}
                         style={{ width: `${Math.min(pct, 100)}%` }}
                       />
                     </div>

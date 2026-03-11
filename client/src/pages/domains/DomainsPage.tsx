@@ -201,7 +201,7 @@ function DomainDetailPanel({
       ) : recordsData ? (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
-            <Shield className="h-4 w-4" />
+            <Shield className="h-4 w-4 text-[#6366F1]" />
             DNS Records to Configure
           </h4>
           {recordsData.records.map((record, idx) => (
@@ -299,7 +299,7 @@ export function DomainsPage() {
       {/* Info banner */}
       <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
         <div className="flex items-start gap-3">
-          <Shield className="h-5 w-5 text-[var(--text-secondary)] mt-0.5 shrink-0" />
+          <Shield className="h-5 w-5 text-[#6366F1] mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-medium text-[var(--text-primary)]">Why verify your domain?</p>
             <p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -337,12 +337,12 @@ export function DomainsPage() {
                   <div className={`flex items-center justify-center w-10 h-10 rounded-md ${
                     domain.is_verified
                       ? 'bg-green-500/10'
-                      : 'bg-[var(--bg-elevated)]'
+                      : 'bg-[rgba(99,102,241,0.08)] border border-[rgba(99,102,241,0.12)]'
                   }`}>
                     {domain.is_verified ? (
                       <CheckCircle2 className="h-5 w-5 text-green-500" />
                     ) : (
-                      <Globe className="h-5 w-5 text-[var(--text-secondary)]" />
+                      <Globe className="h-5 w-5 text-[#6366F1]" />
                     )}
                   </div>
                   <div>
