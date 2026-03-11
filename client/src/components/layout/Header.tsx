@@ -25,7 +25,7 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 backdrop-blur-xl px-8">
       {/* Search */}
       <div className="flex items-center gap-3 flex-1">
-        <div className="relative flex items-center h-9 w-72 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-app)] hover:border-[var(--border-default)] transition-colors">
+        <div className="relative flex items-center h-9 w-80 rounded-lg border border-[var(--border-default)] bg-[var(--bg-app)] hover:border-[var(--border-default)] transition-colors shadow-sm">
           <Search className="h-4 w-4 text-[var(--text-tertiary)] ml-3" />
           <input
             type="text"
@@ -43,7 +43,7 @@ export function Header() {
       <div className="flex items-center gap-1">
         <button className="relative flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors">
           <Bell className="h-4 w-4" strokeWidth={1.5} />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#6366F1] ring-2 ring-[var(--bg-surface)]" />
+          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#6366F1] ring-2 ring-[var(--bg-surface)] animate-pulse" />
         </button>
 
         <button
@@ -64,7 +64,7 @@ export function Header() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-2 h-8 pl-1.5 pr-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors"
           >
-            <div className="h-6 w-6 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[10px] font-semibold text-[var(--text-primary)]">
+            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center text-[10px] font-semibold text-white shadow-sm">
               {user?.email?.[0].toUpperCase() || 'U'}
             </div>
             <ChevronDown className={cn(
@@ -76,7 +76,7 @@ export function Header() {
           {menuOpen && (
             <>
               <div className="fixed inset-0" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1.5 shadow-xl animate-slide-up">
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1.5 shadow-2xl animate-slide-up">
                 <div className="px-3 py-2.5 border-b border-[var(--border-subtle)] mb-1">
                   <p className="text-sm font-medium text-[var(--text-primary)]">
                     {user?.email?.split('@')[0]}

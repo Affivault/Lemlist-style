@@ -57,7 +57,7 @@ function NavItem({
         'flex items-center gap-3 py-2 text-[13px] font-medium rounded-lg transition-colors duration-150',
         collapsed ? 'justify-center px-2' : 'px-3',
         isActive
-          ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1]'
+          ? 'bg-gradient-to-r from-[rgba(99,102,241,0.12)] to-[rgba(139,92,246,0.06)] text-[#6366F1] border-l-[2px] border-l-[#6366F1] relative'
           : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
       )}
     >
@@ -163,8 +163,8 @@ export function Sidebar() {
           'flex items-center gap-3 py-2 rounded-lg hover:bg-[var(--bg-hover)] transition-colors cursor-pointer group',
           collapsed ? 'justify-center px-1' : 'px-3'
         )}>
-          <div className="h-7 w-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-semibold text-[var(--text-primary)]">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] font-semibold text-white">
               {workspaceName[0].toUpperCase()}
             </span>
           </div>
