@@ -85,26 +85,26 @@ export function CampaignsListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-heading-lg text-[var(--text-primary)]">Campaigns</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your email outreach campaigns</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Campaigns</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your email outreach campaigns{data?.total !== undefined ? ` · ${data.total} total` : ''}</p>
         </div>
-        <button onClick={() => navigate('/campaigns/new')} className="btn-primary rounded-lg px-5 py-2.5">
+        <button onClick={() => navigate('/campaigns/new')} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:shadow-[0_4px_16px_rgba(99,102,241,0.45)]">
           <Plus className="h-4 w-4" />
           New Campaign
         </button>
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-1 border-b border-[var(--border-subtle)]">
+      <div className="flex gap-1 p-1 bg-[var(--bg-elevated)] rounded-2xl w-fit">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => { setStatusFilter(tab.value); setPage(1); }}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px',
+              'rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200',
               statusFilter === tab.value
-                ? 'border-[#6366F1] text-[#6366F1]'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                ? 'bg-[rgba(99,102,241,0.1)] text-[#6366F1]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
             )}
           >
             {tab.label}
@@ -126,13 +126,20 @@ export function CampaignsListPage() {
             {campaigns.map((campaign: CampaignWithStats) => (
               <div
                 key={campaign.id}
-                className="cursor-pointer rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition-all duration-200 hover:border-[var(--border-default)] hover:shadow-card group"
+                className={cn(
+                  "cursor-pointer rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 transition-all duration-200 hover:border-[var(--border-default)] hover:shadow-card hover:bg-gradient-to-r hover:from-transparent hover:to-[var(--bg-elevated)] group overflow-hidden",
+                  campaign.status === 'draft' && 'border-l-[3px] border-l-slate-400',
+                  campaign.status === 'running' && 'border-l-[3px] border-l-[#6366F1]',
+                  campaign.status === 'paused' && 'border-l-[3px] border-l-amber-500',
+                  campaign.status === 'completed' && 'border-l-[3px] border-l-emerald-500',
+                  campaign.status === 'cancelled' && 'border-l-[3px] border-l-red-500',
+                )}
                 onClick={() => navigate(`/campaigns/${campaign.id}`)}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-primary)] transition-colors">{campaign.name}</h3>
+                      <h3 className="text-base font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-primary)] transition-colors">{campaign.name}</h3>
                       <StatusBadge status={campaign.status} type="campaign" />
                     </div>
                     <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
@@ -182,28 +189,28 @@ export function CampaignsListPage() {
                 {(campaign.sent_count > 0 || campaign.status !== 'draft') && (
                   <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex gap-6 text-sm text-[var(--text-secondary)]">
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
-                        <Send className="h-3 w-3 text-[var(--text-secondary)]" />
+                      <div className="h-7 w-7 rounded-lg bg-[rgba(99,102,241,0.1)] flex items-center justify-center">
+                        <Send className="h-3.5 w-3.5 text-[#6366F1]" />
                       </div>
-                      <span className="font-medium text-[var(--text-primary)]">{campaign.sent_count}</span> sent
+                      <span className="font-bold text-[var(--text-primary)]">{campaign.sent_count}</span> sent
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
-                        <Mail className="h-3 w-3 text-[var(--text-secondary)]" />
+                      <div className="h-7 w-7 rounded-lg bg-[rgba(59,130,246,0.1)] flex items-center justify-center">
+                        <Mail className="h-3.5 w-3.5 text-blue-500" />
                       </div>
-                      <span className="font-medium text-[var(--text-primary)]">{campaign.opened_count}</span> opened
+                      <span className="font-bold text-[var(--text-primary)]">{campaign.opened_count}</span> opened
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
-                        <MousePointerClick className="h-3 w-3 text-[var(--text-secondary)]" />
+                      <div className="h-7 w-7 rounded-lg bg-[rgba(139,92,246,0.1)] flex items-center justify-center">
+                        <MousePointerClick className="h-3.5 w-3.5 text-violet-500" />
                       </div>
-                      <span className="font-medium text-[var(--text-primary)]">{campaign.clicked_count}</span> clicked
+                      <span className="font-bold text-[var(--text-primary)]">{campaign.clicked_count}</span> clicked
                     </span>
                     <span className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-md bg-[var(--bg-elevated)] flex items-center justify-center">
-                        <MessageSquare className="h-3 w-3 text-[var(--text-secondary)]" />
+                      <div className="h-7 w-7 rounded-lg bg-[rgba(16,185,129,0.1)] flex items-center justify-center">
+                        <MessageSquare className="h-3.5 w-3.5 text-emerald-500" />
                       </div>
-                      <span className="font-medium text-[var(--text-primary)]">{campaign.replied_count}</span> replied
+                      <span className="font-bold text-[var(--text-primary)]">{campaign.replied_count}</span> replied
                     </span>
                   </div>
                 )}

@@ -235,7 +235,7 @@ export function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-left transition-all duration-200 ${
                     isActive
-                      ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1]'
+                      ? 'bg-[rgba(99,102,241,0.08)] text-[#6366F1] border-l-[2px] border-l-[#6366F1]'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
                   }`}
                 >
@@ -259,17 +259,17 @@ export function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1">
-          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 shadow-card">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 shadow-lg">
             {/* ═══ Profile Tab ═══ */}
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Profile Information</h2>
+                  <h2 className="text-base font-bold text-[var(--text-primary)]">Profile Information</h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">Update your personal details</p>
                 </div>
 
                 <div className="flex items-center gap-4 p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                  <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] text-lg font-semibold">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center text-white text-lg font-semibold">
                     {(firstName || user?.email || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -370,7 +370,7 @@ export function SettingsPage() {
             {activeTab === 'account' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Account Security</h2>
+                  <h2 className="text-base font-bold text-[var(--text-primary)]">Account Security</h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your password and security settings</p>
                 </div>
 
@@ -472,7 +472,7 @@ export function SettingsPage() {
                 {/* Connected accounts */}
                 <div className="pt-6 border-t border-[var(--border-subtle)]">
                   <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Connected Accounts</h3>
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors">
                     <div className="flex items-center gap-3">
                       <svg className="h-5 w-5" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -543,7 +543,7 @@ export function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Notifications</h2>
+                  <h2 className="text-base font-bold text-[var(--text-primary)]">Notifications</h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">Choose what notifications you receive</p>
                 </div>
 
@@ -580,7 +580,7 @@ export function SettingsPage() {
             {activeTab === 'preferences' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-base font-semibold text-[var(--text-primary)]">Preferences</h2>
+                  <h2 className="text-base font-bold text-[var(--text-primary)]">Preferences</h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">Customize your experience</p>
                 </div>
 
@@ -630,7 +630,7 @@ export function SettingsPage() {
             {activeTab === 'ai' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-base font-semibold text-[var(--text-primary)]">AI Features</h2>
+                  <h2 className="text-base font-bold text-[var(--text-primary)]">AI Features</h2>
                   <p className="text-sm text-[var(--text-secondary)] mt-1">
                     Configure intelligent email tagging and AI-powered reply assistance
                   </p>
@@ -729,8 +729,8 @@ export function SettingsPage() {
               <button
                 onClick={handleSave}
                 disabled={saveMutation.isPending || !hasChanges}
-                className={`btn-primary rounded-lg px-6 py-2.5 flex items-center gap-2 ${
-                  !hasChanges ? 'opacity-50 cursor-not-allowed' : ''
+                className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm font-semibold transition-all ${
+                  hasChanges ? 'shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:opacity-90' : 'opacity-50 cursor-not-allowed'
                 }`}
               >
                 {saveMutation.isPending ? (
@@ -762,7 +762,7 @@ function ToggleSetting({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+    <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors">
       <div>
         <p className="text-sm font-medium text-[var(--text-primary)]">{label}</p>
         <p className="text-xs text-[var(--text-tertiary)] mt-0.5">{description}</p>
@@ -770,7 +770,7 @@ function ToggleSetting({
       <button
         onClick={() => onChange(!checked)}
         className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-          checked ? 'bg-[#6366F1]' : 'bg-[var(--border-default)]'
+          checked ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]' : 'bg-[var(--border-default)]'
         }`}
       >
         <span

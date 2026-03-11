@@ -41,6 +41,39 @@ function getInitials(first?: string | null, last?: string | null, email?: string
   return '?';
 }
 
+const getAvatarGradient = (initials: string): string => {
+  const char = initials.charAt(0).toUpperCase();
+  const gradients: Record<string, string> = {
+    'A': 'from-[#6366F1] to-[#8B5CF6]',
+    'B': 'from-[#8B5CF6] to-[#EC4899]',
+    'C': 'from-[#06B6D4] to-[#6366F1]',
+    'D': 'from-[#10B981] to-[#06B6D4]',
+    'E': 'from-[#F59E0B] to-[#EF4444]',
+    'F': 'from-[#EF4444] to-[#EC4899]',
+    'G': 'from-[#6366F1] to-[#06B6D4]',
+    'H': 'from-[#8B5CF6] to-[#6366F1]',
+    'I': 'from-[#10B981] to-[#059669]',
+    'J': 'from-[#F59E0B] to-[#D97706]',
+    'K': 'from-[#EC4899] to-[#8B5CF6]',
+    'L': 'from-[#06B6D4] to-[#0284C7]',
+    'M': 'from-[#6366F1] to-[#4F46E5]',
+    'N': 'from-[#10B981] to-[#6366F1]',
+    'O': 'from-[#F59E0B] to-[#6366F1]',
+    'P': 'from-[#8B5CF6] to-[#EC4899]',
+    'Q': 'from-[#EF4444] to-[#F59E0B]',
+    'R': 'from-[#06B6D4] to-[#10B981]',
+    'S': 'from-[#6366F1] to-[#8B5CF6]',
+    'T': 'from-[#EC4899] to-[#EF4444]',
+    'U': 'from-[#F59E0B] to-[#10B981]',
+    'V': 'from-[#8B5CF6] to-[#06B6D4]',
+    'W': 'from-[#10B981] to-[#F59E0B]',
+    'X': 'from-[#EF4444] to-[#8B5CF6]',
+    'Y': 'from-[#6366F1] to-[#EC4899]',
+    'Z': 'from-[#06B6D4] to-[#6366F1]',
+  };
+  return gradients[char] || 'from-[#6366F1] to-[#8B5CF6]';
+};
+
 export function ContactsListPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -269,7 +302,7 @@ export function ContactsListPage() {
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                 !activeListId
-                  ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1]"
+                  ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1] border-l-[2px] border-l-[#6366F1]"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
               )}
             >
@@ -291,7 +324,7 @@ export function ContactsListPage() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                   activeListId === list.id
-                    ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1]"
+                    ? "bg-[rgba(99,102,241,0.08)] text-[#6366F1] border-l-[2px] border-l-[#6366F1]"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
                 )}
               >
@@ -316,7 +349,7 @@ export function ContactsListPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-heading-lg text-[var(--text-primary)]">{currentListName}</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{currentListName}</h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1.5">
               {totalContacts === 0
                 ? 'No contacts yet -- start building your audience'
@@ -341,7 +374,7 @@ export function ContactsListPage() {
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="btn-primary rounded-lg"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm font-semibold hover:opacity-90 transition-all shadow-[0_2px_8px_rgba(99,102,241,0.35)]"
             >
               <Plus className="h-4 w-4" />
               Add Contact
@@ -421,8 +454,8 @@ export function ContactsListPage() {
         ) : contacts.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-[rgba(99,102,241,0.08)] mb-5 border border-[rgba(99,102,241,0.15)]">
-              <Users className="h-8 w-8 text-[#6366F1]" strokeWidth={1.5} />
+            <div className="flex items-center justify-center h-20 w-20 rounded-3xl bg-gradient-to-br from-[rgba(99,102,241,0.08)] to-[rgba(139,92,246,0.08)] mb-5 border border-[rgba(99,102,241,0.15)]">
+              <Users className="h-9 w-9 text-[#6366F1]" strokeWidth={1.5} />
             </div>
             <h3 className="text-heading-sm text-[var(--text-primary)] mb-2">No contacts yet</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-sm text-center">
@@ -440,10 +473,10 @@ export function ContactsListPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-card overflow-hidden">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl shadow-md overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[var(--border-subtle)]">
+                <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
                   <th className="px-5 py-3.5 w-12">
                     <input
                       type="checkbox"
@@ -452,16 +485,16 @@ export function ContactsListPage() {
                       className="rounded border-[var(--border-default)] cursor-pointer"
                     />
                   </th>
-                  <th className="px-4 py-3.5 text-left text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+                  <th className="px-4 py-3.5 text-left text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest">
                     Contact
                   </th>
-                  <th className="px-4 py-3.5 text-left text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+                  <th className="px-4 py-3.5 text-left text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest">
                     Email
                   </th>
-                  <th className="px-4 py-3.5 text-left text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+                  <th className="px-4 py-3.5 text-left text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest">
                     Company
                   </th>
-                  <th className="px-4 py-3.5 text-left text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+                  <th className="px-4 py-3.5 text-left text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-widest">
                     Added
                   </th>
                   <th className="px-4 py-3.5 w-20"></th>
@@ -478,7 +511,7 @@ export function ContactsListPage() {
                         "group transition-colors duration-150",
                         index < contacts.length - 1 && "border-b border-[var(--border-subtle)]",
                         selectedContacts.has(contact.id)
-                          ? "bg-[var(--bg-elevated)]"
+                          ? "bg-[rgba(99,102,241,0.04)]"
                           : "hover:bg-[var(--bg-hover)]"
                       )}
                     >
@@ -495,8 +528,8 @@ export function ContactsListPage() {
                           onClick={() => navigate(`/contacts/${contact.id}`)}
                           className="flex items-center gap-3 group/name"
                         >
-                          <div className="flex-shrink-0 h-9 w-9 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center shadow-sm">
-                            <span className="text-[12px] font-semibold text-[var(--text-primary)] leading-none">
+                          <div className={`flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br ${getAvatarGradient(initials)} flex items-center justify-center shadow-sm`}>
+                            <span className="text-white text-xs font-bold leading-none">
                               {initials}
                             </span>
                           </div>
