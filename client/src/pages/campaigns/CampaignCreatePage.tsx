@@ -77,15 +77,7 @@ function ToggleSwitch({
     >
       <div className="flex items-center gap-3">
         {Icon && (
-          <div
-            className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-              checked
-                ? 'bg-[rgba(99,102,241,0.12)] text-[#6366F1]'
-                : 'bg-[var(--bg-surface)] text-[var(--text-tertiary)]'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-          </div>
+          <Icon className={`h-4 w-4 flex-shrink-0 transition-colors ${checked ? 'text-[#6366F1]' : 'text-[var(--text-tertiary)]'}`} />
         )}
         <div>
           <p className="text-sm font-medium text-[var(--text-primary)]">{label}</p>
@@ -403,10 +395,8 @@ export function CampaignCreatePage() {
     subtitle: string;
     action?: React.ReactNode;
   }) => (
-    <div className="px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]/40 flex items-center gap-3">
-      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(99,102,241,0.1)] text-[#6366F1]">
-        <Icon className="h-4 w-4" />
-      </div>
+    <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
+      <Icon className="h-4 w-4 flex-shrink-0 text-[var(--text-tertiary)]" />
       <div className="flex-1 min-w-0">
         <h2 className="text-sm font-semibold text-[var(--text-primary)]">{title}</h2>
         <p className="text-xs text-[var(--text-tertiary)]">{subtitle}</p>
@@ -431,7 +421,7 @@ export function CampaignCreatePage() {
             {isEdit ? 'Edit Campaign' : 'New Campaign'}
           </h1>
           {campaignForm.name && (
-            <span className="hidden sm:inline px-2.5 py-0.5 rounded-full bg-[rgba(99,102,241,0.1)] text-[#6366F1] text-xs font-medium truncate max-w-[200px]">
+            <span className="hidden sm:inline px-2.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-xs font-medium truncate max-w-[200px] border border-[var(--border-subtle)]">
               {campaignForm.name}
             </span>
           )}
@@ -456,20 +446,20 @@ export function CampaignCreatePage() {
                   className="flex flex-col items-center gap-2 group min-w-[80px]"
                 >
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors duration-200 ${
                       isCompleted
-                        ? 'bg-[#6366F1] text-white'
+                        ? 'bg-[#6366F1] border-[#6366F1] text-white'
                         : isCurrent
-                        ? 'bg-[#6366F1] text-white ring-4 ring-[rgba(99,102,241,0.2)] scale-110'
-                        : 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)] border-2 border-[var(--border-subtle)]'
+                        ? 'bg-[#6366F1] border-[#6366F1] text-white'
+                        : 'bg-transparent border-[var(--border-default)] text-[var(--text-tertiary)]'
                     }`}
                   >
-                    {isCompleted ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                    {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                   </div>
                   <span
                     className={`text-xs font-medium whitespace-nowrap transition-colors ${
                       isCurrent
-                        ? 'text-[#6366F1]'
+                        ? 'text-[var(--text-primary)]'
                         : isCompleted
                         ? 'text-[var(--text-secondary)]'
                         : 'text-[var(--text-tertiary)]'
@@ -555,7 +545,7 @@ export function CampaignCreatePage() {
                           key={a.id}
                           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
                             isSelected
-                              ? 'bg-[rgba(99,102,241,0.05)] border-[rgba(99,102,241,0.3)]'
+                              ? 'bg-[var(--bg-elevated)] border-[var(--border-default)]'
                               : 'bg-[var(--bg-elevated)] border-transparent hover:border-[var(--border-subtle)]'
                           }`}
                         >
@@ -801,27 +791,19 @@ export function CampaignCreatePage() {
                 title="Campaign Sequence"
                 subtitle="Build the email flow your contacts will experience"
                 action={
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(99,102,241,0.1)] text-[#6366F1]">
+                  <div className="flex items-center gap-3 text-xs text-[var(--text-tertiary)]">
+                    <span className="flex items-center gap-1">
                       <Mail className="h-3 w-3" />
-                      {steps.filter((s) => s.step_type === 'email').length}
+                      {steps.filter((s) => s.step_type === 'email').length} emails
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
+                    <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {steps.filter((s) => s.step_type === 'delay').length}
+                      {steps.filter((s) => s.step_type === 'delay').length} delays
                     </span>
                   </div>
                 }
               />
-              {/* Canvas with subtle dot pattern */}
-              <div
-                className="flex-1 p-5 min-h-[420px] overflow-y-auto"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle, rgba(99,102,241,0.08) 1px, transparent 1px)',
-                  backgroundSize: '22px 22px',
-                }}
-              >
+              <div className="flex-1 p-5 min-h-[420px] overflow-y-auto">
                 <FlowBuilder
                   steps={steps}
                   onStepsChange={setSteps}
@@ -835,12 +817,9 @@ export function CampaignCreatePage() {
             <div className="lg:col-span-2">
               {editingStep !== null && steps[editingStep]?.step_type === 'email' ? (
                 <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] sticky top-20 overflow-hidden">
-                  {/* Email editor — mock email client header */}
-                  <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]/60 flex items-center justify-between">
+                  <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[rgba(99,102,241,0.12)] text-[#6366F1]">
-                        <Mail className="h-3.5 w-3.5" />
-                      </div>
+                      <Mail className="h-4 w-4 text-[var(--text-tertiary)]" />
                       <div>
                         <p className="text-sm font-semibold text-[var(--text-primary)]">Email Editor</p>
                         <p className="text-xs text-[var(--text-tertiary)]">
@@ -996,10 +975,8 @@ export function CampaignCreatePage() {
                 </div>
               ) : editingStep !== null && steps[editingStep]?.step_type === 'delay' ? (
                 <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] sticky top-20 overflow-hidden">
-                  <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]/60 flex items-center gap-2.5">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[rgba(99,102,241,0.12)] text-[#6366F1]">
-                      <Clock className="h-3.5 w-3.5" />
-                    </div>
+                  <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center gap-2.5">
+                    <Clock className="h-4 w-4 text-[var(--text-tertiary)]" />
                     <div>
                       <p className="text-sm font-semibold text-[var(--text-primary)]">Wait / Delay</p>
                       <p className="text-xs text-[var(--text-tertiary)]">
@@ -1036,10 +1013,9 @@ export function CampaignCreatePage() {
                         </div>
                       ))}
                     </div>
-                    <div className="rounded-xl bg-[rgba(99,102,241,0.05)] border border-[rgba(99,102,241,0.15)] p-3.5">
-                      <p className="text-xs text-[var(--text-secondary)]">
-                        <span className="font-semibold text-[#6366F1]">Pro tip:</span> A 1–3 day gap between
-                        emails typically delivers the best reply rates.
+                    <div className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-3.5">
+                      <p className="text-xs text-[var(--text-tertiary)]">
+                        A 1–3 day gap between emails typically delivers the best reply rates.
                       </p>
                     </div>
                   </div>
@@ -1084,9 +1060,8 @@ export function CampaignCreatePage() {
               subtitle="Who will receive this campaign"
               action={
                 selectedContactIds.length > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[rgba(99,102,241,0.1)] text-[#6366F1] text-sm font-semibold">
-                    <Check className="h-3.5 w-3.5" />
-                    {selectedContactIds.length}
+                  <span className="text-xs text-[var(--text-secondary)]">
+                    {selectedContactIds.length} selected
                   </span>
                 ) : undefined
               }
@@ -1110,20 +1085,16 @@ export function CampaignCreatePage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-5 rounded-xl bg-[rgba(99,102,241,0.05)] border border-[rgba(99,102,241,0.2)]">
+                  <div className="flex items-center justify-between p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(99,102,241,0.15)] text-[#6366F1]">
-                        <CheckCircle2 className="h-6 w-6" />
-                      </div>
+                      <CheckCircle2 className="h-5 w-5 text-[var(--text-secondary)] flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-[var(--text-primary)] text-base">
-                          {selectedContactIds.length} contacts ready
+                        <p className="font-semibold text-[var(--text-primary)]">
+                          {selectedContactIds.length} contacts selected
                         </p>
                         <p className="text-sm text-[var(--text-secondary)]">
-                          They'll receive{' '}
                           {steps.filter((s) => s.step_type === 'email').length} email
-                          {steps.filter((s) => s.step_type === 'email').length !== 1 ? 's' : ''} in this
-                          sequence
+                          {steps.filter((s) => s.step_type === 'email').length !== 1 ? 's' : ''} will be sent per contact
                         </p>
                       </div>
                     </div>
@@ -1194,29 +1165,16 @@ export function CampaignCreatePage() {
               {/* Stat Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Recipients', value: selectedContactIds.length, icon: Users, accent: true },
-                  { label: 'Email Steps', value: emailSteps.length, icon: Mail, accent: true },
-                  { label: 'Wait Steps', value: delaySteps.length, icon: Clock, accent: false },
-                  {
-                    label: 'Total Sends',
-                    value: emailSteps.length * selectedContactIds.length,
-                    icon: Send,
-                    accent: true,
-                  },
-                ].map(({ label, value, icon: Icon, accent }) => (
+                  { label: 'Recipients', value: selectedContactIds.length, icon: Users },
+                  { label: 'Email Steps', value: emailSteps.length, icon: Mail },
+                  { label: 'Wait Steps', value: delaySteps.length, icon: Clock },
+                  { label: 'Total Sends', value: emailSteps.length * selectedContactIds.length, icon: Send },
+                ].map(({ label, value, icon: Icon }) => (
                   <div
                     key={label}
                     className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5"
                   >
-                    <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-xl mb-3 ${
-                        accent
-                          ? 'bg-[rgba(99,102,241,0.1)] text-[#6366F1]'
-                          : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
+                    <Icon className="h-4 w-4 text-[var(--text-tertiary)] mb-3" />
                     <p className="text-2xl font-bold text-[var(--text-primary)]">
                       {value.toLocaleString()}
                     </p>
@@ -1310,7 +1268,7 @@ export function CampaignCreatePage() {
                         </span>
                         {step.step_type === 'email' ? (
                           <>
-                            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(99,102,241,0.1)] text-[#6366F1]">
+                            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
                               <Mail className="h-3.5 w-3.5" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1351,21 +1309,15 @@ export function CampaignCreatePage() {
               )}
 
               {/* Launch Area */}
-              <div
-                className={`rounded-2xl border p-6 ${
-                  isReady
-                    ? 'border-[rgba(99,102,241,0.3)] bg-[rgba(99,102,241,0.04)]'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)]/30'
-                }`}
-              >
+              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-semibold text-[var(--text-primary)]">
-                      {isReady ? 'Ready to launch!' : 'Almost there'}
+                      {isReady ? 'Ready to launch' : 'Almost there'}
                     </h3>
                     <p className="text-sm text-[var(--text-secondary)] mt-0.5">
                       {isReady
-                        ? `${selectedContactIds.length} contacts will start receiving emails immediately.`
+                        ? `${selectedContactIds.length} contacts will start receiving emails once launched.`
                         : 'Resolve the issues above before launching.'}
                     </p>
                   </div>
@@ -1385,11 +1337,7 @@ export function CampaignCreatePage() {
                           : toast.error('Resolve all issues before launching')
                       }
                       disabled={launching || createCampaignMutation.isPending}
-                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${
-                        isReady
-                          ? 'bg-gradient-to-r from-[#6366F1] to-[#818CF8] text-white hover:from-[#4F46E5] hover:to-[#6366F1] shadow-lg shadow-[rgba(99,102,241,0.3)] hover:shadow-[rgba(99,102,241,0.4)]'
-                          : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-default)]'
-                      }`}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#6366F1] text-white text-sm font-semibold hover:bg-[#4F46E5] transition-colors disabled:opacity-40"
                     >
                       <Rocket className="h-4 w-4" />
                       {launching ? 'Launching…' : 'Launch Campaign'}
@@ -1469,7 +1417,7 @@ export function CampaignCreatePage() {
                 onClick={() => setContactModalTab(key as any)}
                 className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   contactModalTab === key
-                    ? 'bg-[rgba(99,102,241,0.1)] text-[#6366F1]'
+                    ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
@@ -1503,7 +1451,7 @@ export function CampaignCreatePage() {
                       onChange={() => toggleContact(contact.id)}
                       className="h-4 w-4 rounded border-[var(--border-default)] accent-[#6366F1]"
                     />
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(99,102,241,0.1)] text-[#6366F1] text-xs font-semibold flex-shrink-0">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-xs font-semibold flex-shrink-0 border border-[var(--border-subtle)]">
                       {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1540,7 +1488,7 @@ export function CampaignCreatePage() {
                     key={list.id}
                     className="flex items-center gap-3 p-4 hover:bg-[var(--bg-hover)] transition-colors"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(99,102,241,0.08)] text-[#6366F1] flex-shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--bg-elevated)] text-[var(--text-secondary)] flex-shrink-0 border border-[var(--border-subtle)]">
                       <FolderOpen className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1554,7 +1502,7 @@ export function CampaignCreatePage() {
                     <button
                       onClick={() => addListContacts(list.id)}
                       disabled={addingListId === list.id || (list.contact_count || 0) === 0}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#6366F1] text-white hover:bg-[#4F46E5] disabled:opacity-40 transition-all flex-shrink-0"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] disabled:opacity-40 transition-all flex-shrink-0"
                     >
                       {addingListId === list.id ? (
                         <Spinner size="sm" />
