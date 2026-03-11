@@ -196,15 +196,15 @@ export function CampaignDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-subtle">
+      <div className="flex gap-1 p-1 bg-[var(--bg-elevated)] rounded-2xl w-fit">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
               activeTab === tab.id
-                ? 'border-[#6366F1] text-[#6366F1]'
-                : 'border-transparent text-secondary hover:text-primary'
+                ? 'bg-[rgba(99,102,241,0.1)] text-[#6366F1]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
             }`}
           >
             {tab.label}
@@ -218,16 +218,16 @@ export function CampaignDetailPage() {
           {analytics && (
             <>
               <div className="grid grid-cols-5 gap-4">
-                <StatCard icon={Send} label="Sent" value={analytics.sent} />
-                <StatCard icon={Mail} label="Opened" value={analytics.opened} rate={analytics.open_rate} />
-                <StatCard icon={MousePointerClick} label="Clicked" value={analytics.clicked} rate={analytics.click_rate} />
-                <StatCard icon={MessageSquare} label="Replied" value={analytics.replied} rate={analytics.reply_rate} />
-                <StatCard icon={AlertTriangle} label="Bounced" value={analytics.bounced} rate={analytics.bounce_rate} isNegative />
+                <StatCard icon={Send} label="Sent" value={analytics.sent} colorVariant="sent" />
+                <StatCard icon={Mail} label="Opened" value={analytics.opened} rate={analytics.open_rate} colorVariant="opened" />
+                <StatCard icon={MousePointerClick} label="Clicked" value={analytics.clicked} rate={analytics.click_rate} colorVariant="clicked" />
+                <StatCard icon={MessageSquare} label="Replied" value={analytics.replied} rate={analytics.reply_rate} colorVariant="replied" />
+                <StatCard icon={AlertTriangle} label="Bounced" value={analytics.bounced} rate={analytics.bounce_rate} isNegative colorVariant="bounced" />
               </div>
 
               {chartData.some((d) => d.value > 0) && (
-                <div className="rounded-lg border border-subtle bg-surface p-5">
-                  <h3 className="mb-4 text-sm font-medium text-primary">Performance</h3>
+                <div className="rounded-2xl border border-subtle bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)] p-5">
+                  <h3 className="mb-4 text-base font-semibold text-primary">Performance</h3>
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
@@ -247,42 +247,42 @@ export function CampaignDetailPage() {
             </>
           )}
 
-          <div className="rounded-lg border border-subtle bg-surface p-5">
-            <h3 className="mb-4 text-sm font-medium text-primary">Campaign Settings</h3>
-            <dl className="grid grid-cols-2 gap-4 text-sm">
-              <div>
+          <div className="rounded-2xl border border-subtle bg-surface p-5 shadow-[var(--shadow-sm)]">
+            <h3 className="mb-4 text-base font-semibold text-primary">Campaign Settings</h3>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Timezone</dt>
                 <dd className="font-medium text-primary">{campaign.timezone}</dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Send Window</dt>
                 <dd className="font-medium text-primary">
                   {campaign.send_window_start || '—'} – {campaign.send_window_end || '—'}
                 </dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Send Days</dt>
                 <dd className="font-medium capitalize text-primary">
                   {campaign.send_days?.join(', ') || 'Weekdays'}
                 </dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Total Contacts</dt>
                 <dd className="font-medium text-primary">{campaign.total_contacts}</dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Daily Limit</dt>
                 <dd className="font-medium text-primary">{campaign.daily_limit || 'Unlimited'}</dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Delay Between Emails</dt>
                 <dd className="font-medium text-primary">{campaign.delay_between_emails_min ?? campaign.delay_between_emails ?? 50}s – {campaign.delay_between_emails_max ?? campaign.delay_between_emails ?? 200}s</dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Stop on Reply</dt>
                 <dd className="font-medium text-primary">{campaign.stop_on_reply !== false ? 'Yes' : 'No'}</dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Tracking</dt>
                 <dd className="font-medium text-primary">
                   {[
@@ -291,7 +291,7 @@ export function CampaignDetailPage() {
                   ].filter(Boolean).join(', ') || 'None'}
                 </dd>
               </div>
-              <div>
+              <div className="rounded-xl bg-[var(--bg-elevated)] p-3">
                 <dt className="text-tertiary">Unsubscribe Link</dt>
                 <dd className="font-medium text-primary">{campaign.include_unsubscribe ? 'Included' : 'Not included'}</dd>
               </div>
@@ -307,15 +307,15 @@ export function CampaignDetailPage() {
             <p className="py-8 text-center text-sm text-tertiary">No steps in this campaign.</p>
           ) : (
             campaign.steps.map((step: CampaignStep, index: number) => (
-              <div key={step.id} className="rounded-lg border border-subtle bg-surface p-4">
+              <div key={step.id} className={`rounded-lg border border-subtle bg-surface p-4 overflow-hidden ${step.step_type === 'email' ? 'border-l-[3px] border-l-[#6366F1]' : 'border-l-[3px] border-l-amber-500'}`}>
                 <div className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(99,102,241,0.1)] text-xs font-semibold text-[#6366F1]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(99,102,241,0.1)] text-xs font-semibold text-[#6366F1]">
                     {index + 1}
                   </span>
                   {step.step_type === 'email' ? (
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-[var(--text-secondary)]" />
+                        <Mail className="h-4 w-4 text-[#6366F1]" />
                         <span className="font-medium text-primary">{step.subject || 'Untitled Email'}</span>
                       </div>
                       {step.body_text && (
@@ -324,7 +324,7 @@ export function CampaignDetailPage() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-[var(--text-secondary)]" />
+                      <Clock className="h-4 w-4 text-amber-500" />
                       <span className="font-medium text-primary">
                         Wait {step.delay_days}d {step.delay_hours}h {step.delay_minutes}m
                       </span>
@@ -388,23 +388,36 @@ export function CampaignDetailPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, rate, isNegative }: {
+const STAT_CARD_ICON_BG: Record<string, string> = {
+  sent: 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6]',
+  opened: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+  clicked: 'bg-gradient-to-br from-violet-500 to-purple-600',
+  replied: 'bg-gradient-to-br from-emerald-500 to-teal-500',
+  bounced: 'bg-gradient-to-br from-red-500 to-rose-600',
+};
+
+function StatCard({ icon: Icon, label, value, rate, isNegative, colorVariant }: {
   icon: React.ElementType;
   label: string;
   value: number;
   rate?: number;
   isNegative?: boolean;
+  colorVariant?: string;
 }) {
+  const iconBg = colorVariant ? (STAT_CARD_ICON_BG[colorVariant] || STAT_CARD_ICON_BG.sent) : (isNegative ? STAT_CARD_ICON_BG.bounced : STAT_CARD_ICON_BG.sent);
   return (
-    <div className="rounded-lg border border-subtle bg-surface p-4">
+    <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6">
       <div className="flex items-center gap-2 mb-3">
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isNegative ? 'bg-red-500/10' : 'bg-[rgba(99,102,241,0.08)]'}`}>
-          <Icon className={`h-3.5 w-3.5 ${isNegative ? 'text-red-400' : 'text-[#6366F1]'}`} />
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
+          <Icon className="h-5 w-5 text-white" />
         </div>
         <span className="text-sm text-secondary">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-primary">{value}</p>
-      {rate !== undefined && <p className="text-xs text-tertiary mt-1">{rate}%</p>}
+      <p className="text-3xl font-bold text-primary">{value}</p>
+      {rate !== undefined && rate > 0 && (
+        <span className="inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-[rgba(99,102,241,0.08)] text-[#6366F1]">{rate}%</span>
+      )}
+      {rate !== undefined && rate === 0 && <p className="text-xs text-tertiary mt-1">0%</p>}
     </div>
   );
 }
