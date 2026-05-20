@@ -229,6 +229,8 @@ export const contactsService = {
   },
 
   async bulkUntag(userId: string, contactIds: string[], tagIds: string[]) {
+    if (!tagIds || tagIds.length === 0) return;
+
     const { data: contacts } = await supabaseAdmin
       .from('contacts')
       .select('id')
@@ -238,11 +240,12 @@ export const contactsService = {
     const validIds = (contacts || []).map((c: any) => c.id);
 
     for (const contactId of validIds) {
-      await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from('contact_tags')
         .delete()
         .eq('contact_id', contactId)
         .in('tag_id', tagIds);
+      if (error) throw new AppError(error.message, 500);
     }
   },
 

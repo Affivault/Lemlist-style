@@ -305,7 +305,8 @@ export const campaignsService = {
         webhook_event: s.webhook_event,
         webhook_timeout_hours: s.webhook_timeout_hours,
       }));
-      await supabaseAdmin.from('campaign_steps').insert(stepRows);
+      const { error: stepsError } = await supabaseAdmin.from('campaign_steps').insert(stepRows);
+      if (stepsError) throw new AppError(`Failed to clone campaign steps: ${stepsError.message}`, 500);
     }
 
     fireEvent(userId, 'campaign.created', { campaign: cloned }).catch(() => {});

@@ -273,7 +273,7 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
   });
 
   // 8. Record campaign activity
-  await supabaseAdmin
+  const { error: activityError } = await supabaseAdmin
     .from('campaign_activities')
     .insert({
       campaign_id: campaignId,
@@ -289,6 +289,9 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
         tracking_id: trackingId,
       },
     });
+  if (activityError) {
+    console.error(`[EmailSender] Failed to record campaign activity for ${to}:`, activityError.message);
+  }
 
   // 9. Fire webhook
   fireEvent(campaign.user_id, 'email.sent', {
@@ -323,15 +326,17 @@ export async function sendCampaignEmail(params: SendEmailParams): Promise<void> 
       const delaySecs = delayMin + Math.floor(Math.random() * (effectiveMax - delayMin + 1));
       const nextSendAt = new Date(Date.now() + delaySecs * 1000);
       console.log(`[EmailSender] Next step in ${delaySecs}s (range: ${delayMin}-${delayMax}s)`);
-      await supabaseAdmin
+      const { error: advanceError } = await supabaseAdmin
         .from('campaign_contacts')
         .update({ current_step_order: nextStepOrder, next_send_at: nextSendAt.toISOString() })
         .eq('id', campaignContactId);
+      if (advanceError) throw new Error(`Failed to advance campaign contact: ${advanceError.message}`);
     } else {
-      await supabaseAdmin
+      const { error: completeError } = await supabaseAdmin
         .from('campaign_contacts')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', campaignContactId);
+      if (completeError) throw new Error(`Failed to complete campaign contact: ${completeError.message}`);
 
       fireEvent(campaign.user_id, 'campaign.completed', {
         campaign_id: campaignId,

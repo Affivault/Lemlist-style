@@ -217,12 +217,13 @@ export function classifyReply(
  */
 export async function processReply(messageId: string): Promise<SaraClassificationResult> {
   // Fetch the message with context
-  const { data: message } = await supabaseAdmin
+  const { data: message, error: msgError } = await supabaseAdmin
     .from('inbox_messages')
     .select('*, contacts(first_name, last_name, company)')
     .eq('id', messageId)
     .single();
 
+  if (msgError) throw new Error(`Failed to fetch message: ${msgError.message}`);
   if (!message) throw new Error('Message not found');
 
   const contactData = message.contacts
@@ -307,7 +308,7 @@ export async function approveReply(
   editedReply?: string
 ): Promise<void> {
   const update: Record<string, any> = {
-    sara_status: editedReply ? SaraStatus.Approved : SaraStatus.Approved,
+    sara_status: SaraStatus.Approved,
     sara_reviewed_at: new Date().toISOString(),
     sara_reviewed_by: userId,
   };

@@ -123,11 +123,16 @@ export async function recordSend(accountId: string): Promise<void> {
  * Record a bounce - decrement health score.
  */
 export async function recordBounce(accountId: string): Promise<void> {
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('smtp_accounts')
     .select('health_score, total_bounced')
     .eq('id', accountId)
     .single();
+
+  if (error) {
+    console.error(`[SSE] recordBounce fetch failed for ${accountId}:`, error.message);
+    return;
+  }
 
   if (data) {
     const newHealth = Math.max(0, data.health_score - 5);

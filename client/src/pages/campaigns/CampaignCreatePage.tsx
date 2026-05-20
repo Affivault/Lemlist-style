@@ -1584,7 +1584,7 @@ export function CampaignCreatePage() {
                       className="h-4 w-4 rounded border-[var(--border-default)] accent-[#6366F1]"
                     />
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-xs font-semibold flex-shrink-0 border border-[var(--border-subtle)]">
-                      {(contact.first_name?.[0] || contact.email[0]).toUpperCase()}
+                      {(contact.first_name?.[0] || contact.email?.[0] || '?').toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[var(--text-primary)]">
