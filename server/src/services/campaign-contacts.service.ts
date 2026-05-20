@@ -39,15 +39,17 @@ export const campaignContactsService = {
     if (error) throw new AppError(error.message, 500);
 
     // Update campaign total_contacts
-    const { count } = await supabaseAdmin
+    const { count, error: countError } = await supabaseAdmin
       .from('campaign_contacts')
       .select('*', { count: 'exact', head: true })
       .eq('campaign_id', campaignId);
 
-    await supabaseAdmin
-      .from('campaigns')
-      .update({ total_contacts: count || 0 })
-      .eq('id', campaignId);
+    if (!countError) {
+      await supabaseAdmin
+        .from('campaigns')
+        .update({ total_contacts: count || 0 })
+        .eq('id', campaignId);
+    }
   },
 
   async remove(campaignId: string, contactIds: string[]) {
@@ -60,14 +62,16 @@ export const campaignContactsService = {
     if (error) throw new AppError(error.message, 500);
 
     // Update campaign total_contacts
-    const { count } = await supabaseAdmin
+    const { count, error: countError } = await supabaseAdmin
       .from('campaign_contacts')
       .select('*', { count: 'exact', head: true })
       .eq('campaign_id', campaignId);
 
-    await supabaseAdmin
-      .from('campaigns')
-      .update({ total_contacts: count || 0 })
-      .eq('id', campaignId);
+    if (!countError) {
+      await supabaseAdmin
+        .from('campaigns')
+        .update({ total_contacts: count || 0 })
+        .eq('id', campaignId);
+    }
   },
 };

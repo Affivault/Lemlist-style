@@ -247,18 +247,33 @@ export function CampaignsListPage() {
                         <Mail className="h-3.5 w-3.5 text-blue-500" />
                       </div>
                       <span className="font-bold text-[var(--text-primary)]">{campaign.opened_count}</span> opened
+                      {campaign.sent_count > 0 && (
+                        <span className="text-xs text-[var(--text-tertiary)]">
+                          ({Math.round((campaign.opened_count / campaign.sent_count) * 100)}%)
+                        </span>
+                      )}
                     </span>
                     <span className="flex items-center gap-2">
                       <div className="h-7 w-7 rounded-lg bg-[rgba(139,92,246,0.1)] flex items-center justify-center">
                         <MousePointerClick className="h-3.5 w-3.5 text-violet-500" />
                       </div>
                       <span className="font-bold text-[var(--text-primary)]">{campaign.clicked_count}</span> clicked
+                      {campaign.sent_count > 0 && (
+                        <span className="text-xs text-[var(--text-tertiary)]">
+                          ({Math.round((campaign.clicked_count / campaign.sent_count) * 100)}%)
+                        </span>
+                      )}
                     </span>
                     <span className="flex items-center gap-2">
                       <div className="h-7 w-7 rounded-lg bg-[rgba(16,185,129,0.1)] flex items-center justify-center">
                         <MessageSquare className="h-3.5 w-3.5 text-emerald-500" />
                       </div>
                       <span className="font-bold text-[var(--text-primary)]">{campaign.replied_count}</span> replied
+                      {campaign.sent_count > 0 && (
+                        <span className="text-xs text-[var(--text-tertiary)]">
+                          ({Math.round((campaign.replied_count / campaign.sent_count) * 100)}%)
+                        </span>
+                      )}
                     </span>
                     {campaign.bounced_count > 0 && (
                       <span className="flex items-center gap-2">
