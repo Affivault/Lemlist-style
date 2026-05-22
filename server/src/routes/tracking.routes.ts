@@ -163,30 +163,39 @@ router.get('/click/:trackingId', async (req: Request, res: Response) => {
       .single();
 
     if (cc) {
-      // Record the click activity
-      await supabaseAdmin
+      // Deduplicate: only record one click per contact per step (same logic as open tracking)
+      const { count: alreadyClicked } = await supabaseAdmin
         .from('campaign_activities')
-        .insert({
-          campaign_id: cc.campaign_id,
-          campaign_contact_id: campaignContactId,
-          contact_id: cc.contact_id,
-          step_id: stepId,
-          activity_type: 'clicked',
-          metadata: {
-            url: originalUrl,
-            ip: req.ip,
-            user_agent: req.headers['user-agent'],
-          },
-        });
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_contact_id', campaignContactId)
+        .eq('step_id', stepId)
+        .eq('activity_type', 'clicked');
 
-      // Fire webhook event
-      if ((cc as any).campaigns?.user_id) {
-        fireEvent((cc as any).campaigns.user_id, 'email.clicked', {
-          campaign_id: cc.campaign_id,
-          contact_id: cc.contact_id,
-          step_id: stepId,
-          url: originalUrl,
-        }).catch(() => {});
+      if (!alreadyClicked || alreadyClicked === 0) {
+        await supabaseAdmin
+          .from('campaign_activities')
+          .insert({
+            campaign_id: cc.campaign_id,
+            campaign_contact_id: campaignContactId,
+            contact_id: cc.contact_id,
+            step_id: stepId,
+            activity_type: 'clicked',
+            metadata: {
+              url: originalUrl,
+              ip: req.ip,
+              user_agent: req.headers['user-agent'],
+            },
+          });
+
+        // Fire webhook event
+        if ((cc as any).campaigns?.user_id) {
+          fireEvent((cc as any).campaigns.user_id, 'email.clicked', {
+            campaign_id: cc.campaign_id,
+            contact_id: cc.contact_id,
+            step_id: stepId,
+            url: originalUrl,
+          }).catch(() => {});
+        }
       }
     }
   } catch (err) {
