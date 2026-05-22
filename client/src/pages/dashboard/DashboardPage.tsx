@@ -174,7 +174,7 @@ export function DashboardPage() {
   };
 
   const allCampaigns = campaigns?.data || [];
-  const activeCampaigns = allCampaigns.filter((c: any) => c.status === 'active');
+  const activeCampaigns = allCampaigns.filter((c: any) => c.status === 'running');
   const recentCampaigns = allCampaigns.slice(0, 5);
   const recentMessages = Array.isArray(inboxData?.data) ? inboxData.data : [];
   const templates = Array.isArray(emailTemplates) ? emailTemplates : [];
@@ -314,7 +314,7 @@ export function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--text-primary)] truncate">{campaign.name}</p>
                     <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">
-                      {fmtNum(campaign.total_sent || 0)} sent &middot; {fmtPct(campaign.open_rate)} opens
+                      {fmtNum(campaign.sent_count || 0)} sent &middot; {fmtPct(campaign.open_rate || 0)} opens
                     </p>
                   </div>
                   <ChevronRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -365,9 +365,9 @@ export function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[var(--text-primary)] truncate">{campaign.name}</p>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtNum(campaign.total_sent || 0)} sent</span>
-                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtPct(campaign.open_rate)} opens</span>
-                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtPct(campaign.reply_rate)} replies</span>
+                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtNum(campaign.sent_count || 0)} sent</span>
+                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtPct(campaign.open_rate || 0)} opens</span>
+                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtPct(campaign.reply_rate || 0)} replies</span>
                       </div>
                     </div>
                     <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize', sc.bg, sc.text)}>

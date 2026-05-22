@@ -252,20 +252,29 @@ export const contactsService = {
   },
 
   async bulkDelete(userId: string, contactIds: string[]) {
-    // Verify contacts belong to user and delete them
-    const { error, count } = await supabaseAdmin
+    // Verify contacts belong to user before deleting
+    const { data: owned } = await supabaseAdmin
       .from('contacts')
-      .delete()
+      .select('id')
       .eq('user_id', userId)
       .in('id', contactIds);
 
+    const validIds = (owned || []).map((c: any) => c.id as string);
+    if (validIds.length === 0) return { deleted: 0 };
+
+    const { error } = await supabaseAdmin
+      .from('contacts')
+      .delete()
+      .eq('user_id', userId)
+      .in('id', validIds);
+
     if (error) throw new AppError(error.message, 500);
 
-    for (const id of contactIds) {
+    for (const id of validIds) {
       fireEvent(userId, 'contact.deleted', { contact_id: id }).catch(() => {});
     }
 
-    return { deleted: count || 0 };
+    return { deleted: validIds.length };
   },
 
   async export(userId: string, contactIds?: string[], format: 'csv' | 'json' = 'csv') {

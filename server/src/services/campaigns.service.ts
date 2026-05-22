@@ -359,18 +359,29 @@ export const campaignsService = {
       cc('unsubscribed'),
     ]);
 
+    const sent = sentCount || 0;
+    const opened = openedCount || 0;
+    const clicked = clickedCount || 0;
+    const replied = repliedCount || 0;
+    const bounced = bouncedCount || 0;
+    const calcRate = (v: number, t: number) => t === 0 ? 0 : Math.round((v / t) * 100 * 10) / 10;
+
     return {
       steps_count: stepsCount || 0,
       contacts_count: contactsCount || 0,
-      sent_count: sentCount || 0,
-      opened_count: openedCount || 0,
-      clicked_count: clickedCount || 0,
-      replied_count: repliedCount || 0,
-      bounced_count: bouncedCount || 0,
+      sent_count: sent,
+      opened_count: opened,
+      clicked_count: clicked,
+      replied_count: replied,
+      bounced_count: bounced,
       active_contacts: activeContacts || 0,
       completed_contacts: completedContacts || 0,
       bounced_contacts: bouncedContacts || 0,
       unsubscribed_contacts: unsubscribedContacts || 0,
+      open_rate: calcRate(opened, sent),
+      click_rate: calcRate(clicked, sent),
+      reply_rate: calcRate(replied, sent),
+      bounce_rate: calcRate(bounced, sent),
     };
   },
 };
