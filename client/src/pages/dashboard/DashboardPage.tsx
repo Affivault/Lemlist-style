@@ -24,6 +24,7 @@ import {
   Pause,
   CircleDot,
   CheckCircle2,
+  Clock,
   Eye,
   MessageSquare,
   Globe,
@@ -81,10 +82,13 @@ function stripHtml(str: string): string {
 }
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; icon: React.ElementType }> = {
+  running: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: Play },
   active: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: Play },
   paused: { bg: 'bg-amber-500/10', text: 'text-amber-600', icon: Pause },
   draft: { bg: 'bg-slate-500/10', text: 'text-slate-500', icon: CircleDot },
+  scheduled: { bg: 'bg-blue-500/10', text: 'text-blue-600', icon: Clock },
   completed: { bg: 'bg-blue-500/10', text: 'text-blue-600', icon: CheckCircle2 },
+  cancelled: { bg: 'bg-red-500/10', text: 'text-red-500', icon: CircleDot },
 };
 
 /* ─── Mini Trend Chart ────────────────────────────── */
