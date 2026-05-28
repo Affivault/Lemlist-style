@@ -311,7 +311,7 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
   const subject = interpolateMergeTags(rawSubject, cc.contacts);
   const rawBodyHtml = (step.body_html_b && useVariantB) ? step.body_html_b : (step.body_html || '');
   const bodyHtml = interpolateMergeTags(rawBodyHtml, cc.contacts);
-  const bodyText = bodyHtml.replace(/<[^>]*>/g, '');
+  const bodyText = htmlToText(bodyHtml);
 
   // Nullify next_send_at BEFORE sending to prevent re-processing
   const { error: nullifyErr } = await supabaseAdmin
@@ -704,6 +704,29 @@ async function markCompleted(campaignContactId: string): Promise<void> {
       completed_at: new Date().toISOString(),
     })
     .eq('id', campaignContactId);
+}
+
+/**
+ * Convert HTML to readable plain text, preserving paragraph breaks and whitespace.
+ * Improves deliverability — spam filters check plain text quality.
+ */
+function htmlToText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 function interpolateMergeTags(text: string, contact: any): string {

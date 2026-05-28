@@ -216,7 +216,7 @@ router.get('/unsubscribe/:trackingId', async (req: Request, res: Response) => {
     return res.status(400).send('<html><body><h2>Invalid link</h2></body></html>');
   }
 
-  const { campaignContactId } = parsed;
+  const { campaignContactId, stepId } = parsed;
 
   try {
     const { data: cc } = await supabaseAdmin
