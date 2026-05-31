@@ -151,11 +151,16 @@ export async function recordBounce(accountId: string): Promise<void> {
  * Record an open - slightly recover health score.
  */
 export async function recordOpen(accountId: string): Promise<void> {
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('smtp_accounts')
     .select('health_score, total_opened')
     .eq('id', accountId)
     .single();
+
+  if (error) {
+    console.error(`[SSE] recordOpen fetch failed for ${accountId}:`, error.message);
+    return;
+  }
 
   if (data) {
     const newHealth = Math.min(100, data.health_score + 1);

@@ -208,7 +208,7 @@ async function deliverWebhook(
   }
 
   // Log delivery
-  await supabaseAdmin
+  const { error: logErr } = await supabaseAdmin
     .from('webhook_deliveries')
     .insert({
       endpoint_id: endpoint.id,
@@ -220,6 +220,9 @@ async function deliverWebhook(
       attempts: actualAttempts,
       last_attempt_at: new Date().toISOString(),
     });
+  if (logErr) {
+    console.error('[Webhook] Failed to log delivery for endpoint', endpoint.id, ':', logErr.message);
+  }
 }
 
 /**

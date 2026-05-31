@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  EyeOff,
   MousePointerClick,
   MessageSquare,
   ArrowDown,
@@ -224,6 +225,7 @@ function FlowNode({
   onMoveDown: () => void;
   onUpdate: (updates: Partial<FlowStep>) => void;
 }) {
+  const [showHtmlPreview, setShowHtmlPreview] = useState(false);
   const config = stepTypeConfig[step.step_type] || stepTypeConfig.email;
   const Icon = config.icon;
   const stepColors = getStepColors(step.step_type);
@@ -310,8 +312,26 @@ function FlowNode({
 
               {/* Email preview */}
               {step.step_type === 'email' && step.body_html && (
-                <div className="mt-3 p-3 bg-[var(--bg-elevated)] rounded-lg text-xs text-[var(--text-secondary)] line-clamp-2 border border-[var(--border-subtle)]">
-                  {step.body_html.replace(/<[^>]*>/g, '').slice(0, 120)}...
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setShowHtmlPreview((v) => !v); }}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors"
+                  >
+                    {showHtmlPreview ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showHtmlPreview ? 'Hide preview' : 'Preview email'}
+                  </button>
+                  {showHtmlPreview && (
+                    <div className="mt-2 rounded-lg border border-[var(--border-subtle)] overflow-hidden bg-white">
+                      <iframe
+                        srcDoc={`<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#111;word-break:break-word;}img{max-width:100%;}</style></head><body>${step.body_html}</body></html>`}
+                        sandbox="allow-same-origin"
+                        className="w-full"
+                        style={{ height: '240px', border: 'none', display: 'block', pointerEvents: 'none' }}
+                        title="Email HTML preview"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
