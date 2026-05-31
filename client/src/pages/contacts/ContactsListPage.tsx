@@ -241,6 +241,7 @@ export function ContactsListPage() {
       }
       setColumnMapping(autoMap);
     };
+    reader.onerror = () => toast.error('Failed to read file — please try again');
     reader.readAsText(file);
   };
 

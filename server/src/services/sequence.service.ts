@@ -319,7 +319,7 @@ async function processEmailStep(cc: any, step: any): Promise<void> {
     .update({ current_step_order: step.step_order, next_send_at: null })
     .eq('id', cc.id);
   if (nullifyErr) {
-    console.error(`[Sequence] Failed to lock contact ${cc.id} for processing:`, nullifyErr.message);
+    throw new Error(`Failed to lock contact ${cc.id} for processing: ${nullifyErr.message}`);
   }
 
   // Send email DIRECTLY (no BullMQ queue — eliminates Redis dependency)
@@ -484,13 +484,17 @@ async function evaluateCondition(cc: any, step: any): Promise<boolean> {
 
     case 'sara_intent': {
       // Get the latest SARA classification for this contact's replies
-      const { data: messages } = await supabaseAdmin
+      const { data: messages, error: intentErr } = await supabaseAdmin
         .from('inbox_messages')
         .select('sara_intent')
         .eq('contact_id', cc.contact_id)
         .not('sara_intent', 'is', null)
         .order('created_at', { ascending: false })
         .limit(1);
+      if (intentErr) {
+        console.error('[Sequence] sara_intent query error:', intentErr.message);
+        return false;
+      }
       const latestIntent = messages?.[0]?.sara_intent || '';
       return applyOperator(latestIntent, operator, value);
     }
