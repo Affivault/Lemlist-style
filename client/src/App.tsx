@@ -30,6 +30,7 @@ const DomainsPage          = lazy(() => import('./pages/domains/DomainsPage').th
 const SuppressionPage      = lazy(() => import('./pages/suppression/SuppressionPage').then(m => ({ default: m.SuppressionPage })));
 const VerificationPage     = lazy(() => import('./pages/verification/VerificationPage').then(m => ({ default: m.VerificationPage })));
 const TeamPage             = lazy(() => import('./pages/team/TeamPage').then(m => ({ default: m.TeamPage })));
+const SchedulesPage        = lazy(() => import('./pages/schedules/SchedulesPage').then(m => ({ default: m.SchedulesPage })));
 const InviteAcceptPage     = lazy(() => import('./pages/team/InviteAcceptPage').then(m => ({ default: m.InviteAcceptPage })));
 const LandingPageV2        = lazy(() => import('./pages/LandingPageV2').then(m => ({ default: m.LandingPageV2 })));
 
@@ -105,6 +106,7 @@ export default function App() {
           <Route path="/suppression"        element={<SuppressionPage />} />
           <Route path="/verification"       element={<VerificationPage />} />
           <Route path="/team"               element={<TeamPage />} />
+          <Route path="/schedules"          element={<SchedulesPage />} />
         </Route>
 
         {/* Landing page preview */}

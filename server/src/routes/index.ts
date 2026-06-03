@@ -20,6 +20,9 @@ import { templateRoutes } from './template.routes.js';
 import { settingsRoutes } from './settings.routes.js';
 import { suppressionRoutes } from './suppression.routes.js';
 import { teamRoutes } from './team.routes.js';
+import { campaignFoldersRoutes } from './campaign-folders.routes.js';
+import { listFoldersRoutes } from './list-folders.routes.js';
+import { sendingSchedulesRoutes } from './sending-schedules.routes.js';
 
 export const routes = Router();
 
@@ -47,3 +50,6 @@ routes.use('/templates', templateRoutes);
 routes.use('/settings', settingsRoutes);
 routes.use('/suppression', suppressionRoutes);
 routes.use('/team', teamRoutes);
+routes.use('/campaign-folders', campaignFoldersRoutes);
+routes.use('/list-folders', listFoldersRoutes);
+routes.use('/sending-schedules', sendingSchedulesRoutes);

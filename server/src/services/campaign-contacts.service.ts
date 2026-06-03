@@ -25,7 +25,62 @@ export const campaignContactsService = {
   },
 
   async add(campaignId: string, contactIds: string[]) {
-    const rows = contactIds.map((contactId) => ({
+    if (!contactIds || contactIds.length === 0) return;
+
+    // 1. Look up the campaign's bound lead list
+    const { data: campaign } = await supabaseAdmin
+      .from('campaigns')
+      .select('id, user_id, list_id')
+      .eq('id', campaignId)
+      .single();
+    if (!campaign) throw new AppError('Campaign not found', 404);
+
+    let allowedContactIds = contactIds;
+
+    // 2. If the campaign is bound to a list, restrict to contacts in that list
+    if (campaign.list_id) {
+      const { data: members } = await supabaseAdmin
+        .from('list_contacts')
+        .select('contact_id')
+        .eq('list_id', campaign.list_id)
+        .in('contact_id', contactIds);
+      const memberIds = new Set((members || []).map((m: any) => m.contact_id));
+      allowedContactIds = contactIds.filter((id) => memberIds.has(id));
+      if (allowedContactIds.length === 0) {
+        throw new AppError(
+          'Selected contacts are not in this campaign\'s lead list. Add them to the list first.',
+          400
+        );
+      }
+    }
+
+    // 3. Block contacts that are already in any OTHER active campaign of the same user
+    //    if the other campaign is bound to a *different* list. (Same-list reuse is allowed.)
+    const { data: otherEnrolments } = await supabaseAdmin
+      .from('campaign_contacts')
+      .select('contact_id, campaign_id, campaigns!inner(user_id, list_id, status)')
+      .in('contact_id', allowedContactIds)
+      .neq('campaign_id', campaignId);
+
+    const blockedIds = new Set<string>();
+    for (const row of otherEnrolments || []) {
+      const otherCampaign: any = (row as any).campaigns;
+      if (!otherCampaign) continue;
+      // Only block if the other campaign is still active and bound to a different list
+      const sameList = otherCampaign.list_id && campaign.list_id && otherCampaign.list_id === campaign.list_id;
+      const otherActive = ['draft', 'scheduled', 'running', 'paused'].includes(otherCampaign.status);
+      if (!sameList && otherActive) blockedIds.add(row.contact_id);
+    }
+
+    const finalIds = allowedContactIds.filter((id) => !blockedIds.has(id));
+    if (finalIds.length === 0) {
+      throw new AppError(
+        'All selected contacts are already enrolled in other active campaigns with different lead lists.',
+        400
+      );
+    }
+
+    const rows = finalIds.map((contactId) => ({
       campaign_id: campaignId,
       contact_id: contactId,
       status: 'pending',
@@ -48,6 +103,31 @@ export const campaignContactsService = {
       .from('campaigns')
       .update({ total_contacts: count || 0 })
       .eq('id', campaignId);
+
+    return { added: finalIds.length, skipped: contactIds.length - finalIds.length, total: count || 0 };
+  },
+
+  /**
+   * Add every contact from the campaign's bound lead list. Use this when the
+   * user clicks "Import from list" in the campaign builder.
+   */
+  async addAllFromBoundList(campaignId: string) {
+    const { data: campaign } = await supabaseAdmin
+      .from('campaigns')
+      .select('id, list_id')
+      .eq('id', campaignId)
+      .single();
+    if (!campaign) throw new AppError('Campaign not found', 404);
+    if (!campaign.list_id) throw new AppError('This campaign is not bound to a lead list', 400);
+
+    const { data: members } = await supabaseAdmin
+      .from('list_contacts')
+      .select('contact_id')
+      .eq('list_id', campaign.list_id);
+    const ids = (members || []).map((m: any) => m.contact_id);
+    if (ids.length === 0) return { added: 0, skipped: 0, total: 0 };
+
+    return this.add(campaignId, ids);
   },
 
   async remove(campaignId: string, contactIds: string[]) {
@@ -59,7 +139,6 @@ export const campaignContactsService = {
 
     if (error) throw new AppError(error.message, 500);
 
-    // Update campaign total_contacts
     const { count } = await supabaseAdmin
       .from('campaign_contacts')
       .select('*', { count: 'exact', head: true })
