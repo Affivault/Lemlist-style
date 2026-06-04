@@ -13,9 +13,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['lucide-react', 'react-hot-toast', 'recharts'],
-          query: ['@tanstack/react-query'],
+          vendor:   ['react', 'react-dom', 'react-router-dom'],
+          charts:   ['recharts'],
+          icons:    ['lucide-react'],
+          toast:    ['react-hot-toast'],
+          query:    ['@tanstack/react-query'],
+          supabase: ['@supabase/supabase-js'],
+          editor:   [
+            '@tiptap/react', '@tiptap/starter-kit',
+            '@tiptap/extension-link', '@tiptap/extension-placeholder',
+            '@tiptap/extension-underline',
+          ],
+          dnd:      ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          utils:    ['axios', 'date-fns', 'papaparse', 'clsx'],
         },
       },
     },

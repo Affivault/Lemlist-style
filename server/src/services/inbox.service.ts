@@ -4,8 +4,31 @@ import { AppError } from '../middleware/error.middleware.js';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
 import { decrypt } from '../utils/encryption.js';
 import { sendViaSmtp } from './email-sender.service.js';
-import { fireEvent } from './webhook.service.js';
 import { processReply } from './sara.service.js';
+
+async function isAiTaggingEnabled(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('user_settings')
+    .select('ai_tagging_enabled')
+    .eq('user_id', userId)
+    .maybeSingle();
+  // Default to true if the column or row doesn't exist
+  if (!data) return true;
+  return data.ai_tagging_enabled !== false;
+}
+
+function categoriseImapError(message: string): string {
+  const m = (message || '').toLowerCase();
+  if (m.includes('auth') || m.includes('credentials') || m.includes('login') || m.includes('password'))
+    return 'Authentication failed — your password may have changed or you need an app password.';
+  if (m.includes('timed out') || m.includes('etimedout') || m.includes('econnrefused'))
+    return 'Connection timed out — your hosting provider may block IMAP (port 993).';
+  if (m.includes('enotfound') || m.includes('getaddrinfo'))
+    return 'IMAP host not found — check the email provider\'s IMAP settings.';
+  if (m.includes('certificate') || m.includes('self signed'))
+    return 'TLS certificate problem — IMAP server certificate is invalid.';
+  return message;
+}
 
 async function resolveContactEmail(userId: string, messageId: string): Promise<string | null> {
   const { data: msg } = await supabaseAdmin
@@ -676,6 +699,9 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
       let totalNew = 0;
       const errors: string[] = [];
 
+      // Check once whether AI tagging is enabled for this user
+      const aiTaggingOn = await isAiTaggingEnabled(userId);
+
       for (const account of accounts) {
         let client: any = null;
         try {
@@ -832,7 +858,20 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
               try { await processReply(saved.id); } catch (e) { console.error('[InboxSync] SARA error:', e); }
             }
 
+            const { data: inserted } = await supabaseAdmin
+              .from('inbox_messages')
+              .insert(inboxRow)
+              .select('id')
+              .single();
             newCount++;
+
+            // Auto-classify with SARA if AI tagging is enabled for this user.
+            // Never block sync if classification fails.
+            if (inserted?.id && aiTaggingOn) {
+              processReply(inserted.id).catch((e: any) => {
+                console.warn('[InboxSync] AI tag failed for', inserted.id, ':', e.message);
+              });
+            }
           }
 
           // Update sync timestamp
@@ -846,9 +885,9 @@ ${original.body_html || `<p>${original.body_text || ''}</p>`}`;
           totalNew += newCount;
           console.log(`[InboxSync] Account ${account.email_address}: ${newCount} new messages`);
         } catch (err: any) {
+          const friendly = categoriseImapError(err.message || String(err));
           console.error(`[InboxSync] Failed for ${account.email_address}:`, err.message);
-          errors.push(`${account.email_address}: ${err.message}`);
-          // Clean up IMAP client on error
+          errors.push(`${account.email_address}: ${friendly}`);
           if (client) {
             try { await client.logout(); } catch { /* ignore */ }
           }
