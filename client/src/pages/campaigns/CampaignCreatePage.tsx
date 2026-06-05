@@ -551,84 +551,199 @@ export function CampaignCreatePage() {
     </div>
   );
 
+  // ── Live validation: compute section state and total issues ──
+  const _emailSteps = steps.filter((s) => s.step_type === 'email');
+  const sectionIssues: Record<number, string[]> = {
+    0: [
+      !campaignForm.name && 'Campaign name',
+      !campaignForm.smtp_account_id && 'Sending account',
+    ].filter(Boolean) as string[],
+    1: [
+      steps.length === 0 && 'Add at least one step',
+      steps.length > 0 && _emailSteps.length === 0 && 'No email steps in sequence',
+      _emailSteps.some((s) => !s.subject) && 'Some emails missing subject',
+      _emailSteps.some((s) => !s.body_html) && 'Some emails missing body',
+    ].filter(Boolean) as string[],
+    2: [
+      selectedContactIds.length === 0 && 'No recipients selected',
+    ].filter(Boolean) as string[],
+    3: [],
+  };
+  const sectionStatus = (i: number): 'ok' | 'warn' | 'empty' => {
+    if (i === 0) {
+      if (!campaignForm.name && !campaignForm.smtp_account_id) return 'empty';
+      return sectionIssues[0].length > 0 ? 'warn' : 'ok';
+    }
+    if (i === 1) {
+      if (steps.length === 0) return 'empty';
+      return sectionIssues[1].length > 0 ? 'warn' : 'ok';
+    }
+    if (i === 2) {
+      return selectedContactIds.length === 0 ? 'empty' : 'ok';
+    }
+    return 'ok';
+  };
+  const totalIssues = sectionIssues[0].length + sectionIssues[1].length + sectionIssues[2].length;
+  const isReady = totalIssues === 0 && steps.length > 0 && selectedContactIds.length > 0 && !!campaignForm.name && !!campaignForm.smtp_account_id;
+
   return (
-    <div className="pb-16">
-      {/* ── Page Header ── */}
-      <div className="flex items-center justify-between mb-8 gap-4">
+    <div className="-mx-8 -my-6 flex flex-col" style={{ height: 'calc(100vh - 56px)' }}>
+      {/* ── Sticky top bar ───────────────────────────────────────── */}
+      <header className="flex-shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] px-5 py-2 flex items-center gap-3">
         <button
           onClick={() => navigate('/campaigns')}
-          className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors group flex-shrink-0"
+          className="flex items-center gap-1.5 px-2 h-7 rounded-md text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors flex-shrink-0"
         >
-          <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           Campaigns
         </button>
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex-shrink-0">
-            <Rocket className="h-3.5 w-3.5 text-white" />
-          </span>
-          <h1 className="text-[15px] font-semibold text-[var(--text-primary)] truncate">
-            {isEdit ? 'Edit Campaign' : 'New Campaign'}
-          </h1>
-          {campaignForm.name && (
-            <span className="hidden sm:inline px-2 py-0.5 h-[18px] rounded-[4px] bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-[10.5px] font-medium truncate max-w-[180px] border border-[var(--border-subtle)]">
-              {campaignForm.name}
-            </span>
-          )}
-        </div>
-        <Button variant="secondary" size="sm" onClick={handleSave} disabled={createCampaignMutation.isPending}>
-          <Save className="h-3.5 w-3.5" />
-          {createCampaignMutation.isPending ? 'Saving…' : 'Save Draft'}
-        </Button>
-      </div>
+        <div className="h-5 w-px bg-[var(--border-subtle)]" />
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#5B5BF5] to-[#8B5CF6] flex-shrink-0 shadow-[0_1px_3px_rgba(91,91,245,0.4)]">
+          <Rocket className="h-3.5 w-3.5 text-white" />
+        </span>
+        <input
+          type="text"
+          value={campaignForm.name}
+          onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
+          placeholder={isEdit ? 'Edit campaign…' : 'Untitled campaign — name it'}
+          className="flex-1 max-w-md min-w-0 bg-transparent border-0 text-[14px] font-semibold text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] placeholder:font-normal outline-none focus:bg-[var(--bg-elevated)] rounded-md px-2 h-7 transition-colors"
+        />
+        <div className="flex-1" />
 
-      {/* ── Wizard Progress Indicator ── */}
-      <div className="mb-10">
-        <div className="flex items-start justify-center">
-          {WIZARD_STEPS.map((ws, i) => {
-            const Icon = ws.icon;
-            const isCompleted = i < wizardStep;
-            const isCurrent = i === wizardStep;
-            return (
-              <div key={ws.label} className="flex items-start">
-                <button
-                  onClick={() => setWizardStep(i)}
-                  className="flex flex-col items-center gap-2 group min-w-[80px]"
-                >
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
-                      isCompleted
-                        ? 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]'
-                        : isCurrent
-                        ? 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)] ring-4 ring-[rgba(99,102,241,0.2)]'
-                        : 'bg-[var(--bg-elevated)] border-2 border-[var(--border-default)] text-[var(--text-tertiary)]'
+        {/* Validation chip */}
+        {totalIssues > 0 ? (
+          <span className="inline-flex items-center gap-1.5 px-2 h-7 rounded-md text-[11.5px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">
+            <AlertTriangle className="h-3 w-3" />
+            {totalIssues} {totalIssues === 1 ? 'issue' : 'issues'} to resolve
+          </span>
+        ) : isReady ? (
+          <span className="inline-flex items-center gap-1.5 px-2 h-7 rounded-md text-[11.5px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+            <CheckCircle2 className="h-3 w-3" />
+            Ready to launch
+          </span>
+        ) : null}
+
+        <button
+          onClick={handleSave}
+          disabled={createCampaignMutation.isPending || !campaignForm.name}
+          className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40 transition-all"
+        >
+          <Save className="h-3.5 w-3.5" />
+          {createCampaignMutation.isPending ? 'Saving…' : 'Save draft'}
+        </button>
+        <button
+          onClick={() => isReady ? handleSaveAndLaunch() : toast.error('Resolve all issues before launching')}
+          disabled={!isReady || launching}
+          title={!isReady ? `${totalIssues} issue${totalIssues === 1 ? '' : 's'} remaining` : 'Launch this campaign'}
+          className="inline-flex items-center gap-1.5 px-3 h-7 rounded-md bg-[#5B5BF5] text-white text-[12px] font-semibold hover:bg-[#4F46E5] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_1px_3px_rgba(91,91,245,0.4)]"
+        >
+          <Rocket className="h-3.5 w-3.5" />
+          {launching ? 'Launching…' : 'Launch'}
+        </button>
+      </header>
+
+      {/* ── Body: sidebar nav + section content ─────────────────── */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar nav */}
+        <aside className="w-56 flex-shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-y-auto">
+          <div className="px-3 pt-3 pb-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-tertiary)] mb-2 px-1">
+              Build
+            </p>
+            <nav className="space-y-0.5">
+              {WIZARD_STEPS.map((ws, i) => {
+                const Icon = ws.icon;
+                const active = i === wizardStep;
+                const status = sectionStatus(i);
+                const issues = sectionIssues[i].length;
+                return (
+                  <button
+                    key={ws.label}
+                    onClick={() => setWizardStep(i)}
+                    className={`w-full flex items-center gap-2.5 h-8 px-2 rounded-md text-[12.5px] font-medium transition-all ${
+                      active
+                        ? 'bg-[#5B5BF5]/8 text-[#5B5BF5]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                     }`}
                   >
-                    {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                    <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="flex-1 text-left">{ws.label}</span>
+                    {status === 'ok' && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600" title="Complete">
+                        <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                      </span>
+                    )}
+                    {status === 'warn' && (
+                      <span className="inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-[4px] bg-amber-500/15 text-amber-700 text-[9.5px] font-bold tabular" title={`${issues} issue${issues === 1 ? '' : 's'}`}>
+                        {issues}
+                      </span>
+                    )}
+                    {status === 'empty' && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--border-default)]" title="Not started" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Live issues panel */}
+          {totalIssues > 0 && (
+            <div className="border-t border-[var(--border-subtle)] mt-3 pt-3 px-3 pb-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700 mb-1.5 px-1 flex items-center gap-1">
+                <AlertTriangle className="h-2.5 w-2.5" />
+                Pre-flight checks
+              </p>
+              <ul className="space-y-1 px-1">
+                {Object.entries(sectionIssues).flatMap(([sectionIdx, issues]) =>
+                  issues.map((issue, j) => (
+                    <li key={`${sectionIdx}-${j}`}>
+                      <button
+                        onClick={() => setWizardStep(Number(sectionIdx))}
+                        className="w-full text-left flex items-start gap-1.5 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors py-0.5"
+                      >
+                        <span className="h-1 w-1 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                        <span className="leading-snug">{issue}</span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          )}
+
+          {/* Campaign quick stats (computed live) */}
+          {(selectedContactIds.length > 0 || steps.length > 0) && (
+            <div className="border-t border-[var(--border-subtle)] mt-3 pt-3 px-3 pb-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-tertiary)] mb-2 px-1">
+                Quick stats
+              </p>
+              <div className="space-y-1.5 px-1">
+                {selectedContactIds.length > 0 && (
+                  <div className="flex items-center justify-between text-[11.5px]">
+                    <span className="text-[var(--text-tertiary)]">Recipients</span>
+                    <span className="tabular font-semibold text-[var(--text-primary)]">{selectedContactIds.length.toLocaleString()}</span>
                   </div>
-                  <span
-                    className={`text-xs whitespace-nowrap transition-colors ${
-                      isCurrent
-                        ? 'text-[#6366F1] font-semibold'
-                        : isCompleted
-                        ? 'text-[var(--text-secondary)] font-medium'
-                        : 'text-[var(--text-tertiary)]'
-                    }`}
-                  >
-                    {ws.label}
-                  </span>
-                </button>
-                {i < WIZARD_STEPS.length - 1 && (
-                  <div
-                    className={`min-w-[48px] h-[2px] mt-5 mx-1 transition-colors duration-500 ${
-                      i < wizardStep ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]' : 'bg-[var(--border-subtle)]'
-                    }`}
-                  />
+                )}
+                {_emailSteps.length > 0 && (
+                  <>
+                    <div className="flex items-center justify-between text-[11.5px]">
+                      <span className="text-[var(--text-tertiary)]">Email steps</span>
+                      <span className="tabular font-semibold text-[var(--text-primary)]">{_emailSteps.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11.5px]">
+                      <span className="text-[var(--text-tertiary)]">Total sends</span>
+                      <span className="tabular font-semibold text-[var(--text-primary)]">{(_emailSteps.length * selectedContactIds.length).toLocaleString()}</span>
+                    </div>
+                  </>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+          )}
+        </aside>
+
+        {/* Section content */}
+        <main className="flex-1 overflow-y-auto px-6 py-5 pb-16">
 
       {/* ════════════════════════════════════════════════════════
           STEP 1 — Campaign Settings
@@ -1715,6 +1830,8 @@ export function CampaignCreatePage() {
             </div>
           );
         })()}
+        </main>
+      </div>
 
       {/* ════════════════════════════════════════════════════════
           Contact Selection Modal (shared across steps)
