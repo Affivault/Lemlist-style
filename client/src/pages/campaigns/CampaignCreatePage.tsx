@@ -1245,7 +1245,7 @@ export function CampaignCreatePage() {
 
                     {/* Skip if replied */}
                     <ToggleSwitch
-                      checked={steps[editingStep].skip_if_replied !== false}
+                      checked={steps[editingStep].skip_if_replied === true}
                       onChange={(v) => updateStep(editingStep, { skip_if_replied: v })}
                       label="Skip if Replied"
                       description="Don't send if the contact already replied"
