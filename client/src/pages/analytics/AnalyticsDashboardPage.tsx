@@ -1,53 +1,42 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { analyticsApi } from '../../api/analytics.api';
-import type { TrendDataPoint } from '../../api/analytics.api';
-import { campaignsApi } from '../../api/campaigns.api';
+import {
+  analyticsApi,
+  type TrendDataPoint,
+  type FunnelStep,
+  type AbTestStep,
+  type CampaignContact,
+  type CampaignListItem,
+  type HeatmapDay,
+} from '../../api/analytics.api';
+import type { OverviewAnalytics } from '../../api/analytics.api';
 import { apiClient } from '../../api/client';
 import { Spinner } from '../../components/ui/Spinner';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { PageHeader } from '../../components/shared/PageHeader';
-import { Card, CardHeader, CardTitle, CardDescription } from '../../components/shared/Card';
-import { StatCard as SharedStatCard } from '../../components/shared/StatCard';
 import { Avatar } from '../../components/shared/Avatar';
 import { useTheme } from '../../context/ThemeContext';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { cn } from '../../lib/utils';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Area,
-  AreaChart,
+  LineChart, Line,
+  BarChart, Bar,
+  PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer,
+  AreaChart, Area,
 } from 'recharts';
 import {
-  Send,
-  Mail,
-  MousePointerClick,
-  MessageSquare,
-  AlertTriangle,
-  Calendar,
-  Target,
-  Users,
-  ChevronDown,
-  Download,
-  ShieldOff,
-  ShieldCheck,
-  Activity,
-  TrendingUp,
-  BarChart3,
+  Send, Mail, MousePointerClick, MessageSquare, AlertTriangle,
+  Calendar, Target, Users, ChevronDown, Download, ShieldOff,
+  ShieldCheck, Activity, TrendingUp, TrendingDown, BarChart3,
+  FlaskConical, Layers, Thermometer, ArrowRight, Trophy,
+  ChevronUp, ChevronsUpDown, Eye, Search, Filter, Clock, Zap,
 } from 'lucide-react';
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
 
 function safeNum(v: unknown): number {
   const n = Number(v);
@@ -58,133 +47,27 @@ function fmtNum(v: unknown): string {
   return safeNum(v).toLocaleString();
 }
 
-function fmtRate(v: unknown): string {
-  return safeNum(v).toFixed(1);
+function fmtPct(v: unknown): string {
+  return `${safeNum(v).toFixed(1)}%`;
 }
 
-const LIGHT_COLORS = ['#6366F1', '#818CF8', '#A5B4FC', '#C7D2FE'];
-const DARK_COLORS  = ['#818CF8', '#6366F1', '#A5B4FC', '#4338CA'];
-
-const tooltipStyle = {
-  backgroundColor: 'var(--bg-elevated)',
-  border: '1px solid var(--border-subtle)',
-  borderRadius: '12px',
-  boxShadow: 'var(--shadow-lg)',
-  padding: '10px 14px',
-};
-
-const tooltipLabelStyle = {
-  color: 'var(--text-primary)',
-  fontWeight: 600,
-  marginBottom: '4px',
-};
-
-const tooltipItemStyle = {
-  color: 'var(--text-secondary)',
-  fontSize: '13px',
-};
-
-const DATE_RANGE_MAP = { '7d': 7, '30d': 30, '90d': 90 } as const;
-
-/* StatCard removed — use SharedStatCard from components/shared/StatCard */
-
-function EngagementRing({ data, colors }: { data: { name: string; value: number }[]; colors: string[] }) {
-  const total = data.reduce((sum, item) => sum + safeNum(item.value), 0);
-  return (
-    <Card padding="md">
-      <CardHeader>
-        <CardTitle>Engagement breakdown</CardTitle>
-        <CardDescription>Where your audience is engaging.</CardDescription>
-      </CardHeader>
-      <div className="flex items-center gap-4">
-        <div className="w-44 h-44 flex-shrink-0">
-          <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-xs text-[var(--text-tertiary)]">Chart unavailable</div>}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={48}
-                  outerRadius={68}
-                  paddingAngle={4}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {data.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => [fmtNum(value), 'Count']}
-                  contentStyle={tooltipStyle}
-                  itemStyle={tooltipItemStyle}
-                  labelStyle={tooltipLabelStyle}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ErrorBoundary>
-        </div>
-        <div className="flex-1 space-y-3">
-          {data.map((item, index) => (
-            <div
-              key={item.name}
-              className="flex items-center justify-between py-1.5 px-2 rounded-lg transition-colors hover:bg-[var(--bg-hover)]"
-            >
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{
-                    backgroundColor: colors[index % colors.length],
-                    boxShadow: `0 0 0 2px var(--bg-surface), 0 0 0 3.5px ${colors[index % colors.length]}30`,
-                  }}
-                />
-                <span className="text-sm text-[var(--text-secondary)]">{item.name}</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {fmtNum(item.value)}
-                </span>
-                <span className="text-xs font-medium text-[var(--text-tertiary)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">
-                  {total > 0 ? ((safeNum(item.value) / total) * 100).toFixed(1) : 0}%
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
+function engagementScore(c: CampaignContact): number {
+  if (c.is_bounced) return 0;
+  const s = Math.max(1, c.sent);
+  return Math.min(100, Math.round((c.opened / s) * 35 + (c.clicked / s) * 35 + (c.replied ? 30 : 0)));
 }
 
-function DcsScoreGauge({ score }: { score: number }) {
-  const color = score >= 80 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444';
-  const label = score >= 80 ? 'Excellent' : score >= 50 ? 'Fair' : score > 0 ? 'Poor' : 'N/A';
-  const circumference = 2 * Math.PI * 40;
-  const progress = circumference - (score / 100) * circumference;
-  return (
-    <div className="flex flex-col items-center">
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border-subtle)" strokeWidth="10" />
-        <circle
-          cx="50" cy="50" r="40" fill="none"
-          stroke={color} strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={progress}
-          strokeLinecap="round"
-          transform="rotate(-90 50 50)"
-          style={{ transition: 'stroke-dashoffset 0.8s ease' }}
-        />
-        <text x="50" y="54" textAnchor="middle" className="text-sm font-bold" fill="var(--text-primary)" fontSize="18" fontWeight="700">
-          {score}
-        </text>
-      </svg>
-      <span className="text-xs font-semibold mt-1" style={{ color }}>{label}</span>
-    </div>
-  );
+function contactStatusFilter(c: CampaignContact, filter: string): boolean {
+  switch (filter) {
+    case 'engaged': return engagementScore(c) >= 50;
+    case 'silent': return !c.is_bounced && engagementScore(c) < 10;
+    case 'bounced': return c.is_bounced;
+    case 'replied': return c.replied;
+    default: return true;
+  }
 }
 
-async function downloadReport(url: string, filename: string) {
+async function downloadCsv(url: string, filename: string) {
   try {
     const resp = await apiClient.get(url, { responseType: 'blob' });
     const blob = new Blob([resp.data], { type: 'text/csv' });
@@ -198,17 +81,700 @@ async function downloadReport(url: string, filename: string) {
   }
 }
 
+const CHART_COLORS = {
+  sent: '#6366F1',
+  opened: '#10B981',
+  clicked: '#F59E0B',
+  replied: '#EC4899',
+  bounced: '#EF4444',
+};
+
+const tooltipStyle = {
+  backgroundColor: 'var(--bg-elevated)',
+  border: '1px solid var(--border-subtle)',
+  borderRadius: '10px',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+  padding: '10px 14px',
+  fontSize: '12px',
+};
+
+// ─── Micro components ──────────────────────────────────────────────────────
+
+function ChangeChip({ change }: { change: number | null }) {
+  if (change === null) return null;
+  const up = change >= 0;
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-full',
+        up ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+      )}
+    >
+      {up ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+      {Math.abs(change).toFixed(1)}%
+    </span>
+  );
+}
+
+function MetricBar({ value, max, color }: { value: number; max: number; color: string }) {
+  const w = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div className="h-1.5 w-full rounded-full overflow-hidden bg-[var(--bg-elevated)]">
+      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${w}%`, backgroundColor: color }} />
+    </div>
+  );
+}
+
+function SortIcon({ col, sortKey, sortDir }: { col: string; sortKey: string; sortDir: 'asc' | 'desc' }) {
+  if (sortKey !== col) return <ChevronsUpDown className="h-3 w-3 text-[var(--text-tertiary)]" />;
+  return sortDir === 'asc'
+    ? <ChevronUp className="h-3 w-3 text-[var(--indigo)]" />
+    : <ChevronDown className="h-3 w-3 text-[var(--indigo)]" />;
+}
+
+function EmptyDeepDive({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <div className="w-12 h-12 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center">
+        <Icon className="h-5 w-5 text-[var(--text-tertiary)]" strokeWidth={1.5} />
+      </div>
+      <p className="text-[13px] font-semibold text-[var(--text-primary)]">{title}</p>
+      <p className="text-[12px] text-[var(--text-tertiary)] max-w-sm text-center">{description}</p>
+    </div>
+  );
+}
+
+// ─── Funnel visualisation ──────────────────────────────────────────────────
+
+function FunnelViz({ sent, opened, clicked, replied, bounced }: {
+  sent: number; opened: number; clicked: number; replied: number; bounced: number;
+}) {
+  const bars = [
+    { label: 'Sent', count: sent, color: CHART_COLORS.sent },
+    { label: 'Opened', count: opened, color: CHART_COLORS.opened },
+    { label: 'Clicked', count: clicked, color: CHART_COLORS.clicked },
+    { label: 'Replied', count: replied, color: CHART_COLORS.replied },
+    { label: 'Bounced', count: bounced, color: CHART_COLORS.bounced },
+  ];
+  return (
+    <div className="space-y-2 py-2">
+      {bars.map((bar, i) => {
+        const pct = sent > 0 ? (bar.count / sent) * 100 : 0;
+        const prev = i > 0 ? bars[i - 1].count : null;
+        const dropped = prev !== null && prev > 0 ? prev - bar.count : null;
+        const dropPct = dropped !== null && prev ? ((dropped / prev) * 100).toFixed(0) : null;
+        return (
+          <div key={bar.label}>
+            {dropped !== null && dropped > 0 && (
+              <div className="flex items-center gap-2 pl-[80px] mb-1">
+                <div className="w-px h-3 bg-[var(--border-subtle)] ml-3" />
+                <span className="text-[10.5px] text-[var(--text-tertiary)]">
+                  ↓ {fmtNum(dropped)} dropped ({dropPct}%)
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <span className="w-[72px] text-right text-[11.5px] font-medium text-[var(--text-secondary)] flex-shrink-0">
+                {bar.label}
+              </span>
+              <div className="flex-1 h-9 bg-[var(--bg-elevated)] rounded-lg overflow-hidden border border-[var(--border-subtle)]">
+                <div
+                  className="h-full rounded-lg flex items-center transition-all duration-700 ease-out"
+                  style={{ width: `${Math.max(pct, 1)}%`, backgroundColor: bar.color, opacity: 0.85 }}
+                />
+              </div>
+              <div className="w-36 flex-shrink-0">
+                <span className="text-[13px] font-bold tabular-nums text-[var(--text-primary)]">{fmtNum(bar.count)}</span>
+                <span className="ml-1.5 text-[11px] text-[var(--text-tertiary)] tabular-nums">
+                  {sent > 0 ? `(${pct.toFixed(1)}%)` : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Heatmap ───────────────────────────────────────────────────────────────
+
+function HeatmapGrid({ grid, maxValue }: { grid: HeatmapDay[]; maxValue: number }) {
+  const hours = Array.from({ length: 24 }, (_, i) => (i < 10 ? `0${i}` : `${i}`));
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[640px]">
+        <div className="flex gap-px mb-1 pl-[52px]">
+          {hours.map((h) => (
+            <div key={h} className="w-[22px] text-[8.5px] text-center text-[var(--text-tertiary)] flex-shrink-0">
+              {Number(h) % 3 === 0 ? h : ''}
+            </div>
+          ))}
+        </div>
+        <div className="space-y-px">
+          {grid.map((row) => (
+            <div key={row.day} className="flex items-center gap-px">
+              <span className="w-[48px] text-[10px] text-right pr-2 flex-shrink-0 text-[var(--text-tertiary)] font-medium">
+                {row.day}
+              </span>
+              {row.hours.map((val, h) => {
+                const intensity = maxValue > 0 ? val / maxValue : 0;
+                return (
+                  <div
+                    key={h}
+                    className="w-[22px] h-[22px] rounded-[3px] flex-shrink-0 transition-colors"
+                    style={{
+                      backgroundColor: intensity > 0
+                        ? `rgba(99, 102, 241, ${Math.min(1, intensity * 1.2).toFixed(2)})`
+                        : 'var(--bg-elevated)',
+                    }}
+                    title={val > 0 ? `${row.day} ${h}:00 — ${val} engagements` : undefined}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 mt-3 pl-[52px]">
+          <span className="text-[10px] text-[var(--text-tertiary)]">Low</span>
+          <div className="flex gap-0.5">
+            {[0.1, 0.25, 0.45, 0.65, 0.85, 1].map((o) => (
+              <div key={o} className="w-4 h-4 rounded-sm" style={{ backgroundColor: `rgba(99,102,241,${o})` }} />
+            ))}
+          </div>
+          <span className="text-[10px] text-[var(--text-tertiary)]">High</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── A/B variant card ──────────────────────────────────────────────────────
+
+function VariantCard({ variant, label, subject, stats, isWinner }: {
+  variant: 'a' | 'b';
+  label: string;
+  subject: string;
+  stats: { sent: number; open_rate: number; click_rate: number; reply_rate: number };
+  isWinner: boolean;
+}) {
+  const metricMax = Math.max(stats.open_rate, 100);
+  return (
+    <div className={cn(
+      'rounded-xl border p-5 relative transition-all',
+      isWinner
+        ? 'border-emerald-500/40 bg-emerald-500/5 shadow-[0_0_0_1px_rgba(16,185,129,0.12)]'
+        : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)]'
+    )}>
+      {isWinner && (
+        <div className="absolute top-3 right-3 flex items-center gap-1 text-[10.5px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+          <Trophy className="h-3 w-3" /> Winner
+        </div>
+      )}
+      <div className="flex items-center gap-2 mb-2">
+        <span className={cn(
+          'text-[11px] font-bold px-2 py-0.5 rounded',
+          variant === 'a' ? 'bg-indigo-500/15 text-indigo-400' : 'bg-violet-500/15 text-violet-400'
+        )}>
+          Variant {variant.toUpperCase()}
+        </span>
+      </div>
+      <p className="text-[12px] text-[var(--text-secondary)] mb-4 line-clamp-2 italic">"{subject}"</p>
+
+      <div className="space-y-3">
+        {[
+          { label: 'Open rate', value: stats.open_rate, color: CHART_COLORS.opened },
+          { label: 'Click rate', value: stats.click_rate, color: CHART_COLORS.clicked },
+          { label: 'Reply rate', value: stats.reply_rate, color: CHART_COLORS.replied },
+        ].map(({ label, value, color }) => (
+          <div key={label}>
+            <div className="flex justify-between text-[11.5px] mb-1">
+              <span className="text-[var(--text-secondary)]">{label}</span>
+              <span className="font-bold text-[var(--text-primary)]">{fmtPct(value)}</span>
+            </div>
+            <MetricBar value={value} max={metricMax} color={color} />
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
+        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtNum(stats.sent)} emails sent</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Campaign Leaderboard ──────────────────────────────────────────────────
+
+function CampaignLeaderboard({
+  campaigns,
+  onSelect,
+}: { campaigns: CampaignListItem[]; onSelect: (id: string) => void }) {
+  const [sortKey, setSortKey] = useState<keyof CampaignListItem>('sent');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const sorted = useMemo(() => {
+    return [...campaigns].sort((a, b) => {
+      const av = safeNum(a[sortKey]);
+      const bv = safeNum(b[sortKey]);
+      return sortDir === 'desc' ? bv - av : av - bv;
+    });
+  }, [campaigns, sortKey, sortDir]);
+
+  const toggleSort = (key: keyof CampaignListItem) => {
+    if (sortKey === key) setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    else { setSortKey(key); setSortDir('desc'); }
+  };
+
+  const maxSent = Math.max(1, ...campaigns.map((c) => c.sent));
+
+  const cols: { key: keyof CampaignListItem; label: string }[] = [
+    { key: 'sent', label: 'Sent' },
+    { key: 'open_rate', label: 'Opens' },
+    { key: 'click_rate', label: 'Clicks' },
+    { key: 'reply_rate', label: 'Replies' },
+    { key: 'bounce_rate', label: 'Bounce' },
+  ];
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[var(--border-subtle)]">
+            <th className="text-left py-2.5 px-4 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold">
+              Campaign
+            </th>
+            {cols.map((c) => (
+              <th
+                key={c.key}
+                className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold cursor-pointer hover:text-[var(--text-primary)] select-none"
+                onClick={() => toggleSort(c.key)}
+              >
+                <span className="inline-flex items-center gap-1 justify-end">
+                  {c.label}
+                  <SortIcon col={c.key} sortKey={String(sortKey)} sortDir={sortDir} />
+                </span>
+              </th>
+            ))}
+            <th className="text-left py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold w-32">
+              Volume
+            </th>
+            <th className="w-10" />
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((c) => (
+            <tr
+              key={c.id}
+              className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer group"
+              onClick={() => onSelect(c.id)}
+            >
+              <td className="py-3 px-4">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={cn(
+                      'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                      c.status === 'running' ? 'bg-emerald-500' :
+                      c.status === 'paused' ? 'bg-amber-500' :
+                      c.status === 'completed' ? 'bg-[var(--text-tertiary)]' : 'bg-[var(--border-subtle)]'
+                    )}
+                  />
+                  <span className="font-medium text-[12.5px] text-[var(--text-primary)] max-w-[200px] truncate">
+                    {c.name}
+                  </span>
+                </div>
+              </td>
+              <td className="py-3 px-3 text-right tabular-nums text-[12.5px] font-medium text-[var(--text-secondary)]">
+                {fmtNum(c.sent)}
+              </td>
+              <td className="py-3 px-3 text-right">
+                <span className={cn(
+                  'tabular-nums text-[12.5px] font-semibold',
+                  c.open_rate >= 30 ? 'text-emerald-500' : c.open_rate >= 15 ? 'text-amber-500' : 'text-[var(--text-secondary)]'
+                )}>
+                  {fmtPct(c.open_rate)}
+                </span>
+              </td>
+              <td className="py-3 px-3 text-right">
+                <span className="tabular-nums text-[12.5px] font-medium text-[var(--text-secondary)]">
+                  {fmtPct(c.click_rate)}
+                </span>
+              </td>
+              <td className="py-3 px-3 text-right">
+                <span className={cn(
+                  'tabular-nums text-[12.5px] font-semibold',
+                  c.reply_rate >= 5 ? 'text-emerald-500' : 'text-[var(--text-secondary)]'
+                )}>
+                  {fmtPct(c.reply_rate)}
+                </span>
+              </td>
+              <td className="py-3 px-3 text-right">
+                <span className={cn(
+                  'tabular-nums text-[12.5px]',
+                  c.bounce_rate >= 5 ? 'text-rose-500 font-semibold' : 'text-[var(--text-tertiary)]'
+                )}>
+                  {fmtPct(c.bounce_rate)}
+                </span>
+              </td>
+              <td className="py-3 px-3 w-32">
+                <MetricBar value={c.sent} max={maxSent} color="#6366F1" />
+              </td>
+              <td className="py-3 px-2">
+                <ArrowRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Deliverability section ────────────────────────────────────────────────
+
+function DeliverabilitySection({
+  deliverability,
+  overview,
+}: {
+  deliverability: { dcs_distribution: { label: string; value: number; color: string }[]; suppression_by_reason: { label: string; value: number; color: string }[] } | undefined;
+  overview: OverviewAnalytics | undefined;
+}) {
+  const avgDcs = safeNum(overview?.avg_dcs_score);
+  const dcsColor = avgDcs >= 80 ? '#10B981' : avgDcs >= 50 ? '#F59E0B' : '#EF4444';
+  const circumference = 2 * Math.PI * 36;
+  const progress = circumference - (avgDcs / 100) * circumference;
+
+  const totalContacts = safeNum(overview?.total_contacts);
+  const verifiedPct = totalContacts > 0
+    ? Math.round((safeNum(overview?.verified_contacts) / totalContacts) * 100)
+    : 0;
+
+  const suppressionTotal = (deliverability?.suppression_by_reason || []).reduce((s, r) => s + r.value, 0);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* DCS Gauge */}
+      <div className="flex flex-col items-center gap-4 p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="36" fill="none" stroke="var(--border-subtle)" strokeWidth="9" />
+          <circle
+            cx="44" cy="44" r="36" fill="none"
+            stroke={dcsColor} strokeWidth="9"
+            strokeDasharray={circumference}
+            strokeDashoffset={progress}
+            strokeLinecap="round"
+            transform="rotate(-90 44 44)"
+            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+          />
+          <text x="44" y="49" textAnchor="middle" fill="var(--text-primary)" fontSize="17" fontWeight="700">
+            {avgDcs}
+          </text>
+        </svg>
+        <div className="text-center">
+          <p className="text-[12.5px] font-semibold text-[var(--text-primary)]">Avg. DCS Score</p>
+          <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">
+            {fmtNum(overview?.verified_contacts)} of {fmtNum(totalContacts)} verified ({verifiedPct}%)
+          </p>
+        </div>
+        <div className="w-full space-y-1.5">
+          {[
+            { label: 'Verified (DCS≥60)', value: safeNum(overview?.verified_contacts), color: '#10B981' },
+            { label: 'Bounced contacts', value: safeNum(overview?.bounced_contacts), color: '#EF4444' },
+          ].map((row) => (
+            <div key={row.label} className="flex items-center justify-between text-[11px]">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: row.color }} />
+                <span className="text-[var(--text-secondary)]">{row.label}</span>
+              </div>
+              <span className="font-semibold text-[var(--text-primary)]">{fmtNum(row.value)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 w-full">
+          <Link to="/verification" className="icon-btn flex-1 h-7 text-[11px] justify-center text-center">Verify</Link>
+          <Link to="/suppression" className="icon-btn flex-1 h-7 text-[11px] justify-center text-center">Suppressed</Link>
+        </div>
+      </div>
+
+      {/* DCS Distribution */}
+      <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+        <h4 className="text-[12.5px] font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-1.5">
+          <TrendingUp className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+          DCS Distribution
+        </h4>
+        {(deliverability?.dcs_distribution || []).filter((d) => d.value > 0).length > 0 ? (
+          <div className="h-44">
+            <ErrorBoundary fallback={<p className="text-xs text-center text-[var(--text-tertiary)]">Chart unavailable</p>}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={(deliverability?.dcs_distribution || []).filter((d) => d.value > 0)} barSize={32}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 9.5 }} dy={5} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} dx={-4} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'var(--bg-hover)', radius: 6 }} />
+                  <Bar dataKey="value" radius={[5, 5, 0, 0]} name="Contacts">
+                    {(deliverability?.dcs_distribution || []).map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
+          </div>
+        ) : (
+          <EmptyDeepDive icon={ShieldCheck} title="No DCS data yet" description="Verify contacts to see their scores here." />
+        )}
+      </div>
+
+      {/* Suppression breakdown */}
+      <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+        <h4 className="text-[12.5px] font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-1.5">
+          <ShieldOff className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+          Suppression Breakdown
+        </h4>
+        {(deliverability?.suppression_by_reason || []).some((r) => r.value > 0) ? (
+          <div className="space-y-3">
+            {(deliverability?.suppression_by_reason || []).filter((r) => r.value > 0).map((item) => {
+              const pct = suppressionTotal > 0 ? Math.round((item.value / suppressionTotal) * 100) : 0;
+              return (
+                <div key={item.label}>
+                  <div className="flex justify-between text-[11.5px] mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-[var(--text-secondary)]">{item.label}</span>
+                    </div>
+                    <span className="font-semibold text-[var(--text-primary)]">{fmtNum(item.value)} <span className="text-[var(--text-tertiary)] font-normal">({pct}%)</span></span>
+                  </div>
+                  <MetricBar value={item.value} max={suppressionTotal} color={item.color} />
+                </div>
+              );
+            })}
+            <div className="pt-2 border-t border-[var(--border-subtle)]">
+              <div className="flex justify-between text-[11px]">
+                <span className="text-[var(--text-tertiary)]">Total suppressed</span>
+                <span className="font-bold text-[var(--text-primary)]">{fmtNum(suppressionTotal)}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <EmptyDeepDive icon={ShieldOff} title="No suppressions" description="Contacts blocked from receiving emails appear here." />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Campaign contacts tab ─────────────────────────────────────────────────
+
+function ContactsTab({ contacts }: { contacts: CampaignContact[] }) {
+  const [filter, setFilter] = useState('all');
+  const [sortKey, setSortKey] = useState<'score' | 'opened' | 'clicked' | 'sent'>('score');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    return contacts
+      .filter((c) => contactStatusFilter(c, filter))
+      .filter((c) => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (
+          c.email.toLowerCase().includes(q) ||
+          (c.first_name || '').toLowerCase().includes(q) ||
+          (c.last_name || '').toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => {
+        const av = sortKey === 'score' ? engagementScore(a) : safeNum((a as any)[sortKey]);
+        const bv = sortKey === 'score' ? engagementScore(b) : safeNum((b as any)[sortKey]);
+        return sortDir === 'desc' ? bv - av : av - bv;
+      });
+  }, [contacts, filter, search, sortKey, sortDir]);
+
+  const filterCounts = useMemo(() => ({
+    all: contacts.length,
+    engaged: contacts.filter((c) => engagementScore(c) >= 50).length,
+    replied: contacts.filter((c) => c.replied).length,
+    silent: contacts.filter((c) => !c.is_bounced && engagementScore(c) < 10).length,
+    bounced: contacts.filter((c) => c.is_bounced).length,
+  }), [contacts]);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {(['all', 'engaged', 'replied', 'silent', 'bounced'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-[11.5px] font-medium border transition-all',
+              filter === f
+                ? 'bg-[var(--indigo)] border-[var(--indigo)] text-white'
+                : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'
+            )}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+            <span className={cn(
+              'text-[10px] px-1 py-px rounded font-bold',
+              filter === f ? 'bg-white/20 text-white' : 'bg-[var(--bg-hover)] text-[var(--text-tertiary)]'
+            )}>
+              {filterCounts[f]}
+            </span>
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-1.5 px-2.5 h-7 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
+          <Search className="h-3 w-3 text-[var(--text-tertiary)]" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search contacts…"
+            className="bg-transparent text-[11.5px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] w-32"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-[var(--border-subtle)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)]">
+              <th className="text-left py-2.5 px-4 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold">Contact</th>
+              <th className="text-left py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold">Status</th>
+              <th
+                className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold cursor-pointer hover:text-[var(--text-primary)] select-none"
+                onClick={() => { setSortKey('score'); setSortDir(sortKey === 'score' && sortDir === 'desc' ? 'asc' : 'desc'); }}
+              >
+                <span className="inline-flex items-center gap-1 justify-end">
+                  Engagement <SortIcon col="score" sortKey={sortKey} sortDir={sortDir} />
+                </span>
+              </th>
+              <th
+                className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold cursor-pointer hover:text-[var(--text-primary)] select-none"
+                onClick={() => { setSortKey('sent'); setSortDir(sortKey === 'sent' && sortDir === 'desc' ? 'asc' : 'desc'); }}
+              >
+                <span className="inline-flex items-center gap-1 justify-end">
+                  Sent <SortIcon col="sent" sortKey={sortKey} sortDir={sortDir} />
+                </span>
+              </th>
+              <th
+                className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold cursor-pointer hover:text-[var(--text-primary)] select-none"
+                onClick={() => { setSortKey('opened'); setSortDir(sortKey === 'opened' && sortDir === 'desc' ? 'asc' : 'desc'); }}
+              >
+                <span className="inline-flex items-center gap-1 justify-end">
+                  Opens <SortIcon col="opened" sortKey={sortKey} sortDir={sortDir} />
+                </span>
+              </th>
+              <th
+                className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold cursor-pointer hover:text-[var(--text-primary)] select-none"
+                onClick={() => { setSortKey('clicked'); setSortDir(sortKey === 'clicked' && sortDir === 'desc' ? 'asc' : 'desc'); }}
+              >
+                <span className="inline-flex items-center gap-1 justify-end">
+                  Clicks <SortIcon col="clicked" sortKey={sortKey} sortDir={sortDir} />
+                </span>
+              </th>
+              <th className="text-center py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold">Reply</th>
+              <th className="text-right py-2.5 px-3 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold">DCS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.slice(0, 50).map((c) => {
+              const score = engagementScore(c);
+              const name = [c.first_name, c.last_name].filter(Boolean).join(' ');
+              return (
+                <tr key={c.contact_id} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors">
+                  <td className="py-2.5 px-4">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar name={name || undefined} email={c.email} size="md" />
+                      <div className="min-w-0">
+                        <p className="text-[12.5px] font-medium text-[var(--text-primary)] truncate">{name || c.email}</p>
+                        {name && <p className="text-[11px] text-[var(--text-tertiary)] truncate">{c.email}</p>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <Badge variant={
+                      c.is_bounced ? 'danger' :
+                      c.replied ? 'success' :
+                      c.status === 'unsubscribed' ? 'danger' :
+                      score >= 50 ? 'info' : 'default'
+                    }>
+                      {c.is_bounced ? 'Bounced' : c.status || 'pending'}
+                    </Badge>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <div className="flex items-center gap-2 justify-end">
+                      <div className="w-16">
+                        <MetricBar value={score} max={100} color={score >= 70 ? '#10B981' : score >= 40 ? '#F59E0B' : '#94A3B8'} />
+                      </div>
+                      <span className={cn(
+                        'text-[11.5px] font-bold tabular-nums w-7 text-right',
+                        score >= 70 ? 'text-emerald-500' : score >= 40 ? 'text-amber-500' : 'text-[var(--text-tertiary)]'
+                      )}>
+                        {score}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{c.sent}</td>
+                  <td className="py-2.5 px-3 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{c.opened}</td>
+                  <td className="py-2.5 px-3 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{c.clicked}</td>
+                  <td className="py-2.5 px-3 text-center">
+                    {c.replied ? (
+                      <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                        <MessageSquare className="h-2.5 w-2.5" /> Yes
+                      </span>
+                    ) : (
+                      <span className="text-[var(--text-tertiary)]">—</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 px-3 text-right">
+                    {c.dcs_score != null ? (
+                      <span className={cn(
+                        'text-[11.5px] font-semibold tabular-nums',
+                        c.dcs_score >= 80 ? 'text-emerald-500' : c.dcs_score >= 50 ? 'text-amber-500' : 'text-rose-500'
+                      )}>
+                        {c.dcs_score}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--text-tertiary)]">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {filtered.length > 50 && (
+          <div className="py-2 px-4 text-center bg-[var(--bg-elevated)] border-t border-[var(--border-subtle)]">
+            <p className="text-[11px] text-[var(--text-tertiary)]">Showing 50 of {filtered.length} contacts</p>
+          </div>
+        )}
+        {filtered.length === 0 && (
+          <div className="py-8 text-center text-[var(--text-tertiary)] text-[12.5px]">
+            No contacts match the current filter.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────
+
+const DATE_RANGE_MAP = { '7d': 7, '30d': 30, '90d': 90 } as const;
+
+type Mode = 'overview' | 'campaign';
+type CampaignTab = 'stats' | 'funnel' | 'abtest' | 'contacts' | 'heatmap';
+
 export function AnalyticsDashboardPage() {
   const { theme } = useTheme();
-  const COLORS = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
-  const primaryChartColor = '#6366F1';
-  const secondaryChartColor = '#818CF8';
-
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
+  const [mode, setMode] = useState<Mode>('overview');
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const [selectedId, setSelectedId] = useState<string>('');
+  const [campaignTab, setCampaignTab] = useState<CampaignTab>('stats');
+  const [campaignSearch, setCampaignSearch] = useState('');
+
   const days = DATE_RANGE_MAP[dateRange];
 
-  const { data: overview, isLoading: overviewLoading, error: overviewError } = useQuery({
+  // ── Global queries ──────────────────────────────────────────────────────
+  const { data: overview, isLoading: overviewLoading } = useQuery({
     queryKey: ['analytics', 'overview', days],
     queryFn: () => analyticsApi.overview(days),
   });
@@ -218,40 +784,54 @@ export function AnalyticsDashboardPage() {
     queryFn: () => analyticsApi.trend(days),
   });
 
-  const { data: deliverabilityData } = useQuery({
+  const { data: deliverability } = useQuery({
     queryKey: ['analytics', 'deliverability'],
     queryFn: () => analyticsApi.deliverability(),
   });
 
-  const { data: campaignsData } = useQuery({
-    queryKey: ['campaigns', 'list'],
-    queryFn: () => campaignsApi.list({ limit: 100 }),
+  const { data: campaignList } = useQuery({
+    queryKey: ['analytics', 'campaign-list'],
+    queryFn: () => analyticsApi.campaignList(),
   });
 
-  const { data: campaignAnalytics } = useQuery({
-    queryKey: ['analytics', 'campaign', selectedCampaignId],
-    queryFn: () => analyticsApi.campaign(selectedCampaignId),
-    enabled: !!selectedCampaignId,
+  // ── Campaign deep-dive queries ──────────────────────────────────────────
+  const { data: campaignStats } = useQuery({
+    queryKey: ['analytics', 'campaign', selectedId],
+    queryFn: () => analyticsApi.campaign(selectedId),
+    enabled: !!selectedId,
+  });
+
+  const { data: campaignTrend } = useQuery({
+    queryKey: ['analytics', 'campaign-trend', selectedId, days],
+    queryFn: () => analyticsApi.campaignTrend(selectedId, days),
+    enabled: !!selectedId && campaignTab === 'stats',
+  });
+
+  const { data: funnelData } = useQuery({
+    queryKey: ['analytics', 'funnel', selectedId],
+    queryFn: () => analyticsApi.campaignFunnel(selectedId),
+    enabled: !!selectedId && campaignTab === 'funnel',
+  });
+
+  const { data: abTestData } = useQuery({
+    queryKey: ['analytics', 'ab-test', selectedId],
+    queryFn: () => analyticsApi.campaignAbTest(selectedId),
+    enabled: !!selectedId && campaignTab === 'abtest',
   });
 
   const { data: campaignContacts } = useQuery({
-    queryKey: ['analytics', 'campaign-contacts', selectedCampaignId],
-    queryFn: () => analyticsApi.campaignContacts(selectedCampaignId),
-    enabled: !!selectedCampaignId,
+    queryKey: ['analytics', 'campaign-contacts', selectedId],
+    queryFn: () => analyticsApi.campaignContacts(selectedId),
+    enabled: !!selectedId && campaignTab === 'contacts',
   });
 
-  const campaigns = Array.isArray(campaignsData?.data) ? campaignsData.data : [];
+  const { data: heatmapData } = useQuery({
+    queryKey: ['analytics', 'heatmap', selectedId],
+    queryFn: () => analyticsApi.campaignHeatmap(selectedId),
+    enabled: !!selectedId && campaignTab === 'heatmap',
+  });
 
-  const chartData = useMemo(() => campaignAnalytics
-    ? [
-        { name: 'Sent', value: safeNum(campaignAnalytics.sent), fill: COLORS[0] },
-        { name: 'Opened', value: safeNum(campaignAnalytics.opened), fill: COLORS[1] },
-        { name: 'Clicked', value: safeNum(campaignAnalytics.clicked), fill: COLORS[2] },
-        { name: 'Replied', value: safeNum(campaignAnalytics.replied), fill: COLORS[3] },
-        { name: 'Bounced', value: safeNum(campaignAnalytics.bounced), fill: theme === 'dark' ? '#24242A' : '#E4E4E7' },
-      ]
-    : [], [campaignAnalytics, COLORS, theme]);
-
+  // ── Derived data ────────────────────────────────────────────────────────
   const formattedTrend = useMemo(() => {
     if (!Array.isArray(trendData) || trendData.length === 0) return [];
     return trendData.map((d: TrendDataPoint) => ({
@@ -260,29 +840,43 @@ export function AnalyticsDashboardPage() {
     }));
   }, [trendData]);
 
-  const pieData = useMemo(() => overview
-    ? [
-        { name: 'Opened', value: safeNum(overview.total_opened) },
-        { name: 'Clicked', value: safeNum(overview.total_clicked) },
-        { name: 'Replied', value: safeNum(overview.total_replied) },
-        { name: 'No engagement', value: Math.max(0, safeNum(overview.total_sent) - safeNum(overview.total_opened)) },
-      ].filter((d) => d.value > 0)
-    : [], [overview]);
+  const formattedCampaignTrend = useMemo(() => {
+    if (!Array.isArray(campaignTrend) || campaignTrend.length === 0) return [];
+    return campaignTrend.map((d: TrendDataPoint) => ({
+      ...d,
+      label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    }));
+  }, [campaignTrend]);
 
-  const dcsDistribution = useMemo(
-    () => (deliverabilityData?.dcs_distribution || []).filter((d) => d.value > 0),
-    [deliverabilityData]
+  const pieData = useMemo(() => {
+    if (!overview) return [];
+    return [
+      { name: 'Opened', value: safeNum(overview.total_opened) },
+      { name: 'Clicked', value: safeNum(overview.total_clicked) },
+      { name: 'Replied', value: safeNum(overview.total_replied) },
+      { name: 'No engagement', value: Math.max(0, safeNum(overview.total_sent) - safeNum(overview.total_opened)) },
+    ].filter((d) => d.value > 0);
+  }, [overview]);
+
+  const PIE_COLORS = ['#10B981', '#F59E0B', '#EC4899', theme === 'dark' ? '#1e1e2e' : '#E4E4E7'];
+
+  const filteredCampaigns = useMemo(() => {
+    const list = campaignList || [];
+    if (!campaignSearch) return list;
+    const q = campaignSearch.toLowerCase();
+    return list.filter((c) => c.name.toLowerCase().includes(q));
+  }, [campaignList, campaignSearch]);
+
+  const selectedCampaign = useMemo(
+    () => (campaignList || []).find((c) => c.id === selectedId),
+    [campaignList, selectedId]
   );
 
-  const suppressionByReason = useMemo(
-    () => (deliverabilityData?.suppression_by_reason || []).filter((d) => d.value > 0),
-    [deliverabilityData]
-  );
-
-  const totalContacts = safeNum(overview?.total_contacts);
-  const verifiedPct = totalContacts > 0
-    ? Math.round((safeNum(overview?.verified_contacts) / totalContacts) * 100)
-    : 0;
+  const selectCampaign = useCallback((id: string) => {
+    setSelectedId(id);
+    setCampaignTab('stats');
+    setMode('campaign');
+  }, []);
 
   if (overviewLoading) {
     return (
@@ -292,47 +886,15 @@ export function AnalyticsDashboardPage() {
     );
   }
 
-  if (overviewError) {
-    return (
-      <div className="animate-fade-in">
-        <PageHeader
-          decorate
-          leading={
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--indigo-subtle)] border border-[rgba(91,91,245,0.18)]">
-              <BarChart3 className="h-4 w-4 text-[var(--indigo)]" />
-            </span>
-          }
-          title="Analytics"
-          description="Monitor performance, engagement and delivery metrics across all your campaigns."
-        />
-        <Card padding="lg" className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center mb-3 border border-[var(--border-subtle)]">
-            <AlertTriangle className="h-5 w-5 text-[var(--text-tertiary)]" />
-          </div>
-          <h3 className="text-[14px] font-semibold text-[var(--text-primary)] mb-1">Unable to load analytics</h3>
-          <p className="text-[12.5px] text-[var(--text-secondary)] max-w-md mx-auto">
-            There was a problem loading your analytics data. Please try refreshing the page.
-          </p>
-        </Card>
-      </div>
-    );
-  }
-
-  const dateRangeOptions: { value: '7d' | '30d' | '90d'; label: string }[] = [
-    { value: '7d', label: '7 days' },
-    { value: '30d', label: '30 days' },
-    { value: '90d', label: '90 days' },
+  const dateRangeOptions = [
+    { value: '7d' as const, label: '7d' },
+    { value: '30d' as const, label: '30d' },
+    { value: '90d' as const, label: '90d' },
   ];
 
-  // Sparklines derived from trend data for each KPI
-  const sentSpark    = formattedTrend.slice(-14).map((d: any) => safeNum(d.sent));
-  const openedSpark  = formattedTrend.slice(-14).map((d: any) => safeNum(d.opened));
-  const clickedSpark = formattedTrend.slice(-14).map((d: any) => safeNum(d.clicked));
-  const repliedSpark = formattedTrend.slice(-14).map((d: any) => safeNum(d.replied));
-
   return (
-    <div className="animate-fade-in">
-      {/* Page header — decorated hero */}
+    <div className="animate-fade-in space-y-4">
+      {/* Header */}
       <PageHeader
         decorate
         leading={
@@ -341,7 +903,7 @@ export function AnalyticsDashboardPage() {
           </span>
         }
         title="Analytics"
-        description="Monitor performance, engagement, deliverability and suppression across every campaign."
+        description="Deep performance intelligence across every campaign, contact, and sequence step."
         meta={
           <>
             <Calendar className="h-3 w-3" />
@@ -351,7 +913,7 @@ export function AnalyticsDashboardPage() {
                 <span className="sep-dot" />
                 <span className="tabular">{fmtNum(overview.total_sent)} sent</span>
                 <span className="sep-dot" />
-                <span className="tabular">{fmtRate(overview.avg_open_rate)}% open · {fmtRate(overview.avg_reply_rate)}% reply</span>
+                <span className="tabular">{fmtPct(overview.avg_open_rate)} open · {fmtPct(overview.avg_reply_rate)} reply</span>
               </>
             )}
           </>
@@ -377,7 +939,7 @@ export function AnalyticsDashboardPage() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => downloadReport(`/analytics/export/overview?days=${days}`, `overview-report-${dateRange}.csv`)}
+              onClick={() => downloadCsv(`/analytics/export/overview?days=${days}`, `overview-${dateRange}.csv`)}
             >
               <Download className="h-3.5 w-3.5" /> Export
             </Button>
@@ -385,645 +947,542 @@ export function AnalyticsDashboardPage() {
         }
       />
 
-      {/* Overview Stats — 7 KPI cards using SharedStatCard with sparklines */}
-      {overview && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
-          <SharedStatCard
-            icon={Send} accent="indigo"
-            label="Sent"
-            value={fmtNum(overview.total_sent)}
-            sparkline={sentSpark.length >= 2 ? sentSpark : undefined}
-          />
-          <SharedStatCard
-            icon={Mail} accent="violet"
-            label="Opened"
-            value={fmtNum(overview.total_opened)}
-            hint={`${fmtRate(overview.avg_open_rate)}% open rate`}
-            sparkline={openedSpark.length >= 2 ? openedSpark : undefined}
-          />
-          <SharedStatCard
-            icon={MousePointerClick} accent="indigo"
-            label="Clicked"
-            value={fmtNum(overview.total_clicked)}
-            hint={`${fmtRate(overview.avg_click_rate)}% click rate`}
-            sparkline={clickedSpark.length >= 2 ? clickedSpark : undefined}
-          />
-          <SharedStatCard
-            icon={MessageSquare} accent="emerald"
-            label="Replied"
-            value={fmtNum(overview.total_replied)}
-            hint={`${fmtRate(overview.avg_reply_rate)}% reply rate`}
-            sparkline={repliedSpark.length >= 2 ? repliedSpark : undefined}
-          />
-          <SharedStatCard
-            icon={Target} accent="violet"
-            label="Campaigns"
-            value={fmtNum(overview.total_campaigns)}
-          />
-          <SharedStatCard
-            icon={ShieldOff} accent="rose"
-            label="Suppressed"
-            value={fmtNum(overview.suppressed_count)}
-            onClick={() => (window.location.href = '/suppression')}
-          />
-          <SharedStatCard
-            icon={ShieldCheck}
-            accent={safeNum(overview.avg_dcs_score) >= 80 ? 'emerald' : safeNum(overview.avg_dcs_score) >= 50 ? 'amber' : 'rose'}
-            label="Avg DCS"
-            value={fmtNum(overview.avg_dcs_score)}
-            hint="Deliverability score"
-            onClick={() => (window.location.href = '/verification')}
-          />
-        </div>
-      )}
-
-      {/* Performance Trend + Engagement Ring */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <Card padding="md" className="col-span-2">
-          <CardHeader
-            action={
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)]">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: primaryChartColor }} />
-                  Sent
-                </span>
-                <span className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)]">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: secondaryChartColor }} />
-                  Opened
-                </span>
-              </div>
-            }
-          >
-            <CardTitle>Performance trend</CardTitle>
-            <CardDescription>Email activity over the last {days} days.</CardDescription>
-          </CardHeader>
-          <div className="h-60">
-            {formattedTrend.length > 0 ? (
-              <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={formattedTrend}>
-                    <defs>
-                      <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={primaryChartColor} stopOpacity={0.15} />
-                        <stop offset="95%" stopColor={primaryChartColor} stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={secondaryChartColor} stopOpacity={0.15} />
-                        <stop offset="95%" stopColor={secondaryChartColor} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
-                      dy={8}
-                      interval={days <= 7 ? 0 : days <= 30 ? 4 : 13}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }}
-                      dx={-8}
-                    />
-                    <Tooltip
-                      contentStyle={tooltipStyle}
-                      itemStyle={tooltipItemStyle}
-                      labelStyle={tooltipLabelStyle}
-                      cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }}
-                    />
-                    <Area
-                      type="monotone" dataKey="sent" stroke={primaryChartColor} strokeWidth={2.5}
-                      fill="url(#colorSent)" name="Sent" dot={false}
-                      activeDot={{ r: 5, fill: primaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
-                    />
-                    <Area
-                      type="monotone" dataKey="opened" stroke={secondaryChartColor} strokeWidth={2.5}
-                      fill="url(#colorOpened)" name="Opened" dot={false}
-                      activeDot={{ r: 5, fill: secondaryChartColor, stroke: 'var(--bg-surface)', strokeWidth: 2 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ErrorBoundary>
-            ) : (
-              <div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">
-                No activity data for this period
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {pieData.length > 0 ? (
-          <EngagementRing data={pieData} colors={COLORS} />
-        ) : (
-          <Card padding="md" className="flex items-center justify-center">
-            <p className="text-[12.5px] text-[var(--text-tertiary)]">No engagement data yet</p>
-          </Card>
-        )}
+      {/* Mode switcher */}
+      <div className="flex items-center gap-2 p-1 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-xl w-fit">
+        <button
+          onClick={() => setMode('overview')}
+          className={cn(
+            'inline-flex items-center gap-2 px-4 h-8 rounded-lg text-[12.5px] font-medium transition-all',
+            mode === 'overview'
+              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]'
+              : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+          )}
+        >
+          <BarChart3 className="h-3.5 w-3.5" />
+          Portfolio Overview
+        </button>
+        <button
+          onClick={() => setMode('campaign')}
+          className={cn(
+            'inline-flex items-center gap-2 px-4 h-8 rounded-lg text-[12.5px] font-medium transition-all',
+            mode === 'campaign'
+              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]'
+              : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+          )}
+        >
+          <Eye className="h-3.5 w-3.5" />
+          Campaign Deep Dive
+          {selectedCampaign && (
+            <span className="text-[10.5px] font-semibold bg-[var(--indigo)]/20 text-[var(--indigo)] px-1.5 py-0.5 rounded-full">
+              {selectedCampaign.name.slice(0, 14)}{selectedCampaign.name.length > 14 ? '…' : ''}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Deliverability Health */}
-      <Card padding="none" className="mb-4 overflow-hidden">
-        <div className="px-4 py-3 border-b border-[var(--border-subtle)] flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="text-[13px] font-semibold text-[var(--text-primary)] tracking-[-0.005em] flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-[5px] bg-[var(--indigo-subtle)]">
-                <Activity className="h-3 w-3 text-[var(--indigo)]" />
-              </span>
-              Deliverability health
-            </h2>
-            <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">DCS scores, suppression breakdown and contact quality.</p>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Link to="/verification" className="icon-btn h-7 px-2 text-[12px]">Verify contacts</Link>
-            <Link to="/suppression" className="icon-btn h-7 px-2 text-[12px]">Suppression list</Link>
-          </div>
-        </div>
-
-        <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* DCS Gauge + summary */}
-          <div className="flex flex-col items-center justify-center gap-4 py-4 bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-subtle)]">
-            <DcsScoreGauge score={safeNum(overview?.avg_dcs_score)} />
-            <div className="text-center">
-              <p className="text-sm font-semibold text-[var(--text-primary)]">Average DCS Score</p>
-              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                {fmtNum(safeNum(overview?.verified_contacts))} of {fmtNum(totalContacts)} verified ({verifiedPct}%)
-              </p>
-            </div>
-            <div className="w-full px-4 space-y-1.5">
+      {/* ── OVERVIEW MODE ────────────────────────────────────────────────── */}
+      {mode === 'overview' && (
+        <>
+          {/* KPI row */}
+          {overview && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Verified (≥60)', value: safeNum(overview?.verified_contacts), color: '#10B981' },
-                { label: 'Bounced contacts', value: safeNum(overview?.bounced_contacts), color: '#EF4444' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-[var(--text-secondary)]">{item.label}</span>
+                { label: 'Emails Sent', value: overview.total_sent, change: overview.sent_change, icon: Send, color: '#6366F1' },
+                { label: 'Open Rate', value: fmtPct(overview.avg_open_rate), change: overview.opened_change, icon: Mail, color: '#10B981', sub: fmtNum(overview.total_opened) + ' opens' },
+                { label: 'Click Rate', value: fmtPct(overview.avg_click_rate), change: overview.clicked_change, icon: MousePointerClick, color: '#F59E0B', sub: fmtNum(overview.total_clicked) + ' clicks' },
+                { label: 'Reply Rate', value: fmtPct(overview.avg_reply_rate), change: overview.replied_change, icon: MessageSquare, color: '#EC4899', sub: fmtNum(overview.total_replied) + ' replies' },
+              ].map(({ label, value, change, icon: Icon, color, sub }) => (
+                <div key={label} className="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] relative overflow-hidden hover:border-[var(--border-default)] transition-all group">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-lg" style={{ backgroundColor: `${color}18` }}>
+                      <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.75} />
+                    </div>
+                    <ChangeChip change={change} />
                   </div>
-                  <span className="font-semibold text-[var(--text-primary)]">{fmtNum(item.value)}</span>
+                  <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums leading-none mb-1">
+                    {typeof value === 'number' ? fmtNum(value) : value}
+                  </p>
+                  <p className="text-[11.5px] text-[var(--text-tertiary)]">{label}</p>
+                  {sub && <p className="text-[10.5px] text-[var(--text-tertiary)] mt-0.5">{sub}</p>}
                 </div>
               ))}
             </div>
-          </div>
+          )}
 
-          {/* DCS distribution bar chart */}
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-1.5">
-              <TrendingUp className="h-4 w-4 text-[var(--text-tertiary)]" />
-              DCS Score Distribution
-            </h4>
-            {dcsDistribution.length > 0 ? (
-              <div className="h-48">
-                <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dcsDistribution} barSize={36}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                      <XAxis
-                        dataKey="label"
-                        axisLine={false} tickLine={false}
-                        tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }}
-                        dy={6}
-                      />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} dx={-6} />
-                      <Tooltip
-                        contentStyle={tooltipStyle}
-                        itemStyle={tooltipItemStyle}
-                        labelStyle={tooltipLabelStyle}
-                        cursor={{ fill: 'var(--bg-hover)', radius: 6 }}
-                      />
-                      <Bar dataKey="value" radius={[6, 6, 0, 0]} name="Contacts">
-                        {dcsDistribution.map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ErrorBoundary>
-              </div>
-            ) : (
-              <div className="h-48 flex flex-col items-center justify-center gap-2">
-                <ShieldCheck className="h-8 w-8 text-[var(--text-tertiary)]" strokeWidth={1.5} />
-                <p className="text-sm text-[var(--text-tertiary)]">No DCS scores yet</p>
-                <Link to="/verification" className="text-xs font-medium text-[#6366F1] hover:underline">
-                  Start verifying contacts →
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Suppression by reason */}
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-1.5">
-              <ShieldOff className="h-4 w-4 text-[var(--text-tertiary)]" />
-              Suppression by Reason
-            </h4>
-            {suppressionByReason.length > 0 ? (
-              <div className="space-y-3">
-                {suppressionByReason.map((item) => {
-                  const total = suppressionByReason.reduce((s, r) => s + r.value, 0);
-                  const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
-                  return (
-                    <div key={item.label}>
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                          <span className="text-[var(--text-secondary)]">{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-[var(--text-primary)]">{fmtNum(item.value)}</span>
-                          <span className="text-[var(--text-tertiary)]">{pct}%</span>
-                        </div>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${pct}%`, backgroundColor: item.color }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                <div className="pt-2 border-t border-[var(--border-subtle)]">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[var(--text-tertiary)]">Total suppressed</span>
-                    <span className="font-bold text-[var(--text-primary)]">
-                      {fmtNum(suppressionByReason.reduce((s, r) => s + r.value, 0))}
+          {/* Trend + Donut */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2 p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Performance Trend</h3>
+                  <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">All metrics over the last {days} days</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {Object.entries(CHART_COLORS).slice(0, 4).map(([key, color]) => (
+                    <span key={key} className="flex items-center gap-1 text-[10.5px] text-[var(--text-tertiary)]">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
                     </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="h-48 flex flex-col items-center justify-center gap-2">
-                <ShieldOff className="h-8 w-8 text-[var(--text-tertiary)]" strokeWidth={1.5} />
-                <p className="text-sm text-[var(--text-tertiary)]">No suppressed contacts</p>
-                <p className="text-xs text-[var(--text-tertiary)]">Contacts you block from receiving emails appear here</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* Campaign Deep Dive */}
-      <Card padding="none" className="mb-4 overflow-hidden">
-        <div className="p-4 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-[13px] font-semibold text-[var(--text-primary)] tracking-[-0.005em]">Campaign deep dive</h2>
-              <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-                Select a campaign to view detailed analytics.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {selectedCampaignId && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => downloadReport(`/analytics/export/campaigns/${selectedCampaignId}`, `campaign-report.csv`)}
-                >
-                  <Download className="h-3.5 w-3.5" /> Export report
-                </Button>
-              )}
-              <div className="relative">
-                <select
-                  value={selectedCampaignId}
-                  onChange={(e) => setSelectedCampaignId(e.target.value)}
-                  className="appearance-none pl-3 pr-9 h-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[12.5px] text-[var(--text-primary)] focus:outline-none focus:border-[rgba(91,91,245,0.4)] focus:shadow-[0_0_0_3px_rgba(91,91,245,0.12)] min-w-[200px] transition cursor-pointer"
-                >
-                  <option value="">Choose a campaign…</option>
-                  {campaigns.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-tertiary)] pointer-events-none" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {campaignAnalytics ? (
-          <div className="p-6 space-y-4">
-            {/* Campaign stats — 5 tiles incl. Suppressed */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              {[
-                { icon: Send, label: 'Sent', value: campaignAnalytics.sent, rate: undefined, color: '#6366F1' },
-                { icon: Mail, label: 'Opened', value: campaignAnalytics.opened, rate: campaignAnalytics.open_rate, color: '#818CF8' },
-                { icon: MousePointerClick, label: 'Clicked', value: campaignAnalytics.clicked, rate: campaignAnalytics.click_rate, color: '#A5B4FC' },
-                { icon: MessageSquare, label: 'Replied', value: campaignAnalytics.replied, rate: campaignAnalytics.reply_rate, color: '#10B981' },
-                { icon: AlertTriangle, label: 'Bounced', value: campaignAnalytics.bounced, rate: campaignAnalytics.bounce_rate, color: '#EF4444' },
-              ].map(({ icon: Icon, label, value, rate, color }) => (
-                <div key={label} className="relative overflow-hidden p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all duration-200 hover:border-[var(--border-default)] group">
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--bg-surface)]">
-                      <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
-                    </div>
-                    <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
-                  </div>
-                  <p className="stat-value">{fmtNum(value)}</p>
-                  {rate !== undefined && (
-                    <p className="text-xs text-[var(--text-tertiary)] mt-1 font-medium">{fmtRate(rate)}% rate</p>
-                  )}
                 </div>
-              ))}
-            </div>
-
-            {/* Campaign Funnel Bar chart */}
-            {chartData.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-4">Campaign Funnel</h4>
-                <div className="h-56">
+              </div>
+              <div className="h-56">
+                {formattedTrend.length > 0 ? (
                   <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} barSize={40}>
+                      <LineChart data={formattedTrend}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                        <XAxis
-                          dataKey="name" axisLine={false} tickLine={false}
-                          tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} dy={8}
-                        />
-                        <YAxis
-                          axisLine={false} tickLine={false}
-                          tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} dx={-8}
-                        />
-                        <Tooltip
-                          contentStyle={tooltipStyle} itemStyle={tooltipItemStyle}
-                          labelStyle={tooltipLabelStyle} cursor={{ fill: 'var(--bg-hover)', radius: 8 }}
-                        />
-                        <Bar dataKey="value" radius={[8, 8, 0, 0]} name="Count">
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                        <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} dy={6} interval={days <= 7 ? 0 : days <= 30 ? 4 : 13} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} dx={-4} />
+                        <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }} />
+                        {(['sent', 'opened', 'clicked', 'replied'] as const).map((key) => (
+                          <Line key={key} type="monotone" dataKey={key} stroke={CHART_COLORS[key]} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: CHART_COLORS[key], stroke: 'var(--bg-surface)', strokeWidth: 2 }} name={key.charAt(0).toUpperCase() + key.slice(1)} />
+                        ))}
+                      </LineChart>
                     </ResponsiveContainer>
                   </ErrorBoundary>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">No activity data yet</div>
+                )}
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="p-12 text-center">
-            <div className="mx-auto w-10 h-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center mb-3 border border-[var(--border-subtle)]">
-              <Target className="h-4 w-4 text-[var(--text-tertiary)]" />
             </div>
-            <h3 className="text-[13px] font-semibold text-[var(--text-primary)] mb-1">No campaign selected</h3>
-            <p className="text-[12.5px] text-[var(--text-secondary)] max-w-xs mx-auto">
-              Choose a campaign from the dropdown above to explore detailed performance analytics.
-            </p>
-          </div>
-        )}
 
-        {/* Contact breakdown table */}
-        {campaignContacts && Array.isArray(campaignContacts.contacts) && campaignContacts.contacts.length > 0 && (
-          <div className="p-4 border-t border-[var(--border-subtle)]">
-            <h3 className="text-[13px] font-semibold text-[var(--text-primary)] mb-3 flex items-center gap-2">
-              <span className="flex items-center justify-center h-5 w-5 rounded-[5px] bg-[var(--bg-elevated)]">
-                <Users className="h-3 w-3 text-[var(--text-primary)]" />
-              </span>
-              Contact breakdown
-            </h3>
-            <div className="overflow-x-auto rounded-xl border border-[var(--border-subtle)]">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[var(--bg-elevated)]">
-                    <th className="table-header py-3 px-4 text-left">Contact</th>
-                    <th className="table-header py-3 px-4 text-left">Status</th>
-                    <th className="table-header py-3 px-4 text-center">Sent</th>
-                    <th className="table-header py-3 px-4 text-center">Opened</th>
-                    <th className="table-header py-3 px-4 text-center">Clicked</th>
-                    <th className="table-header py-3 px-4 text-center">Replied</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {campaignContacts.contacts.slice(0, 10).map((c: any) => (
-                    <tr
-                      key={c.contact_id}
-                      className="border-t border-[var(--border-subtle)] transition-colors duration-150 hover:bg-[var(--bg-hover)]"
-                    >
-                      <td className="py-2.5 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar
-                            name={[c.first_name, c.last_name].filter(Boolean).join(' ') || undefined}
-                            email={c.email}
-                            size="md"
-                          />
-                          <div className="min-w-0">
-                            <span className="text-[12.5px] font-medium text-[var(--text-primary)] truncate">
-                              {[c.first_name, c.last_name].filter(Boolean).join(' ') || c.email || 'Unknown'}
-                            </span>
-                            {(c.first_name || c.last_name) && (
-                              <p className="text-[11px] text-[var(--text-tertiary)] truncate">{c.email}</p>
-                            )}
+            <div className="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)] mb-1">Engagement Mix</h3>
+              <p className="text-[11.5px] text-[var(--text-secondary)] mb-3">Distribution across activities</p>
+              {pieData.length > 0 ? (
+                <>
+                  <div className="h-36">
+                    <ErrorBoundary fallback={<div className="h-full flex items-center justify-center text-xs text-[var(--text-tertiary)]">Chart unavailable</div>}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={pieData} cx="50%" cy="50%" innerRadius={42} outerRadius={60} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                            {pieData.map((_, i) => (
+                              <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v: number) => [fmtNum(v), 'Count']} contentStyle={tooltipStyle} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </ErrorBoundary>
+                  </div>
+                  <div className="space-y-2 mt-2">
+                    {pieData.map((item, i) => {
+                      const total = pieData.reduce((s, d) => s + d.value, 0);
+                      return (
+                        <div key={item.name} className="flex items-center justify-between text-[11.5px]">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                            <span className="text-[var(--text-secondary)]">{item.name}</span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-4">
-                        <Badge
-                          variant={
-                            c.status === 'replied' ? 'info' :
-                            c.status === 'bounced' ? 'danger' :
-                            c.status === 'unsubscribed' ? 'danger' :
-                            c.status === 'opened' || c.status === 'clicked' ? 'success' :
-                            'default'
-                          }
-                        >
-                          {c.status || 'pending'}
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 px-4 text-center text-[var(--text-secondary)] font-medium">{fmtNum(c.sent)}</td>
-                      <td className="py-2.5 px-4 text-center text-[var(--text-secondary)] font-medium">{fmtNum(c.opened)}</td>
-                      <td className="py-2.5 px-4 text-center text-[var(--text-secondary)] font-medium">{fmtNum(c.clicked)}</td>
-                      <td className="py-2.5 px-4 text-center">
-                        {c.replied ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--bg-elevated)] text-[var(--text-primary)]">
-                            <MessageSquare className="h-3 w-3" />
-                            Yes
+                          <span className="font-semibold text-[var(--text-primary)] tabular-nums">
+                            {total > 0 ? `${((item.value / total) * 100).toFixed(1)}%` : '—'}
                           </span>
-                        ) : (
-                          <span className="text-[var(--text-tertiary)]">--</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {campaignContacts.contacts.length > 10 && (
-                <div className="py-2.5 px-4 text-center bg-[var(--bg-elevated)] border-t border-[var(--border-subtle)]">
-                  <p className="text-[11.5px] font-medium text-[var(--text-tertiary)]">
-                    Showing 10 of {campaignContacts.contacts.length} contacts
-                  </p>
-                </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-40 text-[12px] text-[var(--text-tertiary)]">No data yet</div>
               )}
             </div>
           </div>
-        )}
-      </Card>
 
-      {/* Campaign Comparison */}
-      <CampaignComparison campaigns={campaigns} />
-    </div>
-  );
-}
-
-/* ─── Campaign Comparison ──────────────────────────────────────── */
-
-function CampaignComparison({ campaigns }: { campaigns: any[] }) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  const { data: comparisonData = [], isLoading } = useQuery({
-    queryKey: ['analytics', 'compare', selectedIds],
-    queryFn: async () => {
-      const results = await Promise.all(selectedIds.map((id) => analyticsApi.campaign(id)));
-      return results.map((res, i) => ({ ...res, campaign: campaigns.find((c) => c.id === selectedIds[i]) }));
-    },
-    enabled: selectedIds.length > 0,
-  });
-
-  const toggleId = (id: string) => {
-    setSelectedIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 4) {
-        toast.error('Select up to 4 campaigns to compare');
-        return prev;
-      }
-      return [...prev, id];
-    });
-  };
-
-  const colors = ['#6366F1', '#10B981', '#F59E0B', '#EC4899'];
-
-  return (
-    <Card padding="none" className="mt-4 overflow-hidden">
-      <div className="p-4 border-b border-[var(--border-subtle)]">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-[13px] font-semibold text-[var(--text-primary)] tracking-[-0.005em]">Compare campaigns</h2>
-            <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-              Select up to 4 campaigns to see their performance side by side.
-            </p>
-          </div>
-          {selectedIds.length > 0 && (
-            <button
-              onClick={() => setSelectedIds([])}
-              className="text-[11.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1"
-            >
-              Clear ({selectedIds.length})
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {campaigns.map((c: any) => {
-            const active = selectedIds.includes(c.id);
-            const idx = selectedIds.indexOf(c.id);
-            return (
-              <button
-                key={c.id}
-                onClick={() => toggleId(c.id)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[11.5px] font-medium border transition-all',
-                  active
-                    ? 'border-transparent text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-                )}
-                style={active ? { background: colors[idx] } : undefined}
-              >
-                {active && <span className="text-[10px] opacity-80 tabular">#{idx + 1}</span>}
-                {c.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {selectedIds.length === 0 ? (
-        <div className="p-10 text-center text-[var(--text-tertiary)]">
-          <div className="mx-auto w-10 h-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center mb-2 border border-[var(--border-subtle)]">
-            <BarChart3 className="h-4 w-4" />
-          </div>
-          <p className="text-[12.5px]">Pick at least 2 campaigns above to start comparing.</p>
-        </div>
-      ) : isLoading ? (
-        <div className="p-10 text-center"><Spinner size="md" /></div>
-      ) : (
-        <div className="p-4 space-y-4">
-          {/* Stat comparison table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] border-b border-[var(--border-subtle)]">
-                <tr>
-                  <th className="text-left py-2 font-medium">Campaign</th>
-                  <th className="text-right py-2 font-medium">Sent</th>
-                  <th className="text-right py-2 font-medium">Opened</th>
-                  <th className="text-right py-2 font-medium">Open %</th>
-                  <th className="text-right py-2 font-medium">Clicked</th>
-                  <th className="text-right py-2 font-medium">Click %</th>
-                  <th className="text-right py-2 font-medium">Replied</th>
-                  <th className="text-right py-2 font-medium">Reply %</th>
-                  <th className="text-right py-2 font-medium">Bounced</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonData.map((d: any, i: number) => (
-                  <tr key={d.campaign_id} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-3 font-medium text-[var(--text-primary)]">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: colors[i] }} />
-                        <span className="truncate max-w-[200px]">{d.campaign?.name || '...'}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 text-right tabular-nums text-[var(--text-secondary)]">{(d.sent || 0).toLocaleString()}</td>
-                    <td className="py-3 text-right tabular-nums text-[var(--text-secondary)]">{(d.opened || 0).toLocaleString()}</td>
-                    <td className="py-3 text-right tabular-nums text-[var(--text-secondary)]">{(d.open_rate || 0).toFixed(1)}%</td>
-                    <td className="py-3 text-right tabular-nums text-[var(--text-secondary)]">{(d.clicked || 0).toLocaleString()}</td>
-                    <td className="py-3 text-right tabular-nums text-[var(--text-secondary)]">{(d.click_rate || 0).toFixed(1)}%</td>
-                    <td className="py-3 text-right tabular-nums text-[var(--text-secondary)]">{(d.replied || 0).toLocaleString()}</td>
-                    <td className="py-3 text-right tabular-nums font-semibold text-[#10B981]">{(d.reply_rate || 0).toFixed(1)}%</td>
-                    <td className="py-3 text-right tabular-nums text-red-500">{(d.bounced || 0).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Bar chart comparison */}
-          {comparisonData.length >= 2 && (
-            <div>
-              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-3">Engagement rates</h4>
-              <div className="h-64">
-                <ErrorBoundary fallback={<div className="text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={['Open %', 'Click %', 'Reply %'].map((metric, i) => {
-                        const row: any = { metric };
-                        comparisonData.forEach((d: any, ci: number) => {
-                          row[d.campaign?.name || `C${ci + 1}`] = i === 0 ? d.open_rate : i === 1 ? d.click_rate : d.reply_rate;
-                        });
-                        return row;
-                      })}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                      <XAxis dataKey="metric" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} unit="%" />
-                      <Tooltip
-                        contentStyle={{
-                          background: 'var(--bg-surface)',
-                          border: '1px solid var(--border-default)',
-                          borderRadius: 8,
-                          fontSize: 12,
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
-                      {comparisonData.map((d: any, i: number) => (
-                        <Bar key={d.campaign_id} dataKey={d.campaign?.name || `C${i + 1}`} fill={colors[i]} radius={[4, 4, 0, 0]} />
-                      ))}
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ErrorBoundary>
+          {/* Campaign Leaderboard */}
+          {(campaignList?.length ?? 0) > 0 && (
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+                <div>
+                  <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Campaign Leaderboard</h3>
+                  <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">Click any row to deep-dive into that campaign</p>
+                </div>
+                <span className="text-[11px] text-[var(--text-tertiary)] bg-[var(--bg-elevated)] px-2 py-0.5 rounded-full">
+                  {campaignList!.length} campaigns
+                </span>
               </div>
+              <CampaignLeaderboard campaigns={campaignList!} onSelect={selectCampaign} />
             </div>
           )}
-        </div>
+
+          {/* Deliverability */}
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+              <div>
+                <h3 className="text-[13px] font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-[5px] bg-[var(--indigo-subtle)]">
+                    <Activity className="h-3 w-3 text-[var(--indigo)]" />
+                  </span>
+                  Deliverability Health
+                </h3>
+                <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">DCS scores, contact quality and suppression breakdown</p>
+              </div>
+            </div>
+            <div className="p-5">
+              <DeliverabilitySection deliverability={deliverability} overview={overview} />
+            </div>
+          </div>
+        </>
       )}
-    </Card>
+
+      {/* ── CAMPAIGN DEEP DIVE MODE ───────────────────────────────────────── */}
+      {mode === 'campaign' && (
+        <>
+          {/* Campaign selector */}
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--border-subtle)] flex items-center gap-3">
+              <Search className="h-4 w-4 text-[var(--text-tertiary)] flex-shrink-0" />
+              <input
+                value={campaignSearch}
+                onChange={(e) => setCampaignSearch(e.target.value)}
+                placeholder="Search campaigns…"
+                className="flex-1 bg-transparent text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
+              />
+              <span className="text-[11px] text-[var(--text-tertiary)] flex-shrink-0">
+                {filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              {filteredCampaigns.length === 0 ? (
+                <p className="py-6 text-center text-[12.5px] text-[var(--text-tertiary)]">No campaigns found</p>
+              ) : (
+                filteredCampaigns.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => selectCampaign(c.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--bg-hover)] transition-colors border-b border-[var(--border-subtle)] last:border-0',
+                      selectedId === c.id && 'bg-[var(--indigo-subtle)]'
+                    )}
+                  >
+                    <span className={cn(
+                      'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                      c.status === 'running' ? 'bg-emerald-500' :
+                      c.status === 'paused' ? 'bg-amber-500' : 'bg-[var(--text-tertiary)]'
+                    )} />
+                    <span className={cn('flex-1 text-[12.5px] font-medium truncate', selectedId === c.id ? 'text-[var(--indigo)]' : 'text-[var(--text-primary)]')}>
+                      {c.name}
+                    </span>
+                    <div className="flex items-center gap-4 flex-shrink-0 text-[11.5px] text-[var(--text-tertiary)]">
+                      <span>{fmtNum(c.sent)} sent</span>
+                      <span className={c.open_rate >= 30 ? 'text-emerald-500 font-semibold' : ''}>{fmtPct(c.open_rate)} open</span>
+                      <span className={c.reply_rate >= 5 ? 'text-emerald-500 font-semibold' : ''}>{fmtPct(c.reply_rate)} reply</span>
+                    </div>
+                    {selectedId === c.id && <span className="text-[var(--indigo)] text-[11px] font-semibold">Selected</span>}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {!selectedId ? (
+            <EmptyDeepDive
+              icon={Target}
+              title="Select a campaign above"
+              description="Choose any campaign to unlock detailed stats, funnel analysis, A/B testing results, contact-level insights, and engagement heatmaps."
+            />
+          ) : (
+            <>
+              {/* Campaign header */}
+              {selectedCampaign && (
+                <div className="flex items-center justify-between px-5 py-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--indigo-subtle)] border border-[rgba(91,91,245,0.18)]">
+                      <Target className="h-5 w-5 text-[var(--indigo)]" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h2 className="text-[14px] font-bold text-[var(--text-primary)]">{selectedCampaign.name}</h2>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant={selectedCampaign.status === 'running' ? 'success' : selectedCampaign.status === 'paused' ? 'warning' : 'default'}>
+                          {selectedCampaign.status}
+                        </Badge>
+                        <span className="text-[11px] text-[var(--text-tertiary)]">{fmtNum(selectedCampaign.sent)} total emails sent</span>
+                        <span className="sep-dot text-[var(--text-tertiary)]" />
+                        <span className="text-[11px] text-[var(--text-tertiary)]">Created {new Date(selectedCampaign.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => downloadCsv(`/analytics/export/campaigns/${selectedId}`, `campaign-${selectedId}.csv`)}
+                    >
+                      <Download className="h-3.5 w-3.5" /> Export
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Inner tabs */}
+              <div className="flex items-center gap-1 border-b border-[var(--border-subtle)] pb-0">
+                {[
+                  { id: 'stats', label: 'Stats', icon: BarChart3 },
+                  { id: 'funnel', label: 'Funnel', icon: Layers },
+                  { id: 'abtest', label: 'A/B Tests', icon: FlaskConical },
+                  { id: 'contacts', label: 'Contacts', icon: Users },
+                  { id: 'heatmap', label: 'Heatmap', icon: Thermometer },
+                ].map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setCampaignTab(id as CampaignTab)}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-3 py-2.5 text-[12.5px] font-medium border-b-2 transition-all -mb-px',
+                      campaignTab === id
+                        ? 'border-[var(--indigo)] text-[var(--indigo)]'
+                        : 'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Stats tab ── */}
+              {campaignTab === 'stats' && campaignStats && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    {[
+                      { label: 'Sent', value: campaignStats.sent, sub: undefined, color: '#6366F1', icon: Send },
+                      { label: 'Open Rate', value: fmtPct(campaignStats.open_rate), sub: fmtNum(campaignStats.opened) + ' opens', color: '#10B981', icon: Mail },
+                      { label: 'Click Rate', value: fmtPct(campaignStats.click_rate), sub: fmtNum(campaignStats.clicked) + ' clicks', color: '#F59E0B', icon: MousePointerClick },
+                      { label: 'Reply Rate', value: fmtPct(campaignStats.reply_rate), sub: fmtNum(campaignStats.replied) + ' replies', color: '#EC4899', icon: MessageSquare },
+                      { label: 'Bounce Rate', value: fmtPct(campaignStats.bounce_rate), sub: fmtNum(campaignStats.bounced) + ' bounced', color: '#EF4444', icon: AlertTriangle },
+                    ].map(({ label, value, sub, color, icon: Icon }) => (
+                      <div key={label} className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+                        <div className="flex items-center justify-center h-7 w-7 rounded-lg mb-3" style={{ backgroundColor: `${color}18` }}>
+                          <Icon className="h-3.5 w-3.5" style={{ color }} strokeWidth={1.75} />
+                        </div>
+                        <p className="text-xl font-bold text-[var(--text-primary)] tabular-nums leading-tight">
+                          {typeof value === 'number' ? fmtNum(value) : value}
+                        </p>
+                        <p className="text-[11px] text-[var(--text-tertiary)] mt-0.5">{label}</p>
+                        {sub && <p className="text-[10.5px] text-[var(--text-tertiary)]">{sub}</p>}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                    <h3 className="text-[13px] font-semibold text-[var(--text-primary)] mb-4">Daily Activity — Last {days} days</h3>
+                    <div className="h-56">
+                      {formattedCampaignTrend.length > 0 ? (
+                        <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">Chart unavailable</div>}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={formattedCampaignTrend}>
+                              <defs>
+                                {(['sent', 'opened', 'clicked', 'replied'] as const).map((key) => (
+                                  <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={CHART_COLORS[key]} stopOpacity={0.15} />
+                                    <stop offset="95%" stopColor={CHART_COLORS[key]} stopOpacity={0} />
+                                  </linearGradient>
+                                ))}
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                              <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} dy={6} interval={days <= 7 ? 0 : 4} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} dx={-4} />
+                              <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'var(--border-default)', strokeDasharray: '4 4' }} />
+                              {(['sent', 'opened', 'clicked', 'replied'] as const).map((key) => (
+                                <Area key={key} type="monotone" dataKey={key} stroke={CHART_COLORS[key]} strokeWidth={2} fill={`url(#grad-${key})`} dot={false} name={key.charAt(0).toUpperCase() + key.slice(1)} activeDot={{ r: 4, fill: CHART_COLORS[key], stroke: 'var(--bg-surface)', strokeWidth: 2 }} />
+                              ))}
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </ErrorBoundary>
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">No activity data for this campaign yet</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Funnel tab ── */}
+              {campaignTab === 'funnel' && (
+                <div className="space-y-4">
+                  {campaignStats && (
+                    <div className="p-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                      <h3 className="text-[13px] font-semibold text-[var(--text-primary)] mb-1">Overall Engagement Funnel</h3>
+                      <p className="text-[11.5px] text-[var(--text-secondary)] mb-5">Contact journey from send to reply across all steps</p>
+                      <FunnelViz
+                        sent={campaignStats.sent}
+                        opened={campaignStats.opened}
+                        clicked={campaignStats.clicked}
+                        replied={campaignStats.replied}
+                        bounced={campaignStats.bounced}
+                      />
+                    </div>
+                  )}
+
+                  {funnelData && funnelData.length > 0 && (
+                    <div className="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                      <h3 className="text-[13px] font-semibold text-[var(--text-primary)] mb-4">Step-by-Step Breakdown</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-[var(--border-subtle)]">
+                              {['Step', 'Subject', 'Delay', 'Sent', 'Opened', 'Open %', 'Clicked', 'Click %', 'Replied', 'Reply %', 'Bounced'].map((h) => (
+                                <th key={h} className={cn(
+                                  'py-2 text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold',
+                                  h === 'Subject' ? 'text-left px-3' : 'text-right px-2'
+                                )}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {funnelData.map((step: FunnelStep) => (
+                              <tr key={step.step_id} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors">
+                                <td className="py-2.5 px-2 text-right text-[12px] font-bold text-[var(--text-primary)]">
+                                  {step.step_number}
+                                </td>
+                                <td className="py-2.5 px-3 max-w-[200px]">
+                                  <p className="text-[12px] text-[var(--text-primary)] truncate">{step.subject}</p>
+                                </td>
+                                <td className="py-2.5 px-2 text-right text-[11.5px] text-[var(--text-tertiary)]">
+                                  {step.delay_days > 0 ? `+${step.delay_days}d` : '—'}
+                                </td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{fmtNum(step.sent)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{fmtNum(step.opened)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] font-semibold" style={{ color: CHART_COLORS.opened }}>{fmtPct(step.open_rate)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{fmtNum(step.clicked)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] font-semibold" style={{ color: CHART_COLORS.clicked }}>{fmtPct(step.click_rate)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] text-[var(--text-secondary)]">{fmtNum(step.replied)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px] font-semibold" style={{ color: CHART_COLORS.replied }}>{fmtPct(step.reply_rate)}</td>
+                                <td className="py-2.5 px-2 text-right tabular-nums text-[12px]" style={{ color: step.bounced > 0 ? CHART_COLORS.bounced : 'var(--text-tertiary)' }}>{fmtNum(step.bounced)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {!funnelData && (
+                    <div className="flex items-center justify-center py-10"><Spinner size="md" /></div>
+                  )}
+                </div>
+              )}
+
+              {/* ── A/B Tests tab ── */}
+              {campaignTab === 'abtest' && (
+                <>
+                  {!abTestData ? (
+                    <div className="flex items-center justify-center py-10"><Spinner size="md" /></div>
+                  ) : !abTestData.has_ab_test || abTestData.steps.length === 0 ? (
+                    <EmptyDeepDive
+                      icon={FlaskConical}
+                      title="No A/B tests configured"
+                      description="Set up A/B subject line or body variants on campaign steps to compare performance here."
+                    />
+                  ) : (
+                    <div className="space-y-6">
+                      {abTestData.steps.map((step: AbTestStep) => (
+                        <div key={step.step_id} className="rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] overflow-hidden">
+                          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center gap-3">
+                            <span className="flex items-center justify-center h-6 w-6 rounded-full bg-[var(--indigo-subtle)] text-[11px] font-bold text-[var(--indigo)]">
+                              {step.step_number}
+                            </span>
+                            <h4 className="text-[13px] font-semibold text-[var(--text-primary)]">Step {step.step_number} — A/B Test</h4>
+                            {step.winner && (
+                              <span className={cn(
+                                'ml-auto text-[11px] font-semibold px-2.5 py-1 rounded-full',
+                                'bg-emerald-500/10 text-emerald-500'
+                              )}>
+                                Variant {step.winner.toUpperCase()} wins
+                                {step.significant && ' (significant)'}
+                              </span>
+                            )}
+                            {!step.significant && step.variant_a.sent < step.min_sample && (
+                              <span className="ml-auto text-[11px] text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">
+                                Need {step.min_sample}+ sends per variant for significance
+                              </span>
+                            )}
+                          </div>
+                          <div className="p-5 grid grid-cols-2 gap-4">
+                            <VariantCard
+                              variant="a"
+                              label="Variant A"
+                              subject={step.subject_a}
+                              stats={step.variant_a}
+                              isWinner={step.winner === 'a'}
+                            />
+                            <VariantCard
+                              variant="b"
+                              label="Variant B"
+                              subject={step.subject_b}
+                              stats={step.variant_b}
+                              isWinner={step.winner === 'b'}
+                            />
+                          </div>
+                          {step.winner && (
+                            <div className="px-5 pb-4">
+                              <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/8 border border-emerald-500/20 text-[12px] text-emerald-600">
+                                <Trophy className="h-4 w-4 flex-shrink-0" />
+                                <span>
+                                  Variant {step.winner.toUpperCase()} outperforms by{' '}
+                                  <strong>{Math.abs(step.variant_a.open_rate - step.variant_b.open_rate).toFixed(1)}pp</strong> on open rate
+                                  {step.significant ? ' — statistically significant result.' : '.'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Contacts tab ── */}
+              {campaignTab === 'contacts' && (
+                <>
+                  {!campaignContacts ? (
+                    <div className="flex items-center justify-center py-10"><Spinner size="md" /></div>
+                  ) : campaignContacts.contacts.length === 0 ? (
+                    <EmptyDeepDive icon={Users} title="No contacts in this campaign" description="Add contacts to this campaign to see their individual performance here." />
+                  ) : (
+                    <div className="rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] overflow-hidden">
+                      <div className="px-5 py-3.5 border-b border-[var(--border-subtle)]">
+                        <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Contact Performance</h3>
+                        <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">
+                          Engagement scores, activity counts and deliverability for each contact
+                        </p>
+                      </div>
+                      <div className="p-4">
+                        <ContactsTab contacts={campaignContacts.contacts} />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Heatmap tab ── */}
+              {campaignTab === 'heatmap' && (
+                <>
+                  {!heatmapData ? (
+                    <div className="flex items-center justify-center py-10"><Spinner size="md" /></div>
+                  ) : heatmapData.max_value === 0 ? (
+                    <EmptyDeepDive
+                      icon={Thermometer}
+                      title="No engagement data yet"
+                      description="Once contacts open, click, or reply, this heatmap will show you which hours and days drive the most engagement."
+                    />
+                  ) : (
+                    <div className="p-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                      <div className="mb-4">
+                        <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Engagement Heatmap</h3>
+                        <p className="text-[11.5px] text-[var(--text-secondary)] mt-0.5">
+                          Combined opens, clicks and replies by day of week and hour of day (contact's local time)
+                        </p>
+                      </div>
+                      <HeatmapGrid grid={heatmapData.grid} maxValue={heatmapData.max_value} />
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </div>
   );
 }

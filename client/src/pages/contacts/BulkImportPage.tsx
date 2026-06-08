@@ -79,6 +79,11 @@ export function BulkImportPage() {
   const cancelRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Stop the import loop if the user navigates away mid-import
+  useEffect(() => {
+    return () => { cancelRef.current = true; };
+  }, []);
+
   const { data: lists } = useQuery({
     queryKey: ['lists'],
     queryFn: listsApi.list,

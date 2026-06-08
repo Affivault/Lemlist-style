@@ -230,7 +230,7 @@ export const contactsService = {
     }
 
     if (valid.length === 0) {
-      return { total, imported: 0, errors: errorDetails.length, error_details: errorDetails.slice(0, 50) };
+      return { total, imported: 0, errors: errorDetails.length, error_details: errorDetails.slice(0, 200) };
     }
 
     const { data, error } = await supabaseAdmin
@@ -273,11 +273,12 @@ export const contactsService = {
       }
     }
 
+    const upsertFailures = valid.length - importedRows.length;
     return {
       total,
       imported: importedRows.length,
-      errors: errorDetails.length,
-      error_details: errorDetails.slice(0, 50),
+      errors: errorDetails.length + upsertFailures,
+      error_details: errorDetails.slice(0, 200),
     };
   },
 
