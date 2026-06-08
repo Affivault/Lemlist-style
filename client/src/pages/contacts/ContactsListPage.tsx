@@ -367,7 +367,7 @@ export function ContactsListPage() {
               {groupedLists.map((group) => (
                 <div key={group.folder?.id || 'uncat'}>
                   {group.folder ? (
-                    <div className="flex items-center gap-2 px-2 py-1 text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+                    <div className="group flex items-center gap-2 px-2 py-1 text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
                       <Folder className="h-3 w-3" style={{ color: group.folder.color }} />
                       <span className="flex-1 truncate" style={{ color: group.folder.color }}>{group.folder.name}</span>
                       <button

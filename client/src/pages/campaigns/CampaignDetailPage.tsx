@@ -67,6 +67,7 @@ export function CampaignDetailPage() {
     queryKey: ['campaign-contacts', id],
     queryFn: () => campaignsApi.getContacts(id!, { limit: 100 }),
     enabled: !!id && activeTab === 'contacts',
+    refetchInterval: isRunning ? 30_000 : false,
   });
 
   const launchMutation = useMutation({
@@ -121,6 +122,7 @@ export function CampaignDetailPage() {
       toast.success('Campaign deleted');
       navigate('/campaigns');
     },
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to delete campaign'),
   });
 
   if (isLoading) {
