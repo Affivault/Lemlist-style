@@ -1,12 +1,15 @@
 import { apiClient } from './client';
 import type { CampaignAnalytics, OverviewAnalytics, ContactActivityItem } from '@lemlist/shared';
 
+export type { OverviewAnalytics };
+
 export interface TrendDataPoint {
   date: string;
   sent: number;
   opened: number;
   clicked: number;
   replied: number;
+  bounced?: number;
 }
 
 export interface CampaignListItem {
@@ -15,15 +18,21 @@ export interface CampaignListItem {
   status: string;
   created_at: string;
   sent: number;
+  opened: number;
+  clicked: number;
+  replied: number;
+  bounced: number;
   open_rate: number;
+  click_rate: number;
   reply_rate: number;
+  bounce_rate: number;
 }
 
 export interface FunnelStep {
+  step_number: number;
   step_id: string;
-  step_order: number;
   subject: string;
-  has_ab: boolean;
+  delay_days: number;
   sent: number;
   opened: number;
   clicked: number;
@@ -46,15 +55,20 @@ export interface AbVariantStats {
 }
 
 export interface AbTestStep {
+  step_number: number;
   step_id: string;
-  step_order: number;
   subject_a: string;
   subject_b: string;
+  variant_a: AbVariantStats;
+  variant_b: AbVariantStats;
   winner: 'a' | 'b' | null;
   significant: boolean;
   min_sample: number;
-  variant_a: AbVariantStats;
-  variant_b: AbVariantStats;
+}
+
+export interface CampaignAbTestResult {
+  has_ab_test: boolean;
+  steps: AbTestStep[];
 }
 
 export interface CampaignContact {
@@ -62,14 +76,23 @@ export interface CampaignContact {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  status: string;
   dcs_score: number | null;
   is_bounced: boolean;
-  is_unsubscribed: boolean;
+  status: string;
   sent: number;
   opened: number;
   clicked: number;
   replied: boolean;
+}
+
+export interface HeatmapDay {
+  day: string;
+  hours: number[];
+}
+
+export interface CampaignHeatmapResult {
+  grid: HeatmapDay[];
+  max_value: number;
 }
 
 export const analyticsApi = {
@@ -81,7 +104,14 @@ export const analyticsApi = {
   },
 
   trend: async (days: number = 30) => {
-    const { data } = await apiClient.get<TrendDataPoint[]>('/analytics/trend', { params: { days } });
+    const { data } = await apiClient.get<TrendDataPoint[]>('/analytics/trend', {
+      params: { days },
+    });
+    return data;
+  },
+
+  campaignList: async () => {
+    const { data } = await apiClient.get<CampaignListItem[]>('/analytics/campaigns');
     return data;
   },
 
@@ -90,8 +120,8 @@ export const analyticsApi = {
     return data;
   },
 
-  campaignList: async () => {
-    const { data } = await apiClient.get<CampaignListItem[]>('/analytics/campaigns');
+  campaignContacts: async (campaignId: string) => {
+    const { data } = await apiClient.get<{ contacts: CampaignContact[] }>(`/analytics/campaigns/${campaignId}/contacts`);
     return data;
   },
 
@@ -101,17 +131,19 @@ export const analyticsApi = {
   },
 
   campaignAbTest: async (campaignId: string) => {
-    const { data } = await apiClient.get<AbTestStep[]>(`/analytics/campaigns/${campaignId}/ab-test`);
+    const { data } = await apiClient.get<CampaignAbTestResult>(`/analytics/campaigns/${campaignId}/ab-test`);
     return data;
   },
 
   campaignTrend: async (campaignId: string, days: number = 30) => {
-    const { data } = await apiClient.get<TrendDataPoint[]>(`/analytics/campaigns/${campaignId}/trend`, { params: { days } });
+    const { data } = await apiClient.get<TrendDataPoint[]>(`/analytics/campaigns/${campaignId}/trend`, {
+      params: { days },
+    });
     return data;
   },
 
-  campaignContacts: async (campaignId: string) => {
-    const { data } = await apiClient.get<{ contacts: CampaignContact[] }>(`/analytics/campaigns/${campaignId}/contacts`);
+  campaignHeatmap: async (campaignId: string) => {
+    const { data } = await apiClient.get<CampaignHeatmapResult>(`/analytics/campaigns/${campaignId}/heatmap`);
     return data;
   },
 
@@ -127,15 +159,5 @@ export const analyticsApi = {
       suppression_by_reason: { label: string; value: number; color: string }[];
     }>('/analytics/deliverability');
     return data;
-  },
-
-  exportOverviewReport: (days?: number) => {
-    const params = new URLSearchParams();
-    if (days) params.set('days', String(days));
-    return `${apiClient.defaults.baseURL}/analytics/export/overview${params.toString() ? '?' + params.toString() : ''}`;
-  },
-
-  exportCampaignReport: (campaignId: string) => {
-    return `${apiClient.defaults.baseURL}/analytics/export/campaigns/${campaignId}`;
   },
 };

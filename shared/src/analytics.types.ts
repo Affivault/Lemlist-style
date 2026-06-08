@@ -42,6 +42,10 @@ export interface OverviewAnalytics {
   avg_dcs_score: number;
   verified_contacts: number;
   bounced_contacts: number;
+  sent_change: number | null;
+  opened_change: number | null;
+  clicked_change: number | null;
+  replied_change: number | null;
 }
 
 export interface ContactActivityItem {
@@ -52,4 +56,3 @@ export interface ContactActivityItem {
   metadata: Record<string, unknown>;
   occurred_at: string;
 }
-
