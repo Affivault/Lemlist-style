@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { campaignsApi } from '../../api/campaigns.api';
 import { campaignFoldersApi, type CampaignFolder } from '../../api/campaign-folders.api';
 import { Spinner } from '../../components/ui/Spinner';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -258,7 +259,19 @@ export function CampaignsListPage() {
 
           {/* List */}
           {isLoading ? (
-            <div className="flex h-64 items-center justify-center"><Spinner size="lg" /></div>
+            <div className="card divide-y divide-[var(--border-subtle)] overflow-hidden">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-3.5">
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-3.5 w-1/3" />
+                    <Skeleton className="h-2.5 w-1/2" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-3 w-10" />
+                </div>
+              ))}
+            </div>
           ) : visibleCampaigns.length === 0 ? (
             <div className="card p-10">
               <EmptyState

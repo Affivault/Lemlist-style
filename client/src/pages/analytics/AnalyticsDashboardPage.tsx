@@ -12,6 +12,7 @@ import {
 import type { OverviewAnalytics } from '../../api/analytics.api';
 import { apiClient } from '../../api/client';
 import { Spinner } from '../../components/ui/Spinner';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
@@ -880,8 +881,27 @@ export function AnalyticsDashboardPage() {
 
   if (overviewLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="animate-fade-in space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-3.5 w-72" />
+          </div>
+          <Skeleton className="h-8 w-40" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="surface p-4 space-y-3">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-7 w-24" />
+              <Skeleton className="h-1.5 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+        <div className="card p-4">
+          <Skeleton className="h-4 w-40 mb-4" />
+          <Skeleton className="h-[260px] w-full rounded-lg" />
+        </div>
       </div>
     );
   }
