@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { contactsApi, listsApi } from '../../api/contacts.api';
 import { listFoldersApi, type ListFolder } from '../../api/list-folders.api';
 import { Spinner } from '../../components/ui/Spinner';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatCard } from '../../components/shared/StatCard';
 import { Avatar } from '../../components/shared/Avatar';
@@ -620,8 +621,18 @@ export function ContactsListPage() {
 
         {/* Table */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <Spinner size="lg" />
+          <div className="card divide-y divide-[var(--border-subtle)] overflow-hidden">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-3 w-1/4" />
+                  <Skeleton className="h-2.5 w-2/5" />
+                </div>
+                <Skeleton className="h-5 w-14 rounded-full" />
+                <Skeleton className="h-3 w-12" />
+              </div>
+            ))}
           </div>
         ) : contacts.length === 0 ? (
           /* Empty state */

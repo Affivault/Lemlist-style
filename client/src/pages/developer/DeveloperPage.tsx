@@ -23,8 +23,8 @@ import { cn, formatDateTime } from '../../lib/utils';
 import { PageHeader } from '../../components/shared/PageHeader';
 import toast from 'react-hot-toast';
 
-const ALL_EVENTS = Object.values(WebhookEventType);
-const EVENT_CATEGORIES: Record<string, string[]> = {
+const ALL_EVENTS = Object.values(WebhookEventType) as WebhookEventType[];
+const EVENT_CATEGORIES: Record<string, WebhookEventType[]> = {
   'Contacts': ALL_EVENTS.filter(e => e.startsWith('contact.') || e.startsWith('lead.')),
   'Campaigns': ALL_EVENTS.filter(e => e.startsWith('campaign.') || e.startsWith('sequence.')),
   'Email': ALL_EVENTS.filter(e => e.startsWith('email.')),
@@ -41,7 +41,7 @@ export function DeveloperPage() {
   const [showCreateWebhook, setShowCreateWebhook] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookLabel, setWebhookLabel] = useState('');
-  const [webhookEvents, setWebhookEvents] = useState<string[]>([]);
+  const [webhookEvents, setWebhookEvents] = useState<WebhookEventType[]>([]);
   const [showDeliveries, setShowDeliveries] = useState<string | null>(null);
 
   const [showCreateKey, setShowCreateKey] = useState(false);
@@ -123,7 +123,7 @@ export function DeveloperPage() {
     },
   });
 
-  function toggleEvent(event: string) {
+  function toggleEvent(event: WebhookEventType) {
     setWebhookEvents(prev =>
       prev.includes(event) ? prev.filter(e => e !== event) : [...prev, event]
     );

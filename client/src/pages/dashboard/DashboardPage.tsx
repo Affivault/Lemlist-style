@@ -5,7 +5,7 @@ import { inboxApi } from '../../api/inbox.api';
 import { templateApi } from '../../api/template.api';
 import { useUnreadCount } from '../../hooks/useUnreadCount';
 import { useAuth } from '../../context/AuthContext';
-import { Spinner } from '../../components/ui/Spinner';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatCard } from '../../components/shared/StatCard';
@@ -129,6 +129,71 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
+/* ─── Loading skeleton — mirrors the real dashboard layout ─────── */
+function DashboardSkeleton() {
+  return (
+    <div className="animate-fade-in pb-4">
+      {/* Header */}
+      <div className="-mx-6 -mt-5 mb-5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] px-6 pt-5 pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-3.5 w-80" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        </div>
+      </div>
+
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="surface p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Skeleton className="h-7 w-7 rounded-[8px]" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-7 w-24" />
+          </div>
+        ))}
+      </div>
+
+      {/* Activity + running */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-4">
+        <div className="card lg:col-span-3 p-4">
+          <Skeleton className="h-4 w-40 mb-4" />
+          <Skeleton className="h-[180px] w-full rounded-lg" />
+        </div>
+        <div className="card lg:col-span-2 p-4 space-y-3">
+          <Skeleton className="h-4 w-32 mb-2" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-7 w-7 rounded-md" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-2.5 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick nav */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="card px-3 py-3 space-y-2">
+            <Skeleton className="h-3.5 w-3.5" />
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-2.5 w-12" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Dashboard Page ──────────────────────────────── */
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -157,11 +222,7 @@ export function DashboardPage() {
   });
 
   if (analyticsLoading || campaignsLoading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const stats = analytics || {
