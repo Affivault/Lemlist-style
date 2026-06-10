@@ -78,6 +78,7 @@ export function BulkImportPage() {
   } | null>(null);
   const cancelRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Stop the import loop if the user navigates away mid-import
   useEffect(() => {
@@ -250,6 +251,8 @@ export function BulkImportPage() {
   }, [allRows, mapping, mappingValid, targetListId]);
 
   const cancel = () => {
+    if (cancelRef.current) return;
+    setIsCancelling(true);
     cancelRef.current = true;
     toast('Cancelling after current batch…', { icon: '⏸' });
   };
@@ -257,6 +260,7 @@ export function BulkImportPage() {
   // Reset to start over
   const reset = () => {
     cancelRef.current = false;
+    setIsCancelling(false);
     setFile(null);
     setParseError(null);
     setHeaders([]);
@@ -684,7 +688,7 @@ export function BulkImportPage() {
             </p>
             <button
               onClick={cancel}
-              disabled={cancelRef.current}
+              disabled={isCancelling}
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-rose-500/30 text-[12px] font-medium text-rose-600 hover:bg-rose-500/10 disabled:opacity-40 transition-all"
             >
               <X className="h-3.5 w-3.5" />
