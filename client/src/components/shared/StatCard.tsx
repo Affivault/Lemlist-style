@@ -93,9 +93,9 @@ export function StatCard({
         )}
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="mt-3.5 flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[24px] font-semibold text-[var(--text-primary)] tabular leading-none tracking-[-0.03em]">
+          <div className="text-[28px] font-semibold text-[var(--text-primary)] tabular leading-none tracking-[-0.035em]">
             {value}
           </div>
           {hint && (
