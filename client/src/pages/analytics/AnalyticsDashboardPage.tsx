@@ -373,7 +373,7 @@ function CampaignLeaderboard({
               className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer group"
               onClick={() => onSelect(c.id)}
             >
-              <td className="py-3 px-4">
+              <td className="py-3.5 px-4">
                 <div className="flex items-center gap-2.5">
                   <span
                     className={cn(
@@ -383,47 +383,47 @@ function CampaignLeaderboard({
                       c.status === 'completed' ? 'bg-[var(--text-tertiary)]' : 'bg-[var(--border-subtle)]'
                     )}
                   />
-                  <span className="font-medium text-[12.5px] text-[var(--text-primary)] max-w-[200px] truncate">
+                  <span className="font-medium text-[13.5px] text-[var(--text-primary)] max-w-[280px] truncate">
                     {c.name}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-3 text-right tabular-nums text-[12.5px] font-medium text-[var(--text-secondary)]">
+              <td className="py-3.5 px-3 text-right tabular-nums text-[13.5px] font-medium text-[var(--text-secondary)]">
                 {fmtNum(c.sent)}
               </td>
-              <td className="py-3 px-3 text-right">
+              <td className="py-3.5 px-3 text-right">
                 <span className={cn(
-                  'tabular-nums text-[12.5px] font-semibold',
+                  'tabular-nums text-[13.5px] font-semibold',
                   c.open_rate >= 30 ? 'text-emerald-500' : c.open_rate >= 15 ? 'text-amber-500' : 'text-[var(--text-secondary)]'
                 )}>
                   {fmtPct(c.open_rate)}
                 </span>
               </td>
-              <td className="py-3 px-3 text-right">
-                <span className="tabular-nums text-[12.5px] font-medium text-[var(--text-secondary)]">
+              <td className="py-3.5 px-3 text-right">
+                <span className="tabular-nums text-[13.5px] font-medium text-[var(--text-secondary)]">
                   {fmtPct(c.click_rate)}
                 </span>
               </td>
-              <td className="py-3 px-3 text-right">
+              <td className="py-3.5 px-3 text-right">
                 <span className={cn(
-                  'tabular-nums text-[12.5px] font-semibold',
+                  'tabular-nums text-[13.5px] font-semibold',
                   c.reply_rate >= 5 ? 'text-emerald-500' : 'text-[var(--text-secondary)]'
                 )}>
                   {fmtPct(c.reply_rate)}
                 </span>
               </td>
-              <td className="py-3 px-3 text-right">
+              <td className="py-3.5 px-3 text-right">
                 <span className={cn(
-                  'tabular-nums text-[12.5px]',
+                  'tabular-nums text-[13.5px]',
                   c.bounce_rate >= 5 ? 'text-rose-500 font-semibold' : 'text-[var(--text-tertiary)]'
                 )}>
                   {fmtPct(c.bounce_rate)}
                 </span>
               </td>
-              <td className="py-3 px-3 w-32">
+              <td className="py-3.5 px-3 w-32">
                 <MetricBar value={c.sent} max={maxSent} color="#6366F1" />
               </td>
-              <td className="py-3 px-2">
+              <td className="py-3.5 px-2">
                 <ArrowRight className="h-3.5 w-3.5 text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
               </td>
             </tr>
