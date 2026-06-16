@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { contactsApi, listsApi } from '../../api/contacts.api';
 import { listFoldersApi, type ListFolder } from '../../api/list-folders.api';
+import { verificationApi } from '../../api/verification.api';
 import { Spinner } from '../../components/ui/Spinner';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { Checkbox } from '../../components/ui/Checkbox';
@@ -42,6 +43,8 @@ import {
   Check,
   ExternalLink,
   Columns3,
+  Linkedin,
+  Loader2,
 } from 'lucide-react';
 
 type ContactSortKey = 'first_name' | 'email' | 'company' | 'dcs_score' | 'created_at';
@@ -185,10 +188,72 @@ const LinkCell = ({ href, label }: { href?: string | null; label?: string | null
   );
 };
 
+/* ── Email verification status ─────────────────────────────────────
+   Derives a snov.io-style 4-state signal from our existing DCS fields
+   (syntax / domain / SMTP-mailbox checks + score), so a glance tells you
+   whether an address is good, risky, bad, or not yet checked. */
+type EmailState = 'valid' | 'risky' | 'invalid' | 'unverified';
+function emailStatus(c: any): { state: EmailState; label: string; tip: string } {
+  if (c.is_bounced) return { state: 'invalid', label: 'Bounced', tip: 'This address previously bounced' };
+  const verified = !!c.dcs_verified_at || c.dcs_score != null;
+  if (!verified) return { state: 'unverified', label: 'Unverified', tip: 'Not checked yet — click to verify' };
+  if (c.dcs_syntax_ok === false) return { state: 'invalid', label: 'Invalid', tip: 'Malformed email address' };
+  if (c.dcs_domain_ok === false) return { state: 'invalid', label: 'No mail server', tip: c.dcs_fail_reason || 'Domain has no mail server (MX) — email not found' };
+  const score = c.dcs_score ?? 0;
+  if (c.dcs_smtp_ok === true || score >= 80) return { state: 'valid', label: 'Valid', tip: c.dcs_fail_reason || 'Mailbox exists and accepts mail' };
+  if (score >= 50) return { state: 'risky', label: 'Risky', tip: c.dcs_fail_reason || 'Catch-all or unverifiable mailbox — send with caution' };
+  return { state: 'invalid', label: 'Undeliverable', tip: c.dcs_fail_reason || 'Mailbox likely rejects mail' };
+}
+const STATE_STYLE: Record<EmailState, { dot: string; badge: string }> = {
+  valid:      { dot: 'bg-emerald-500',                 badge: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10' },
+  risky:      { dot: 'bg-amber-500',                   badge: 'text-amber-700 dark:text-amber-400 bg-amber-500/10' },
+  invalid:    { dot: 'bg-rose-500',                    badge: 'text-rose-700 dark:text-rose-400 bg-rose-500/10' },
+  unverified: { dot: 'bg-slate-300 dark:bg-slate-600', badge: 'text-[var(--text-tertiary)] bg-[var(--bg-elevated)]' },
+};
+
+function EmailStatusDot({ c }: { c: any }) {
+  const s = emailStatus(c);
+  return (
+    <span className="relative flex-shrink-0" title={`${s.label} — ${s.tip}`}>
+      <span className={cn('block h-2 w-2 rounded-full', STATE_STYLE[s.state].dot)} />
+      {s.state === 'unverified' && <span className="absolute inset-0 rounded-full ring-1 ring-[var(--border-strong)]" />}
+    </span>
+  );
+}
+
+function VerificationBadge({ c }: { c: any }) {
+  const s = emailStatus(c);
+  return (
+    <span title={s.tip} className={cn('inline-flex items-center gap-1.5 px-1.5 h-[20px] rounded-md text-[10.5px] font-semibold', STATE_STYLE[s.state].badge)}>
+      <span className={cn('h-1.5 w-1.5 rounded-full', STATE_STYLE[s.state].dot)} />
+      {s.label}
+    </span>
+  );
+}
+
+/* LinkedIn presence — blue glyph when we have a profile URL, muted when not. */
+function LinkedInGlyph({ url }: { url?: string | null }) {
+  const has = !!url;
+  const inner = (
+    <span
+      className={cn(
+        'flex h-4 w-4 items-center justify-center rounded-[3px] flex-shrink-0 transition-colors',
+        has ? 'bg-[#0A66C2] text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-subtle)]'
+      )}
+      title={has ? 'Has a LinkedIn profile' : 'No LinkedIn profile on file'}
+    >
+      <Linkedin className="h-2.5 w-2.5" strokeWidth={2.5} />
+    </span>
+  );
+  if (!has) return inner;
+  const href = url!.startsWith('http') ? url! : `https://${url}`;
+  return <a href={href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>{inner}</a>;
+}
+
 /* Configurable table columns, mapped to our contact fields (the same set
    surfaced during CSV import). The Contact identity column is always shown;
    these are the optional middle columns the user can toggle + reorder-by-default. */
-type ColumnId = 'email' | 'company' | 'job_title' | 'phone' | 'website' | 'linkedin_url' | 'added' | 'health';
+type ColumnId = 'email' | 'status' | 'company' | 'job_title' | 'phone' | 'website' | 'linkedin_url' | 'added' | 'health';
 interface ColumnDef {
   id: ColumnId;
   label: string;
@@ -197,7 +262,10 @@ interface ColumnDef {
   render: (c: any) => React.ReactNode;
 }
 const ALL_COLUMNS: ColumnDef[] = [
-  { id: 'email',       label: 'Email',     sortKey: 'email',      tdClass: 'max-w-[260px]', render: (c) => <CopyableEmail email={c.email} /> },
+  { id: 'email',       label: 'Email',     sortKey: 'email',      tdClass: 'max-w-[280px]', render: (c) => (
+    <span className="flex items-center gap-2 min-w-0"><EmailStatusDot c={c} /><CopyableEmail email={c.email} /></span>
+  ) },
+  { id: 'status',      label: 'Status',    sortKey: 'dcs_score',  render: (c) => <VerificationBadge c={c} /> },
   { id: 'company',     label: 'Company',   sortKey: 'company',    tdClass: 'max-w-[200px]', render: (c) => <CompanyCell company={c.company} /> },
   { id: 'job_title',   label: 'Job title',                        tdClass: 'max-w-[180px]', render: (c) => <TextCell v={c.job_title} /> },
   { id: 'phone',       label: 'Phone',                            render: (c) => <TextCell v={c.phone} mono /> },
@@ -206,7 +274,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: 'added',       label: 'Added',     sortKey: 'created_at', render: (c) => <span className="text-[11.5px] text-[var(--text-tertiary)] font-data" title={formatDate(c.created_at)}>{formatRelativeTime(c.created_at)}</span> },
   { id: 'health',      label: 'Health',    sortKey: 'dcs_score',  render: (c) => <HealthCell c={c} /> },
 ];
-const DEFAULT_COLUMNS: ColumnId[] = ['email', 'company', 'added', 'health'];
+const DEFAULT_COLUMNS: ColumnId[] = ['email', 'status', 'company', 'added'];
 
 
 export function ContactsListPage() {
@@ -364,6 +432,29 @@ export function ContactsListPage() {
       toast.success(`Deleted ${result.deleted} contacts`);
       setSelectedContacts(new Set());
     },
+  });
+
+  // Email verification — reuses the existing DCS pipeline (syntax + MX + SMTP)
+  const [verifyingIds, setVerifyingIds] = useState<Set<string>>(new Set());
+  const verifyMutation = useMutation({
+    mutationFn: (id: string) => verificationApi.verifyContact(id),
+    onMutate: (id: string) => setVerifyingIds((prev) => new Set(prev).add(id)),
+    onSettled: (_d, _e, id) => setVerifyingIds((prev) => { const n = new Set(prev); n.delete(id as string); return n; }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-stats'] });
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || 'Verification failed'),
+  });
+  const batchVerifyMutation = useMutation({
+    mutationFn: (ids: string[]) => verificationApi.batchVerify(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-stats'] });
+      toast.success('Verification complete');
+      setSelectedContacts(new Set());
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || 'Verification failed'),
   });
 
   const createListMutation = useMutation({
@@ -961,6 +1052,14 @@ export function ContactsListPage() {
               </span>
             </div>
             <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => batchVerifyMutation.mutate(Array.from(selectedContacts))}
+                disabled={batchVerifyMutation.isPending}
+                className="btn-secondary text-sm h-8 rounded-lg disabled:opacity-50"
+              >
+                {batchVerifyMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                Verify emails
+              </button>
               <button onClick={() => setShowAddToListModal(true)} className="btn-secondary text-sm h-8 rounded-lg">
                 <FolderOpen className="h-3.5 w-3.5" />
                 Add to list
@@ -1073,8 +1172,11 @@ export function ContactsListPage() {
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Avatar name={fullName || contact.email} email={contact.email} size="sm" />
                           <div className="min-w-0">
-                            <span className="block text-[13px] font-semibold text-[var(--text-primary)] truncate group-hover:text-[var(--indigo)] transition-colors">
-                              {fullName || 'Unnamed contact'}
+                            <span className="flex items-center gap-1.5 min-w-0">
+                              <span className="block text-[13px] font-semibold text-[var(--text-primary)] truncate group-hover:text-[var(--indigo)] transition-colors">
+                                {fullName || 'Unnamed contact'}
+                              </span>
+                              <LinkedInGlyph url={contact.linkedin_url} />
                             </span>
                             <p className="text-[11px] text-[var(--text-tertiary)] truncate leading-tight">
                               {contact.job_title || 'No title'}
@@ -1096,6 +1198,16 @@ export function ContactsListPage() {
                       ))}
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => verifyMutation.mutate(contact.id)}
+                            disabled={verifyingIds.has(contact.id)}
+                            className="icon-btn hover:text-[var(--indigo)] hover:bg-[var(--indigo-subtle)]"
+                            title="Verify email"
+                          >
+                            {verifyingIds.has(contact.id)
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : <ShieldCheck className="h-3.5 w-3.5" />}
+                          </button>
                           <button onClick={() => openEdit(contact)} className="icon-btn" title="Edit">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
