@@ -7,6 +7,7 @@ import { Spinner } from '../../components/ui/Spinner';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
+import { Input } from '../../components/ui/Input';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { PageHeader } from '../../components/shared/PageHeader';
@@ -781,49 +782,49 @@ function FolderModal({ initial, onClose }: { initial: CampaignFolder | null; onC
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">{initial ? 'Edit folder' : 'New folder'}</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-[var(--bg-hover)]"><X className="h-4 w-4 text-[var(--text-tertiary)]" /></button>
-        </div>
-        <div className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme Corp campaigns" className="input-field" autoFocus />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">Colour</label>
-            <div className="flex gap-2 flex-wrap">
-              {FOLDER_COLORS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  style={{ background: c }}
-                  className={cn('w-7 h-7 rounded-full transition-all', color === c ? 'ring-2 ring-offset-2 ring-offset-[var(--bg-surface)]' : 'opacity-70 hover:opacity-100')}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="px-5 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={initial ? 'Edit folder' : 'New folder'}
+      description={initial ? 'Rename or recolour this folder.' : 'Group related campaigns together.'}
+      size="sm"
+      footer={
+        <div className="flex items-center justify-between w-full">
           {initial ? (
             <button
               onClick={() => { if (confirm(`Delete folder "${initial.name}"? Campaigns inside will not be deleted.`)) deleteMut.mutate(); }}
-              className="text-xs text-red-500 hover:underline"
+              className="text-[12px] font-medium text-[var(--error)] hover:underline"
             >
               Delete folder
             </button>
-          ) : <div />}
+          ) : <span />}
           <div className="flex gap-2">
-            <button onClick={onClose} className="btn-secondary">Cancel</button>
-            <button onClick={() => saveMut.mutate()} disabled={!name.trim() || saveMut.isPending} className="btn-primary">
-              {saveMut.isPending ? 'Saving...' : (initial ? 'Save' : 'Create')}
-            </button>
+            <Button variant="secondary" size="md" onClick={onClose}>Cancel</Button>
+            <Button type="submit" form="campaign-folder-form" size="md" disabled={!name.trim() || saveMut.isPending}>
+              {saveMut.isPending ? 'Saving…' : (initial ? 'Save changes' : 'Create folder')}
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      }
+    >
+      <form id="campaign-folder-form" onSubmit={(e) => { e.preventDefault(); saveMut.mutate(); }} className="space-y-4">
+        <Input label="Name" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme Corp campaigns" />
+        <div>
+          <label className="block text-[12px] font-medium text-[var(--text-secondary)] mb-2">Colour</label>
+          <div className="flex gap-2 flex-wrap">
+            {FOLDER_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                style={{ background: c }}
+                className={cn('w-7 h-7 rounded-full transition-all', color === c ? 'ring-2 ring-offset-2 ring-offset-[var(--bg-surface)] ring-[var(--text-primary)]' : 'opacity-70 hover:opacity-100')}
+              />
+            ))}
+          </div>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -836,59 +837,54 @@ function FolderAnalyticsModal({ folderId, onClose }: { folderId: string; onClose
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-[var(--indigo)]" />
-            {data?.folder.name || 'Folder analytics'}
-          </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-[var(--bg-hover)]"><X className="h-4 w-4 text-[var(--text-tertiary)]" /></button>
+    <Modal
+      isOpen
+      onClose={onClose}
+      size="xl"
+      title={data?.folder.name || 'Folder analytics'}
+      description="Aggregate performance across every campaign in this folder."
+    >
+      {isLoading ? (
+        <div className="py-12 flex justify-center"><Spinner size="md" /></div>
+      ) : !data || data.campaigns.length === 0 ? (
+        <div className="text-center py-12 text-[var(--text-secondary)]">
+          <Megaphone className="h-10 w-10 mx-auto text-[var(--text-tertiary)] mb-2" />
+          <p className="text-sm">No campaigns in this folder yet.</p>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          {isLoading ? (
-            <Spinner size="md" />
-          ) : !data || data.campaigns.length === 0 ? (
-            <div className="text-center py-12 text-[var(--text-secondary)]">
-              <Megaphone className="h-10 w-10 mx-auto text-[var(--text-tertiary)] mb-2" />
-              <p className="text-sm">No campaigns in this folder yet.</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-4 gap-3 mb-5">
-                <MetricChip icon={Send}              label="Sent"    value={data.totals.sent}    tone="indigo" />
-                <MetricChip icon={Mail}              label="Opened"  value={data.totals.opened}  tone="violet"  rate={data.totals.sent ? (data.totals.opened/data.totals.sent*100) : 0} />
-                <MetricChip icon={MousePointerClick} label="Clicked" value={data.totals.clicked} tone="cyan"    rate={data.totals.sent ? (data.totals.clicked/data.totals.sent*100) : 0} />
-                <MetricChip icon={MessageSquare}     label="Replied" value={data.totals.replied} tone="emerald" rate={data.totals.sent ? (data.totals.replied/data.totals.sent*100) : 0} />
-              </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-4 gap-3 mb-5">
+            <MetricChip icon={Send}              label="Sent"    value={data.totals.sent}    tone="indigo" />
+            <MetricChip icon={Mail}              label="Opened"  value={data.totals.opened}  tone="violet"  rate={data.totals.sent ? (data.totals.opened/data.totals.sent*100) : 0} />
+            <MetricChip icon={MousePointerClick} label="Clicked" value={data.totals.clicked} tone="cyan"    rate={data.totals.sent ? (data.totals.clicked/data.totals.sent*100) : 0} />
+            <MetricChip icon={MessageSquare}     label="Replied" value={data.totals.replied} tone="emerald" rate={data.totals.sent ? (data.totals.replied/data.totals.sent*100) : 0} />
+          </div>
 
-              <div className="text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-2">By campaign</div>
-              <table className="w-full text-sm">
-                <thead className="text-[10px] uppercase text-[var(--text-tertiary)] border-b border-[var(--border-subtle)]">
-                  <tr>
-                    <th className="text-left py-2 font-medium">Campaign</th>
-                    <th className="text-right py-2 font-medium">Sent</th>
-                    <th className="text-right py-2 font-medium">Open %</th>
-                    <th className="text-right py-2 font-medium">Click %</th>
-                    <th className="text-right py-2 font-medium">Reply %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.campaigns.map((c) => (
-                    <tr key={c.id} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]">
-                      <td className="py-2.5 text-[var(--text-primary)] font-medium">{c.name}</td>
-                      <td className="py-2.5 text-right text-[var(--text-secondary)] tabular-nums">{c.sent.toLocaleString()}</td>
-                      <td className="py-2.5 text-right text-[var(--text-secondary)] tabular-nums">{c.open_rate}%</td>
-                      <td className="py-2.5 text-right text-[var(--text-secondary)] tabular-nums">{c.click_rate}%</td>
-                      <td className="py-2.5 text-right text-[var(--text-secondary)] tabular-nums">{c.reply_rate}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+          <div className="font-data text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)] mb-2">By campaign</div>
+          <table className="w-full text-sm">
+            <thead className="font-data text-[10px] uppercase tracking-[0.07em] text-[var(--text-tertiary)] border-b border-[var(--border-subtle)]">
+              <tr>
+                <th className="text-left py-2 font-medium">Campaign</th>
+                <th className="text-right py-2 font-medium">Sent</th>
+                <th className="text-right py-2 font-medium">Open %</th>
+                <th className="text-right py-2 font-medium">Click %</th>
+                <th className="text-right py-2 font-medium">Reply %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.campaigns.map((c) => (
+                <tr key={c.id} className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--bg-hover)] transition-colors">
+                  <td className="py-2.5 text-[var(--text-primary)] font-medium">{c.name}</td>
+                  <td className="py-2.5 text-right text-[var(--text-secondary)] tabular">{c.sent.toLocaleString()}</td>
+                  <td className="py-2.5 text-right text-[var(--text-secondary)] tabular">{c.open_rate}%</td>
+                  <td className="py-2.5 text-right text-[var(--text-secondary)] tabular">{c.click_rate}%</td>
+                  <td className="py-2.5 text-right text-[var(--text-secondary)] tabular">{c.reply_rate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </Modal>
   );
 }
