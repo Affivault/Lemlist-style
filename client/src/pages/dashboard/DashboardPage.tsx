@@ -400,7 +400,7 @@ function SmtpHealthBanner({ accounts, onDismiss }: {
         </p>
         <p className="mt-0.5 text-[12px] text-amber-700 dark:text-amber-400">
           {single
-            ? 'High bounce rates can hurt deliverability. Review this account's sending activity.'
+            ? "High bounce rates can hurt deliverability. Review this account's sending activity."
             : `Accounts affected: ${accounts.map((a) => a.label || a.email_address).join(', ')}.`}
           {' '}
           <Link to="/smtp" className="font-semibold underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-200 transition-colors">
