@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { contactsApi, listsApi } from '../../api/contacts.api';
+import { contactsApi, listsApi, tagsApi } from '../../api/contacts.api';
 import { listFoldersApi, type ListFolder } from '../../api/list-folders.api';
 import { verificationApi } from '../../api/verification.api';
 import { settingsApi } from '../../api/settings.api';
@@ -46,6 +46,8 @@ import {
   Columns3,
   Linkedin,
   Loader2,
+  Tag as TagIcon,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 type ContactSortKey = 'first_name' | 'email' | 'company' | 'dcs_score' | 'created_at';
@@ -80,7 +82,7 @@ function SortableHeader({
   );
 }
 import toast from 'react-hot-toast';
-import type { CreateContactInput, ContactWithTags, ContactList } from '@lemlist/shared';
+import type { CreateContactInput, ContactWithTags, ContactList, Tag } from '@lemlist/shared';
 import { DEFAULT_PAGE_SIZE } from '../../lib/constants';
 
 const FOLDER_COLORS = ['#10B981', '#6366F1', '#F59E0B', '#EC4899', '#06B6D4', '#8B5CF6', '#EF4444', '#84CC16'];
@@ -470,6 +472,51 @@ export function ContactsListPage() {
       toast.success(`Deleted ${result.deleted} contacts`);
       setSelectedContacts(new Set());
     },
+  });
+
+  // Bulk tag + move state
+  const [showTagModal, setShowTagModal] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [tagSel, setTagSel] = useState<Set<string>>(new Set());
+  const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
+  const [newTagName, setNewTagName] = useState('');
+
+  const { data: tags = [] } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.list });
+
+  const bulkTagMutation = useMutation({
+    mutationFn: (tagIds: string[]) => contactsApi.bulkTag(Array.from(selectedContacts), tagIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      toast.success('Tags added');
+      setShowTagModal(false); setTagSel(new Set()); setSelectedContacts(new Set());
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || 'Failed to add tags'),
+  });
+
+  const createTagMutation = useMutation({
+    mutationFn: (name: string) => tagsApi.create({ name }),
+    onSuccess: (tag: Tag) => {
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      setTagSel((prev) => new Set(prev).add(tag.id));
+      setNewTagName('');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || 'Failed to create tag'),
+  });
+
+  const bulkMoveMutation = useMutation({
+    mutationFn: async (toListId: string) => {
+      const ids = Array.from(selectedContacts);
+      if (activeListId) await listsApi.removeContacts(activeListId, ids);
+      await listsApi.addContacts(toListId, ids);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      queryClient.invalidateQueries({ queryKey: ['verification-breakdown'] });
+      toast.success('Contacts moved');
+      setShowMoveModal(false); setMoveTargetId(null); setSelectedContacts(new Set());
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || 'Failed to move contacts'),
   });
 
   // Email verification — reuses the existing DCS pipeline (syntax + MX + SMTP)
@@ -1089,10 +1136,20 @@ export function ContactsListPage() {
                 {batchVerifyMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
                 Verify emails
               </button>
+              <button onClick={() => { setTagSel(new Set()); setShowTagModal(true); }} className="btn-secondary text-sm h-8 rounded-lg">
+                <TagIcon className="h-3.5 w-3.5" />
+                Add tags
+              </button>
               <button onClick={() => setShowAddToListModal(true)} className="btn-secondary text-sm h-8 rounded-lg">
                 <FolderOpen className="h-3.5 w-3.5" />
                 Add to list
               </button>
+              {activeListId && (
+                <button onClick={() => { setMoveTargetId(null); setShowMoveModal(true); }} className="btn-secondary text-sm h-8 rounded-lg">
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  Move
+                </button>
+              )}
               <button
                 onClick={() => {
                   if (confirm(`Delete ${selectedContacts.size} contacts?`)) {
@@ -1602,6 +1659,94 @@ export function ContactsListPage() {
             <Plus className="h-4 w-4" />
             Create new list
           </button>
+        </Modal>
+      )}
+
+      {/* Add Tags Modal */}
+      {showTagModal && (
+        <Modal
+          isOpen={showTagModal}
+          onClose={() => setShowTagModal(false)}
+          title="Add tags"
+          description={`Tag ${selectedContacts.size} contact${selectedContacts.size !== 1 ? 's' : ''}.`}
+          size="sm"
+          footer={
+            <>
+              <Button variant="secondary" size="md" onClick={() => setShowTagModal(false)}>Cancel</Button>
+              <Button size="md" disabled={tagSel.size === 0 || bulkTagMutation.isPending} onClick={() => bulkTagMutation.mutate(Array.from(tagSel))}>
+                {bulkTagMutation.isPending ? 'Applying…' : `Apply ${tagSel.size || ''} tag${tagSel.size !== 1 ? 's' : ''}`.trim()}
+              </Button>
+            </>
+          }
+        >
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (newTagName.trim()) createTagMutation.mutate(newTagName.trim()); }}
+            className="flex gap-2 mb-3"
+          >
+            <Input value={newTagName} onChange={(e) => setNewTagName(e.target.value)} placeholder="Create a new tag…" className="flex-1" />
+            <Button type="submit" variant="secondary" size="md" disabled={!newTagName.trim() || createTagMutation.isPending}>Add</Button>
+          </form>
+          <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto">
+            {tags.length === 0 && <p className="text-[12.5px] text-[var(--text-tertiary)] py-2">No tags yet — create one above.</p>}
+            {tags.map((tag) => {
+              const on = tagSel.has(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => setTagSel((prev) => { const n = new Set(prev); n.has(tag.id) ? n.delete(tag.id) : n.add(tag.id); return n; })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] font-medium border transition-colors',
+                    on ? 'bg-[var(--indigo-subtle)] border-[var(--indigo)] text-[var(--indigo)]'
+                       : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-default)]'
+                  )}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ background: (tag as any).color || 'var(--text-tertiary)' }} />
+                  {tag.name}
+                  {on && <Check className="h-3 w-3" />}
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
+      )}
+
+      {/* Move to List Modal (moves selected out of the current list into another) */}
+      {showMoveModal && (
+        <Modal
+          isOpen={showMoveModal}
+          onClose={() => setShowMoveModal(false)}
+          title="Move to list"
+          description={`Move ${selectedContacts.size} contact${selectedContacts.size !== 1 ? 's' : ''} to another list. Lists drive campaign membership.`}
+          size="sm"
+          footer={
+            <>
+              <Button variant="secondary" size="md" onClick={() => setShowMoveModal(false)}>Cancel</Button>
+              <Button size="md" disabled={!moveTargetId || bulkMoveMutation.isPending} onClick={() => moveTargetId && bulkMoveMutation.mutate(moveTargetId)}>
+                {bulkMoveMutation.isPending ? 'Moving…' : 'Move'}
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-1.5 max-h-64 overflow-y-auto -mx-1 px-1">
+            {(lists || []).filter((l) => l.id !== activeListId).length === 0 && (
+              <p className="text-[12.5px] text-[var(--text-tertiary)] text-center py-4">No other lists to move to.</p>
+            )}
+            {(lists || []).filter((l) => l.id !== activeListId).map((list) => (
+              <button
+                key={list.id}
+                onClick={() => setMoveTargetId(list.id)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors border',
+                  moveTargetId === list.id ? 'bg-[var(--indigo-subtle)] border-[var(--indigo)]/30' : 'hover:bg-[var(--bg-hover)] border-transparent'
+                )}
+              >
+                <FolderOpen className={cn('h-4 w-4', moveTargetId === list.id ? 'text-[var(--indigo)]' : 'text-[var(--text-tertiary)]')} />
+                <span className="flex-1 text-left text-[13px] font-medium text-[var(--text-primary)] truncate">{list.name}</span>
+                {moveTargetId === list.id && <Check className="h-4 w-4 text-[var(--indigo)]" />}
+              </button>
+            ))}
+          </div>
         </Modal>
       )}
     </div>
