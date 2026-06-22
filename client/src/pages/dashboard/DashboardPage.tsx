@@ -272,35 +272,37 @@ function PerformanceChart({ data, metric }: { data: TrendDataPoint[]; metric: Me
   );
 }
 
-/* ─── Engagement funnel (single accent, width-encoded) ── */
+/* ─── Engagement funnel (icon + tinted stage + step conversion) ── */
 function Funnel({ sent, opened, clicked, replied }: { sent: number; opened: number; clicked: number; replied: number }) {
   const stages = [
-    { label: 'Sent', value: sent },
-    { label: 'Opened', value: opened },
-    { label: 'Clicked', value: clicked },
-    { label: 'Replied', value: replied },
+    { label: 'Sent', value: sent, icon: Send, tone: '#6366F1' },
+    { label: 'Opened', value: opened, icon: MailOpen, tone: '#8B5CF6' },
+    { label: 'Clicked', value: clicked, icon: MousePointerClick, tone: '#06B6D4' },
+    { label: 'Replied', value: replied, icon: MessageSquare, tone: '#10B981' },
   ];
   const top = sent || 1;
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3">
       {stages.map((stage, i) => {
-        const pct = Math.max((stage.value / top) * 100, stage.value > 0 ? 3 : 0);
+        const pct = Math.max((stage.value / top) * 100, stage.value > 0 ? 2 : 0);
         const prev = i === 0 ? null : stages[i - 1].value;
         const conv = prev && prev > 0 ? (stage.value / prev) * 100 : null;
+        const Icon = stage.icon;
         return (
-          <div key={stage.label}>
-            <div className="flex items-center justify-between mb-1.5">
+          <div key={stage.label} className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 w-[84px] flex-shrink-0">
+              <Icon className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} style={{ color: stage.tone }} />
               <span className="text-[12px] text-[var(--text-secondary)]">{stage.label}</span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-[13px] font-semibold tabular text-[var(--text-primary)]">{fmtFull(stage.value)}</span>
-                <span className="text-[10.5px] tabular text-[var(--text-tertiary)] w-9 text-right">
-                  {conv != null ? `${conv.toFixed(0)}%` : ''}
-                </span>
-              </div>
             </div>
-            <div className="h-2 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
+            <div className="flex-1 h-2.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
               <div className="h-full rounded-full transition-all duration-700 ease-[var(--ease-out)]"
-                style={{ width: `${pct}%`, background: ACCENT, opacity: 1 - i * 0.16 }} />
+                style={{ width: `${pct}%`, background: stage.tone }} />
+            </div>
+            <div className="w-[104px] flex-shrink-0 text-right">
+              <span className="text-[13px] font-semibold tabular text-[var(--text-primary)]">{fmtFull(stage.value)}</span>
+              {conv != null && (
+                <span className="ml-1.5 text-[10.5px] tabular text-[var(--text-tertiary)]">{conv.toFixed(0)}%</span>
+              )}
             </div>
           </div>
         );
