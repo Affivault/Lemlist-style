@@ -466,10 +466,6 @@ export function DashboardPage() {
     queryKey: ['analytics', 'campaignList'],
     queryFn: () => analyticsApi.campaignList(),
   });
-  const { data: deliverability } = useQuery({
-    queryKey: ['analytics', 'deliverability'],
-    queryFn: () => analyticsApi.deliverability(),
-  });
   const { data: inboxData } = useQuery({
     queryKey: ['inbox', 'dashboard'],
     queryFn: () => inboxApi.list({ limit: 5, folder: 'inbox' }),
@@ -527,10 +523,6 @@ export function DashboardPage() {
     { label: 'Bounced', value: bounced, color: 'var(--text-tertiary)' },
     { label: 'Suppressed', value: suppressed, color: 'var(--text-muted)' },
   ].filter((seg) => seg.value > 0);
-
-  const dcsSegments = (deliverability?.dcs_distribution || []).map((d, i) => ({
-    label: d.label, value: d.value, color: SCALE[i % SCALE.length],
-  }));
 
   return (
     <div className="stagger pb-6 space-y-4">
@@ -662,8 +654,8 @@ export function DashboardPage() {
         </section>
       </div>
 
-      {/* ── Funnel + Audience + Score distribution ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      {/* ── Engagement funnel + Audience ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <section className="panel overflow-hidden">
           <Head title="Engagement funnel" desc={`${fmtPct(s.avg_open_rate)} open → ${fmtPct(s.avg_reply_rate)} reply`} />
           <div className="p-4 pt-4">
@@ -678,17 +670,6 @@ export function DashboardPage() {
               <Donut segments={audienceSegments} centerLabel="contacts" centerValue={fmtNum(totalContacts)} />
             ) : (
               <div className="w-full text-center text-[12px] text-[var(--text-tertiary)]">No contacts yet</div>
-            )}
-          </div>
-        </section>
-
-        <section className="panel overflow-hidden">
-          <Head title="Score distribution" desc="Deliverability confidence" />
-          <div className="p-4 flex items-center min-h-[160px]">
-            {dcsSegments.length > 0 ? (
-              <Donut segments={dcsSegments} centerLabel="scored" centerValue={fmtNum(dcsSegments.reduce((a, d) => a + d.value, 0))} />
-            ) : (
-              <div className="w-full text-center text-[12px] text-[var(--text-tertiary)]">No score data yet</div>
             )}
           </div>
         </section>
