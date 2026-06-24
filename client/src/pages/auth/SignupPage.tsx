@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { ArrowRight } from 'lucide-react';
-import { SkySendLogo } from '../../components/SkySendLogo';
+import { MeetDriveLogo } from '../../components/MeetDriveLogo';
 
 export function SignupPage() {
   const { signUp, signInWithOAuth } = useAuth();
@@ -52,7 +52,7 @@ export function SignupPage() {
 
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center">
-            <span className="text-2xl"><SkySendLogo inverted /></span>
+            <span className="text-2xl"><MeetDriveLogo inverted /></span>
           </Link>
 
           <div className="mt-20">
@@ -109,7 +109,7 @@ export function SignupPage() {
           {/* Mobile Logo */}
           <div className="mb-8 lg:hidden">
             <Link to="/" className="inline-flex items-center">
-              <span className="text-xl"><SkySendLogo /></span>
+              <span className="text-xl"><MeetDriveLogo /></span>
             </Link>
           </div>
 
