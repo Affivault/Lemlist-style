@@ -1,4 +1,4 @@
--- SkySend Core Excellence Migration
+-- MeetDrive Core Excellence Migration
 -- Triple-Layer Verification, Webhook Event Bus, API Keys, State-Machine Sequences
 
 -- ============================================

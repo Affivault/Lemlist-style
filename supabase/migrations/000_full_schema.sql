@@ -1,5 +1,5 @@
 -- =============================================
--- SkySend: Complete Database Schema (idempotent)
+-- MeetDrive: Complete Database Schema (idempotent)
 -- Paste this entire file into Supabase SQL Editor and hit Run.
 -- Safe to run multiple times — won't break anything.
 -- =============================================

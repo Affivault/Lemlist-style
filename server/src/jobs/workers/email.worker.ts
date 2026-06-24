@@ -174,7 +174,7 @@ export function startEmailWorker() {
         }
 
         // Generate a unique Message-ID for reply threading
-        const domain = (smtpAccount.email_address || '').split('@')[1] || 'skysend.io';
+        const domain = (smtpAccount.email_address || '').split('@')[1] || 'meetdrive.io';
         const messageId = `<${crypto.randomUUID()}@${domain}>`;
 
         // 6. Send the email
@@ -189,9 +189,9 @@ export function startEmailWorker() {
           text: bodyText,
           messageId,
           headers: {
-            'X-SkySend-Campaign': campaignId,
-            'X-SkySend-Contact': contactId,
-            'X-SkySend-Step': stepId,
+            'X-MeetDrive-Campaign': campaignId,
+            'X-MeetDrive-Contact': contactId,
+            'X-MeetDrive-Step': stepId,
             ...(campaign.include_unsubscribe === true ? {
               'List-Unsubscribe': `<${unsubUrl}>`,
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',

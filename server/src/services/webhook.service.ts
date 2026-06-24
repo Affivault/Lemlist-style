@@ -168,11 +168,11 @@ async function deliverWebhook(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'User-Agent': 'SkySend-Webhook/1.0',
-    'X-SkySend-Event': eventType,
+    'User-Agent': 'MeetDrive-Webhook/1.0',
+    'X-MeetDrive-Event': eventType,
   };
   if (signature) {
-    headers['X-SkySend-Signature'] = signature;
+    headers['X-MeetDrive-Signature'] = signature;
   }
 
   let statusCode: number | null = null;
@@ -239,7 +239,7 @@ export async function testEndpoint(userId: string, endpointId: string): Promise<
   const payload: WebhookPayload = {
     event: 'test.ping',
     timestamp: new Date().toISOString(),
-    data: { message: 'This is a test webhook from SkySend' },
+    data: { message: 'This is a test webhook from MeetDrive' },
   };
 
   const payloadStr = JSON.stringify(payload);
@@ -247,11 +247,11 @@ export async function testEndpoint(userId: string, endpointId: string): Promise<
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'User-Agent': 'SkySend-Webhook/1.0',
-    'X-SkySend-Event': 'test.ping',
+    'User-Agent': 'MeetDrive-Webhook/1.0',
+    'X-MeetDrive-Event': 'test.ping',
   };
   if (signature) {
-    headers['X-SkySend-Signature'] = signature;
+    headers['X-MeetDrive-Signature'] = signature;
   }
 
   try {

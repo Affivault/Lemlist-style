@@ -1,9 +1,8 @@
 /**
- * MeetDrive logo — clean modern wordmark. The exported names are kept as
- * SkySend* for backwards-compat with existing imports across the app; only
- * the rendered brand is MeetDrive.
+ * MeetDrive logo — clean modern wordmark.
+ * Renders "Meet" + "Drive" (Drive in the indigo accent).
  */
-export function SkySendLogo({ className = '', inverted = false }: { className?: string; inverted?: boolean }) {
+export function MeetDriveLogo({ className = '', inverted = false }: { className?: string; inverted?: boolean }) {
   const base = inverted ? 'white' : 'var(--text-primary)';
   const accent = inverted ? 'white' : 'var(--indigo)';
 
@@ -29,7 +28,7 @@ export function SkySendLogo({ className = '', inverted = false }: { className?: 
 /**
  * Compact logo mark — an "M" in a rounded square for favicon / collapsed contexts.
  */
-export function SkySendLogoMark({ className = 'h-7 w-7', inverted = false }: { className?: string; inverted?: boolean }) {
+export function MeetDriveLogoMark({ className = 'h-7 w-7', inverted = false }: { className?: string; inverted?: boolean }) {
   const bg = inverted ? 'white' : 'var(--indigo)';
   const fg = inverted ? 'var(--indigo)' : 'white';
 
