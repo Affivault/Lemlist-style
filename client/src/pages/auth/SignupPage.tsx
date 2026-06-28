@@ -6,11 +6,13 @@ import { ArrowRight } from 'lucide-react';
 import { SincerelyLogo } from '../../components/SincerelyLogo';
 
 export function SignupPage() {
-  const { signUp, signInWithOAuth } = useAuth();
+  const { signUp, resendConfirmation, signInWithOAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -32,9 +34,22 @@ export function SignupPage() {
       toast.error(error.message);
     } else {
       toast.success('Account created! Check your email for confirmation.');
+      setSubmitted(true);
     }
 
     setLoading(false);
+  };
+
+  const handleResend = async () => {
+    if (!email) {
+      toast.error('Enter your email first');
+      return;
+    }
+    setResending(true);
+    const { error } = await resendConfirmation(email);
+    if (error) toast.error(error.message);
+    else toast.success('Confirmation email resent — check your inbox.');
+    setResending(false);
   };
 
   return (
@@ -209,6 +224,22 @@ export function SignupPage() {
               {!loading && <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />}
             </button>
           </form>
+
+          {submitted && (
+            <div className="mt-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-4 py-3 text-center">
+              <p className="text-[12px] text-[var(--text-secondary)]">
+                We sent a confirmation link to <span className="font-medium text-[var(--text-primary)]">{email}</span>. Didn't get it?
+              </p>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="mt-1 text-[12px] font-semibold text-[var(--indigo)] hover:underline disabled:opacity-60"
+              >
+                {resending ? 'Resending…' : 'Resend confirmation email'}
+              </button>
+            </div>
+          )}
 
           <p className="mt-4 text-center text-[11.5px] text-[var(--text-tertiary)]">
             By signing up, you agree to our{' '}
