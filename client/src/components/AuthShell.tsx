@@ -22,7 +22,7 @@ function BrandLogo() {
       <img
         src="/logo-dark.svg"
         alt="Sincerely"
-        style={{ height: 28, width: 'auto', display: 'block' }}
+        style={{ height: 36, width: 'auto', display: 'block' }}
         draggable={false}
       />
     </a>
