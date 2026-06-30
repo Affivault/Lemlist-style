@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './landing.css';
 
-/* Sincerely marketing site — light, premium, modern. Near-monochrome with an
-   indigo→violet accent, refined depth, a dark SARA showcase band, and
-   scroll-reveal motion. */
+/* Sincerely marketing site — premium, restrained. Near-monochrome, one quiet
+   indigo accent, craft in type/spacing/depth. */
 
 type IP = React.SVGProps<SVGSVGElement>;
 const I = {
@@ -18,6 +17,10 @@ const I = {
   chart: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 3v18h18" /><path d="M7 16v-5M12 16V8M17 16v-3" /></svg>,
   mega: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m3 11 18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></svg>,
   inbox: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-6Z" /></svg>,
+  mail: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 5L2 7" /></svg>,
+  cal: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>,
+  users: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /></svg>,
+  logo: (p: IP) => <svg viewBox="0 0 40 40" fill="none" {...p}><path d="M27 12.5C24.7 9.3 19.6 8.3 15.6 9.6 11 11.1 9.8 15.6 13.2 18.2 15.6 20 20.2 20.4 23.8 21.8 28.8 23.7 29.4 28.4 26 31.2 22.8 33.8 17.4 33.2 13.8 30" stroke="currentColor" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" /></svg>,
 };
 
 const IntgGlyph: Record<string, React.ReactElement> = {
@@ -26,8 +29,8 @@ const IntgGlyph: Record<string, React.ReactElement> = {
   gmail: <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.2A1.6 1.6 0 0 1 6.6 6L12 10l5.4-4A1.6 1.6 0 0 1 20 7.2V17a1 1 0 0 1-1 1h-2.2v-7.1L12 14.4 7.2 10.9V18H5a1 1 0 0 1-1-1V7.2z" fill="#fff" /></svg>,
   outlook: <svg viewBox="0 0 24 24" fill="none"><rect x="10" y="6" width="10" height="12" rx="1.4" stroke="#fff" strokeWidth="1.8" /><path d="M10 9.5 15 13l5-3.5" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" /><ellipse cx="6.5" cy="12" rx="4.5" ry="5" fill="#fff" /><ellipse cx="6.5" cy="12" rx="1.8" ry="2.4" fill="#0F6CBD" /></svg>,
   slack: <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round"><path d="M9.3 4 7.7 20M16.3 4l-1.6 16M4 9.3h16M3.7 14.7h16" /></svg>,
-  zapier: <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5 4.2 16.5" /></svg>,
   calendly: <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5.5" width="16" height="14.5" rx="2.4" stroke="#fff" strokeWidth="1.9" /><path d="M4 9.5h16M8.5 3.5v4M15.5 3.5v4" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" /></svg>,
+  zapier: <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5 4.2 16.5" /></svg>,
   segment: <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"><path d="M20.2 9.4A8.2 8.2 0 0 0 5.6 6.3" /><path d="M3.8 14.6a8.2 8.2 0 0 0 14.6 3.1" /></svg>,
 };
 
@@ -58,17 +61,17 @@ function Header() {
 }
 
 function Hero() {
-  const bars = [42, 58, 64, 51, 73, 66, 79, 92, 78, 95, 84, 100];
+  const bars = [44, 60, 66, 52, 74, 67, 80, 92, 79, 96, 85, 100];
   return (
     <section className="lx-hero" id="top">
       <div className="lx-hero__bg" />
       <div className="lx-hero__grid" />
       <div className="lx-wrap lx-hero__inner">
         <a className="lx-pill" href="#sara"><span className="lx-pill__tag">New</span> SARA — AI inbox assist is live <span className="lx-pill__arr">→</span></a>
-        <h1 className="lx-hero__h1">Cold email that<br />books the <span className="lx-grad">meeting</span>.</h1>
+        <h1 className="lx-hero__h1">Cold email that<br />books the meeting.</h1>
         <p className="lx-hero__sub">
-          Sincerely ships your outbound at scale — deliverability, sequencing, and an
-          AI co-pilot that turns every reply into a booked meeting.
+          The outbound platform that handles deliverability, sequencing and an AI
+          co-pilot — so every reply turns into a booked meeting.
         </p>
         <div className="lx-hero__ctas">
           <Link className="lx-btn lx-btn--primary lx-btn--lg" to="/signup">Start sending free <I.arrow className="lx-btn__arr" /></Link>
@@ -89,30 +92,39 @@ function Hero() {
             </div>
             <div className="lx-mock__body">
               <div className="lx-mock__nav">
+                <div className="lx-mock__brand"><i><I.logo /></i> Sincerely</div>
                 <div className="lx-mock__navlabel">Outbound</div>
                 <div className="lx-mock__navitem"><I.chart /> Dashboard</div>
                 <div className="lx-mock__navitem is-active"><I.mega /> Campaigns <span className="lx-mock__badge">12</span></div>
+                <div className="lx-mock__navitem"><I.users /> Leads</div>
                 <div className="lx-mock__navitem"><I.branch /> Sequences</div>
                 <div className="lx-mock__navlabel">Inbox</div>
                 <div className="lx-mock__navitem"><I.inbox /> Unified <span className="lx-mock__badge">38</span></div>
                 <div className="lx-mock__navitem"><I.spark /> SARA queue</div>
               </div>
               <div className="lx-mock__main">
-                <div className="lx-mock__title">Q4 Outbound · Series A founders</div>
+                <div className="lx-mock__head">
+                  <div className="lx-mock__title">Q4 Outbound</div>
+                  <span className="lx-mock__pill">Last 14 days</span>
+                </div>
+                <p className="lx-mock__sub">Series A founders · 4,812 leads</p>
                 <div className="lx-mock__kpis">
                   {[['Sent', '5,276', '+12%'], ['Open rate', '72.4%', '+4.1%'], ['Click rate', '22.8%', '+1.6%'], ['Reply rate', '28.4%', '+8.2%']].map(([l, v, d]) => (
                     <div key={l} className="lx-mock__kpi"><div className="lx-mock__kpi-l">{l}</div><div className="lx-mock__kpi-v">{v}</div><div className="lx-mock__kpi-d">↑ {d}</div></div>
                   ))}
                 </div>
                 <div className="lx-mock__chart">
-                  <div className="lx-mock__chart-h">Sending activity · Last 14 days</div>
+                  <div className="lx-mock__chart-h">
+                    Sending activity
+                    <span className="lx-mock__tabs"><span>7d</span><span className="on">14d</span><span>30d</span></span>
+                  </div>
                   <div className="lx-mock__bars">{bars.map((h, i) => <div key={i} style={{ height: `${h}%` }} />)}</div>
                 </div>
               </div>
             </div>
           </div>
           <div className="lx-toast">
-            <div className="lx-toast__h"><span><I.spark /></span> SARA drafted a reply</div>
+            <div className="lx-toast__h"><i><I.spark /></i> SARA drafted a reply</div>
             <p className="lx-toast__b">“Great to hear — I have a few slots next week…” · matched your tone</p>
           </div>
         </div>
@@ -133,28 +145,67 @@ function Logos() {
 }
 
 function Features() {
-  const items = [
-    { n: 'Sequences', icon: <I.branch />, t: 'Flows that adapt to every reply', b: 'Branching outbound that reacts in real time — reply detected, pause; out-of-office, reschedule; interested, book the meeting.' },
-    { n: 'Deliverability', icon: <I.shield />, t: 'Every email lands in the primary inbox', b: 'Auto-warmup across 50+ provider networks, live placement monitoring, and one-click SPF / DKIM / DMARC for every DNS provider.' },
-    { n: 'Analytics', icon: <I.chart />, t: 'Know exactly what is working', b: 'Per-step open, click and reply rates, deliverability scoring, and A/B tests with automatic winner promotion at 95% confidence.' },
-  ];
   return (
     <section className="lx-section" id="features">
       <div className="lx-wrap">
         <div className="lx-head lx-reveal">
-          <span className="lx-eyebrow">Everything you need to send</span>
-          <h2 className="lx-h2">From cold list to booked calendar.</h2>
-          <p className="lx-lede">Three steps from a raw list of prospects to meetings on your calendar — most teams are live the same afternoon.</p>
+          <span className="lx-eyebrow">The platform</span>
+          <h2 className="lx-h2">Everything outbound, in one place.</h2>
+          <p className="lx-lede">Sequencing, deliverability, analytics and an AI inbox — built to work together, so you ship pipeline instead of stitching tools.</p>
         </div>
-        <div className="lx-grid">
-          {items.map((it) => (
-            <div key={it.n} className="lx-feature lx-reveal">
-              <div className="lx-feature__icon">{it.icon}</div>
-              <div className="lx-feature__n">{it.n}</div>
-              <h3 className="lx-feature__t">{it.t}</h3>
-              <p className="lx-feature__b">{it.b}</p>
+        <div className="lx-bento lx-reveal">
+          <div className="lx-cell lx-cell--4">
+            <div className="lx-cell__icon"><I.branch /></div>
+            <h3 className="lx-cell__t">Sequences that adapt to every reply</h3>
+            <p className="lx-cell__b">Branching outbound that reacts in real time — reply detected, pause; out-of-office, reschedule; interested, book the meeting.</p>
+            <div className="lx-cell__viz">
+              <div className="lx-flow">
+                <div className="lx-flow__node"><I.mail /> Email · Day 0</div>
+                <div className="lx-flow__line" />
+                <div className="lx-flow__node"><I.branch /> If no reply</div>
+                <div className="lx-flow__line" />
+                <div className="lx-flow__node"><I.cal /> Auto-book</div>
+              </div>
             </div>
-          ))}
+          </div>
+          <div className="lx-cell lx-cell--2">
+            <div className="lx-cell__icon"><I.shield /></div>
+            <h3 className="lx-cell__t">Deliverability</h3>
+            <p className="lx-cell__b">Auto-warmup and live inbox-placement monitoring.</p>
+            <div className="lx-cell__viz">
+              <div className="lx-ring">
+                <div className="lx-ring__num">98<small>/100</small></div>
+                <div className="lx-ring__bars">
+                  <div className="lx-ring__bar"><i style={{ width: '100%' }} /></div>
+                  <div className="lx-ring__bar"><i style={{ width: '92%' }} /></div>
+                  <div className="lx-ring__bar"><i style={{ width: '96%' }} /></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="lx-cell lx-cell--2">
+            <div className="lx-cell__icon"><I.chart /></div>
+            <h3 className="lx-cell__t">Analytics</h3>
+            <p className="lx-cell__b">Per-step open, click and reply rates with A/B tests.</p>
+            <div className="lx-cell__viz">
+              <svg className="lx-cell__spark" viewBox="0 0 220 56" preserveAspectRatio="none">
+                <defs><linearGradient id="lx-sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#5B5BF5" stopOpacity="0.16" /><stop offset="100%" stopColor="#5B5BF5" stopOpacity="0" /></linearGradient></defs>
+                <polygon points="0,56 0,42 31,38 62,44 93,28 124,32 155,18 186,22 220,8 220,56" fill="url(#lx-sp)" />
+                <polyline points="0,42 31,38 62,44 93,28 124,32 155,18 186,22 220,8" fill="none" stroke="#5B5BF5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              </svg>
+            </div>
+          </div>
+          <div className="lx-cell lx-cell--4">
+            <div className="lx-cell__icon"><I.inbox /></div>
+            <h3 className="lx-cell__t">A unified inbox, sorted by intent</h3>
+            <p className="lx-cell__b">Every reply across every mailbox in one place — SARA classifies and prioritizes so your team only sees real conversations.</p>
+            <div className="lx-cell__viz">
+              <div className="lx-rows">
+                <div className="lx-row"><span className="lx-row__av" style={{ background: '#E0900B' }}>MC</span><div><div className="lx-row__name">Maya Chen</div><div className="lx-row__sub">Re: Quick question — could you send times?</div></div><span className="lx-row__tag lx-tag--hot">Interested</span></div>
+                <div className="lx-row"><span className="lx-row__av" style={{ background: '#1A9D54' }}>DO</span><div><div className="lx-row__name">David Okafor</div><div className="lx-row__sub">Re: Outreach — send me your Calendly</div></div><span className="lx-row__tag lx-tag--book">Book meeting</span></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -237,14 +288,14 @@ function Stats() {
   return (
     <section className="lx-stats">
       <div className="lx-wrap lx-stats__grid">
-        {stats.map(([v, l]) => <div key={l} className="lx-stat"><div className="lx-stat__v lx-grad">{v}</div><div className="lx-stat__l">{l}</div></div>)}
+        {stats.map(([v, l]) => <div key={l} className="lx-stat"><div className="lx-stat__v">{v}</div><div className="lx-stat__l">{l}</div></div>)}
       </div>
     </section>
   );
 }
 
 function Pricing() {
-  const [annual, setAnnual] = useState(true);
+  const [annual, setAnnual] = useState(false);
   const tiers = [
     { name: 'Starter', pitch: 'For solo founders and small teams getting started.', m: 39, y: 348, cta: 'Start free trial', feats: ['Up to 3 sending inboxes', '1,500 emails / month', 'Sequence builder', 'Unified inbox', 'Auto-warmup included'] },
     { name: 'Growth', pitch: 'Scale outbound across your team with SARA.', m: 59, y: 499, feat: true, cta: 'Start free trial', feats: ['Up to 25 sending inboxes', '15,000 emails / month', 'SARA AI inbox assist', 'A/B testing', 'Priority support'] },
@@ -351,7 +402,7 @@ function CTA() {
           <h2 className="lx-cta__h">Turn cold email into booked meetings.</h2>
           <p className="lx-cta__sub">Start free — no credit card. Paid plans include a 10-day trial. We'll have you sending by lunch.</p>
           <div className="lx-cta__ctas">
-            <Link className="lx-btn lx-btn--primary lx-btn--lg" to="/signup">Start sending free <I.arrow className="lx-btn__arr" /></Link>
+            <Link className="lx-btn lx-btn--accent lx-btn--lg" to="/signup">Start sending free <I.arrow className="lx-btn__arr" /></Link>
             <Link className="lx-btn lx-btn--outline lx-btn--lg" to="/login">Log in</Link>
           </div>
         </div>
@@ -391,7 +442,6 @@ function Footer() {
 }
 
 export function LandingPage() {
-  // Scroll-reveal: fade sections up as they enter the viewport.
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>('.lx-reveal'));
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
