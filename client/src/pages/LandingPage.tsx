@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './landing.css';
 
-/* Sincerely marketing site — light, modern, flat. Mirrors the app's refined
-   aesthetic: near-monochrome, one indigo accent, hairline borders. */
+/* Sincerely marketing site — light, premium, modern. Near-monochrome with an
+   indigo→violet accent, refined depth, a dark SARA showcase band, and
+   scroll-reveal motion. */
 
 type IP = React.SVGProps<SVGSVGElement>;
 const I = {
@@ -19,7 +20,6 @@ const I = {
   inbox: (p: IP) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-6Z" /></svg>,
 };
 
-/* Brand-coloured integration glyphs (self-hosted, white-on-tile). */
 const IntgGlyph: Record<string, React.ReactElement> = {
   salesforce: <svg viewBox="0 0 24 24" fill="none"><path d="M17.4 19a4.4 4.4 0 0 0 .7-8.74A5 5 0 0 0 8.8 8.2a3.6 3.6 0 0 0-5.3 3.2 3.7 3.7 0 0 0 3.7 3.7" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /><path d="M7 19h10.4" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" /></svg>,
   hubspot: <svg viewBox="0 0 24 24" fill="none"><circle cx="8.5" cy="15" r="4" stroke="#fff" strokeWidth="2" /><circle cx="17" cy="6.5" r="2.6" fill="#fff" /><path d="M17 9.1v3.3M11.2 12.4 14.8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></svg>,
@@ -44,7 +44,7 @@ function Header() {
         <a className="lx-header__logo" href="#top" aria-label="Sincerely"><img src="/logo.svg" alt="Sincerely" /></a>
         <nav className="lx-nav">
           <a className="lx-nav__link" href="#features">Features</a>
-          <a className="lx-nav__link" href="#integrations">Integrations</a>
+          <a className="lx-nav__link" href="#sara">SARA</a>
           <a className="lx-nav__link" href="#pricing">Pricing</a>
           <a className="lx-nav__link" href="#faq">FAQ</a>
         </nav>
@@ -64,11 +64,11 @@ function Hero() {
       <div className="lx-hero__bg" />
       <div className="lx-hero__grid" />
       <div className="lx-wrap lx-hero__inner">
-        <a className="lx-pill" href="#features"><span className="lx-pill__tag">New</span> SARA — AI inbox assist is live <span className="lx-pill__arr">→</span></a>
-        <h1 className="lx-hero__h1">Cold email that<br />books the <em>meeting</em>.</h1>
+        <a className="lx-pill" href="#sara"><span className="lx-pill__tag">New</span> SARA — AI inbox assist is live <span className="lx-pill__arr">→</span></a>
+        <h1 className="lx-hero__h1">Cold email that<br />books the <span className="lx-grad">meeting</span>.</h1>
         <p className="lx-hero__sub">
-          Sincerely ships your outbound at scale — deliverability, sequencing, and an AI
-          co-pilot that turns every reply into a booked meeting.
+          Sincerely ships your outbound at scale — deliverability, sequencing, and an
+          AI co-pilot that turns every reply into a booked meeting.
         </p>
         <div className="lx-hero__ctas">
           <Link className="lx-btn lx-btn--primary lx-btn--lg" to="/signup">Start sending free <I.arrow className="lx-btn__arr" /></Link>
@@ -80,34 +80,40 @@ function Hero() {
           <span><I.check /> Cancel anytime</span>
         </p>
 
-        <div className="lx-mock">
-          <div className="lx-mock__bar">
-            <span className="lx-mock__dot" /><span className="lx-mock__dot" /><span className="lx-mock__dot" />
-            <div className="lx-mock__url"><I.lock /> app.usesincerely.com / campaigns</div>
-            <span className="lx-mock__live">Live</span>
+        <div className="lx-stage lx-reveal">
+          <div className="lx-mock">
+            <div className="lx-mock__bar">
+              <span className="lx-mock__dot" /><span className="lx-mock__dot" /><span className="lx-mock__dot" />
+              <div className="lx-mock__url"><I.lock /> app.usesincerely.com / campaigns</div>
+              <span className="lx-mock__live">Live</span>
+            </div>
+            <div className="lx-mock__body">
+              <div className="lx-mock__nav">
+                <div className="lx-mock__navlabel">Outbound</div>
+                <div className="lx-mock__navitem"><I.chart /> Dashboard</div>
+                <div className="lx-mock__navitem is-active"><I.mega /> Campaigns <span className="lx-mock__badge">12</span></div>
+                <div className="lx-mock__navitem"><I.branch /> Sequences</div>
+                <div className="lx-mock__navlabel">Inbox</div>
+                <div className="lx-mock__navitem"><I.inbox /> Unified <span className="lx-mock__badge">38</span></div>
+                <div className="lx-mock__navitem"><I.spark /> SARA queue</div>
+              </div>
+              <div className="lx-mock__main">
+                <div className="lx-mock__title">Q4 Outbound · Series A founders</div>
+                <div className="lx-mock__kpis">
+                  {[['Sent', '5,276', '+12%'], ['Open rate', '72.4%', '+4.1%'], ['Click rate', '22.8%', '+1.6%'], ['Reply rate', '28.4%', '+8.2%']].map(([l, v, d]) => (
+                    <div key={l} className="lx-mock__kpi"><div className="lx-mock__kpi-l">{l}</div><div className="lx-mock__kpi-v">{v}</div><div className="lx-mock__kpi-d">↑ {d}</div></div>
+                  ))}
+                </div>
+                <div className="lx-mock__chart">
+                  <div className="lx-mock__chart-h">Sending activity · Last 14 days</div>
+                  <div className="lx-mock__bars">{bars.map((h, i) => <div key={i} style={{ height: `${h}%` }} />)}</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="lx-mock__body">
-            <div className="lx-mock__nav">
-              <div className="lx-mock__navlabel">Outbound</div>
-              <div className="lx-mock__navitem"><I.chart /> Dashboard</div>
-              <div className="lx-mock__navitem is-active"><I.mega /> Campaigns <span className="lx-mock__badge">12</span></div>
-              <div className="lx-mock__navitem"><I.branch /> Sequences</div>
-              <div className="lx-mock__navlabel">Inbox</div>
-              <div className="lx-mock__navitem"><I.inbox /> Unified <span className="lx-mock__badge">38</span></div>
-              <div className="lx-mock__navitem"><I.spark /> SARA queue</div>
-            </div>
-            <div className="lx-mock__main">
-              <div className="lx-mock__title">Q4 Outbound · Series A founders</div>
-              <div className="lx-mock__kpis">
-                {[['Sent', '5,276', '+12%'], ['Open rate', '72.4%', '+4.1%'], ['Click rate', '22.8%', '+1.6%'], ['Reply rate', '28.4%', '+8.2%']].map(([l, v, d]) => (
-                  <div key={l} className="lx-mock__kpi"><div className="lx-mock__kpi-l">{l}</div><div className="lx-mock__kpi-v">{v}</div><div className="lx-mock__kpi-d">↑ {d}</div></div>
-                ))}
-              </div>
-              <div className="lx-mock__chart">
-                <div className="lx-mock__chart-h">Sending activity · Last 14 days</div>
-                <div className="lx-mock__bars">{bars.map((h, i) => <div key={i} style={{ height: `${h}%` }} />)}</div>
-              </div>
-            </div>
+          <div className="lx-toast">
+            <div className="lx-toast__h"><span><I.spark /></span> SARA drafted a reply</div>
+            <p className="lx-toast__b">“Great to hear — I have a few slots next week…” · matched your tone</p>
           </div>
         </div>
       </div>
@@ -117,7 +123,7 @@ function Hero() {
 
 function Logos() {
   return (
-    <section className="lx-wrap lx-logos">
+    <section className="lx-wrap lx-logos lx-reveal">
       <p className="lx-logos__label">Trusted by 4,200+ outbound teams worldwide</p>
       <div className="lx-logos__row">
         {['NORTHSTAR', 'Brightline', 'NIMBUS', 'peachfin', 'THE LOOP', 'FLUXCAP', 'atlas.io'].map((n) => <span key={n}>{n}</span>)}
@@ -129,26 +135,64 @@ function Logos() {
 function Features() {
   const items = [
     { n: 'Sequences', icon: <I.branch />, t: 'Flows that adapt to every reply', b: 'Branching outbound that reacts in real time — reply detected, pause; out-of-office, reschedule; interested, book the meeting.' },
-    { n: 'SARA · AI inbox', icon: <I.spark />, t: 'A co-pilot for every reply', b: 'SARA reads every inbound, classifies intent in milliseconds, and drafts a response in your tone. You stay in control of every send.' },
-    { n: 'Deliverability', icon: <I.shield />, t: 'Every email lands in the primary inbox', b: 'Auto-warmup across 50+ provider networks, live placement monitoring, and one-click SPF / DKIM / DMARC.' },
+    { n: 'Deliverability', icon: <I.shield />, t: 'Every email lands in the primary inbox', b: 'Auto-warmup across 50+ provider networks, live placement monitoring, and one-click SPF / DKIM / DMARC for every DNS provider.' },
+    { n: 'Analytics', icon: <I.chart />, t: 'Know exactly what is working', b: 'Per-step open, click and reply rates, deliverability scoring, and A/B tests with automatic winner promotion at 95% confidence.' },
   ];
   return (
     <section className="lx-section" id="features">
       <div className="lx-wrap">
-        <div className="lx-head">
+        <div className="lx-head lx-reveal">
           <span className="lx-eyebrow">Everything you need to send</span>
           <h2 className="lx-h2">From cold list to booked calendar.</h2>
           <p className="lx-lede">Three steps from a raw list of prospects to meetings on your calendar — most teams are live the same afternoon.</p>
         </div>
         <div className="lx-grid">
           {items.map((it) => (
-            <div key={it.n} className="lx-feature">
+            <div key={it.n} className="lx-feature lx-reveal">
               <div className="lx-feature__icon">{it.icon}</div>
               <div className="lx-feature__n">{it.n}</div>
               <h3 className="lx-feature__t">{it.t}</h3>
               <p className="lx-feature__b">{it.b}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Showcase() {
+  return (
+    <section className="lx-section--tight" id="sara">
+      <div className="lx-wrap">
+        <div className="lx-show lx-reveal">
+          <div className="lx-show__grid">
+            <div>
+              <span className="lx-eyebrow">SARA · AI inbox</span>
+              <h2 className="lx-show__h">An AI co-pilot for every reply.</h2>
+              <p className="lx-show__sub">SARA reads every inbound, classifies intent in milliseconds, and drafts a response that sounds like you. Out-of-office auto-reschedules. Hot lead? It books the meeting.</p>
+              <ul className="lx-show__list">
+                <li><I.check /> Intent classification across 9 categories — 96% accurate</li>
+                <li><I.check /> Drafts in your tone, trained on your best replies</li>
+                <li><I.check /> Auto-handles OOO, calendar back-and-forth and follow-ups</li>
+              </ul>
+            </div>
+            <div className="lx-replycard">
+              <div className="lx-bubble lx-bubble--in">
+                <div className="lx-bubble__who">Maya Chen · Head of Growth, Stripe</div>
+                This is timely — we're evaluating outbound tools this quarter. Could you send some times next week?
+              </div>
+              <div className="lx-bubble lx-bubble--sara">
+                <div className="lx-bubble__who"><I.spark width={12} height={12} /> Drafted by SARA</div>
+                Hi Maya — great to hear. I have Tue 10:00, Wed 14:00 or Thu 09:30 PT open. I'll tailor the demo to your current stack.
+              </div>
+              <div className="lx-replycard__act">
+                <button className="lx-replycard__btn lx-replycard__btn--p">Send</button>
+                <button className="lx-replycard__btn lx-replycard__btn--g">Edit</button>
+                <button className="lx-replycard__btn lx-replycard__btn--g">Regenerate</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -169,12 +213,12 @@ function Integrations() {
   return (
     <section className="lx-section lx-section--tight" id="integrations">
       <div className="lx-wrap">
-        <div className="lx-head">
+        <div className="lx-head lx-reveal">
           <span className="lx-eyebrow">Integrations</span>
           <h2 className="lx-h2">Plugs into your whole stack.</h2>
           <p className="lx-lede">Two-way sync with your CRM, enrichment and scheduling tools — plus a full REST API and webhooks.</p>
         </div>
-        <div className="lx-intg">
+        <div className="lx-intg lx-reveal">
           {apps.map((a) => (
             <div key={a.key} className="lx-intg__card">
               <span className="lx-intg__logo" style={{ background: a.color }}>{IntgGlyph[a.key]}</span>
@@ -193,7 +237,7 @@ function Stats() {
   return (
     <section className="lx-stats">
       <div className="lx-wrap lx-stats__grid">
-        {stats.map(([v, l]) => <div key={l} className="lx-stat"><div className="lx-stat__v">{v}</div><div className="lx-stat__l">{l}</div></div>)}
+        {stats.map(([v, l]) => <div key={l} className="lx-stat"><div className="lx-stat__v lx-grad">{v}</div><div className="lx-stat__l">{l}</div></div>)}
       </div>
     </section>
   );
@@ -209,7 +253,7 @@ function Pricing() {
   return (
     <section className="lx-section" id="pricing">
       <div className="lx-wrap">
-        <div className="lx-head">
+        <div className="lx-head lx-reveal">
           <span className="lx-eyebrow">Pricing</span>
           <h2 className="lx-h2">Pricing that scales with you.</h2>
           <p className="lx-lede">Start with a 10-day free trial on paid plans. Pay only for active inboxes — never for seats.</p>
@@ -218,7 +262,7 @@ function Pricing() {
             <button className={annual ? 'is-active' : ''} onClick={() => setAnnual(true)}>Annual <span className="lx-toggle__save">· save 30%</span></button>
           </div>
         </div>
-        <div className="lx-price">
+        <div className="lx-price lx-reveal">
           {tiers.map((t) => {
             const price = annual ? t.y : t.m;
             return (
@@ -254,11 +298,11 @@ function Testimonials() {
   return (
     <section className="lx-section lx-section--tight">
       <div className="lx-wrap">
-        <div className="lx-head">
+        <div className="lx-head lx-reveal">
           <span className="lx-eyebrow">Customers</span>
           <h2 className="lx-h2">Loved by teams that actually send.</h2>
         </div>
-        <div className="lx-quotes">
+        <div className="lx-quotes lx-reveal">
           {quotes.map((q) => (
             <div key={q.name} className="lx-quote">
               <p className="lx-quote__body">“{q.body}”</p>
@@ -285,8 +329,8 @@ function FAQ() {
   return (
     <section className="lx-section" id="faq">
       <div className="lx-wrap lx-wrap--narrow">
-        <div className="lx-head"><span className="lx-eyebrow">FAQ</span><h2 className="lx-h2">Questions, answered.</h2></div>
-        <div className="lx-faq">
+        <div className="lx-head lx-reveal"><span className="lx-eyebrow">FAQ</span><h2 className="lx-h2">Questions, answered.</h2></div>
+        <div className="lx-faq lx-reveal">
           {qs.map((item) => (
             <details key={item.q} className="lx-faq__item">
               <summary className="lx-faq__q">{item.q}<I.plus /></summary>
@@ -303,7 +347,7 @@ function CTA() {
   return (
     <section className="lx-cta">
       <div className="lx-wrap">
-        <div className="lx-cta__box">
+        <div className="lx-cta__box lx-reveal">
           <h2 className="lx-cta__h">Turn cold email into booked meetings.</h2>
           <p className="lx-cta__sub">Start free — no credit card. Paid plans include a 10-day trial. We'll have you sending by lunch.</p>
           <div className="lx-cta__ctas">
@@ -347,12 +391,26 @@ function Footer() {
 }
 
 export function LandingPage() {
+  // Scroll-reveal: fade sections up as they enter the viewport.
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('.lx-reveal'));
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { els.forEach((el) => el.classList.add('is-in')); return; }
+    els.forEach((el) => { if (el.getBoundingClientRect().top < window.innerHeight * 0.9) el.classList.add('is-in'); });
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); obs.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    els.forEach((el) => { if (!el.classList.contains('is-in')) obs.observe(el); });
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div className="lx">
+    <div className="lx" id="top">
       <Header />
       <Hero />
       <Logos />
       <Features />
+      <Showcase />
       <Integrations />
       <Stats />
       <Pricing />
