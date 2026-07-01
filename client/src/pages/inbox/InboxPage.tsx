@@ -1839,7 +1839,7 @@ export function InboxPage() {
                           </div>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {conv.isStarred && <Star className="h-3 w-3 text-amber-400 fill-amber-400" />}
-                            <span className="text-[10px] text-[var(--text-tertiary)] font-data">{timeAgo(msg.received_at)}</span>
+                            <span className="text-[10px] text-[var(--text-tertiary)]">{timeAgo(msg.received_at)}</span>
                           </div>
                         </div>
                         <p className={`text-[12px] truncate ${conv.hasUnread ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`}>
