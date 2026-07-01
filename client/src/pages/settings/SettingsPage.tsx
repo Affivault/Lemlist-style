@@ -288,8 +288,8 @@ export function SettingsPage() {
             {activeTab === 'profile' && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-[var(--text-primary)]">Profile Information</h2>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1">Update your personal details</p>
+                  <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">Profile Information</h2>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-1">Update your personal details</p>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
@@ -308,7 +308,7 @@ export function SettingsPage() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">First Name</label>
+                    <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">First Name</label>
                     <input
                       type="text"
                       value={firstName}
@@ -318,7 +318,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Last Name</label>
+                    <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">Last Name</label>
                     <input
                       type="text"
                       value={lastName}
@@ -331,7 +331,7 @@ export function SettingsPage() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Company</label>
+                    <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">Company</label>
                     <input
                       type="text"
                       value={company}
@@ -341,7 +341,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Job Title</label>
+                    <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">Job Title</label>
                     <input
                       type="text"
                       value={jobTitle}
@@ -353,7 +353,7 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Email</label>
+                  <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">Email</label>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3.5 py-2.5">
                       <Mail className="h-4 w-4 text-[var(--text-tertiary)]" />
@@ -367,7 +367,7 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">
                     <Globe className="inline h-3.5 w-3.5 mr-1.5 text-[var(--text-tertiary)]" />
                     Timezone
                   </label>
@@ -396,8 +396,8 @@ export function SettingsPage() {
             {activeTab === 'account' && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-[var(--text-primary)]">Account Security</h2>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1">Manage your password and security settings</p>
+                  <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">Account Security</h2>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-1">Manage your password and security settings</p>
                 </div>
 
                 {/* Change Password */}
@@ -569,8 +569,8 @@ export function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-[var(--text-primary)]">Notifications</h2>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1">Choose what notifications you receive</p>
+                  <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">Notifications</h2>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-1">Choose what notifications you receive</p>
                 </div>
 
                 <div className="space-y-3">
@@ -606,8 +606,8 @@ export function SettingsPage() {
             {activeTab === 'preferences' && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-[var(--text-primary)]">Preferences</h2>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1">Customize your experience</p>
+                  <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">Preferences</h2>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-1">Customize your experience</p>
                 </div>
 
                 <div>
@@ -635,7 +635,7 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">
                     Default Email Signature
                   </label>
                   <textarea
@@ -651,7 +651,7 @@ export function SettingsPage() {
                 </div>
 
                 <div className="pt-2">
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Deliverability</label>
+                  <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-1.5">Deliverability</label>
                   <ToggleSetting
                     label="Auto-verify contacts"
                     description="Automatically check new and imported contacts in the background (syntax, mail server & mailbox) so the verification status stays up to date."
@@ -666,8 +666,8 @@ export function SettingsPage() {
             {activeTab === 'ai' && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-[var(--text-primary)]">AI Features</h2>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1">
+                  <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">AI Features</h2>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-1">
                     Configure intelligent email tagging and AI-powered reply assistance
                   </p>
                 </div>
@@ -798,10 +798,10 @@ function ToggleSetting({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors">
-      <div>
-        <p className="text-sm font-medium text-[var(--text-primary)]">{label}</p>
-        <p className="text-xs text-[var(--text-tertiary)] mt-0.5">{description}</p>
+    <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors">
+      <div className="min-w-0">
+        <p className="text-[13px] font-medium text-[var(--text-primary)]">{label}</p>
+        <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5 leading-snug">{description}</p>
       </div>
       <Toggle checked={checked} onChange={onChange} aria-label={label} />
     </div>
